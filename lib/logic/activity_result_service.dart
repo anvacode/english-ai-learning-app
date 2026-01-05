@@ -48,7 +48,7 @@ class ActivityResultService {
     }
   }
 
-  /// Limpia todos los resultados guardados (útil para testing o reset).
+  /// Limpia todos los resultados guardados
   static Future<void> clearActivityResults() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_resultsKey);

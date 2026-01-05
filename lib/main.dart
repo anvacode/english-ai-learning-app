@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'logic/student_service.dart';
 import 'models/student.dart';
+import 'screens/lesson_screen.dart';
+import 'data/lessons_data.dart';
 
 void main() {
   runApp(const MyApp());
@@ -62,44 +64,19 @@ class _StudentInitializerState extends State<StudentInitializer> {
         }
 
         final student = snapshot.data!;
+        final firstLesson = lessonsList.isNotEmpty ? lessonsList[0] : null;
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('English AI App'),
-          ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Bienvenido a English AI App',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 32),
-                // Información técnica: ID del estudiante para verificación
-                const Text(
-                  'ID del Estudiante (verificación técnica):',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    student.id,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ),
-              ],
+        if (firstLesson == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Error')),
+            body: const Center(
+              child: Text('No lessons available'),
             ),
-          ),
-        );
+          );
+        }
+
+        // Navegar automáticamente a la lección
+        return LessonScreen(lesson: firstLesson);
       },
     );
   }
