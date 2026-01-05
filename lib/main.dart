@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'logic/student_service.dart';
 import 'models/student.dart';
-import 'screens/lesson_screen.dart';
-import 'data/lessons_data.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,19 +63,9 @@ class _StudentInitializerState extends State<StudentInitializer> {
         }
 
         final student = snapshot.data!;
-        final firstLesson = lessonsList.isNotEmpty ? lessonsList[0] : null;
 
-        if (firstLesson == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: const Center(
-              child: Text('No lessons available'),
-            ),
-          );
-        }
-
-        // Navegar automáticamente a la lección
-        return LessonScreen(lesson: firstLesson);
+        // Navegar a la pantalla principal con navegación
+        return const HomeScreen();
       },
     );
   }
