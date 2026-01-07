@@ -53,4 +53,65 @@ class ActivityResultService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_resultsKey);
   }
+
+  /// Calcula métricas de desempeño para una lección específica.
+  /// 
+  /// Retorna un mapa con:
+  /// - 'totalAttempts': número total de intentos
+  /// - 'correctAttempts': número de respuestas correctas
+  /// - 'accuracyPercentage': porcentaje de precisión (0-100)
+  static Future<Map<String, dynamic>> getLessonMetrics(String lessonId) async {
+    final allResults = await getActivityResults();
+    
+    final lessonResults = allResults
+        .where((result) => result.lessonId == lessonId)
+        .toList();
+    
+    if (lessonResults.isEmpty) {
+      return {
+        'totalAttempts': 0,
+        'correctAttempts': 0,
+        'accuracyPercentage': 0.0,
+      };
+    }
+    
+    final correctAttempts = lessonResults
+        .where((result) => result.isCorrect)
+        .length;
+    
+    final totalAttempts = lessonResults.length;
+    final accuracyPercentage = (correctAttempts / totalAttempts) * 100;
+    
+    return {
+      'totalAttempts': totalAttempts,
+      'correctAttempts': correctAttempts,
+      'accuracyPercentage': accuracyPercentage,
+    };
+  }
+
+  /// Calcula métricas globales de todas las lecciones.
+  static Future<Map<String, dynamic>> getGlobalMetrics() async {
+    final allResults = await getActivityResults();
+    
+    if (allResults.isEmpty) {
+      return {
+        'totalAttempts': 0,
+        'correctAttempts': 0,
+        'accuracyPercentage': 0.0,
+      };
+    }
+    
+    final correctAttempts = allResults
+        .where((result) => result.isCorrect)
+        .length;
+    
+    final totalAttempts = allResults.length;
+    final accuracyPercentage = (correctAttempts / totalAttempts) * 100;
+    
+    return {
+      'totalAttempts': totalAttempts,
+      'correctAttempts': correctAttempts,
+      'accuracyPercentage': accuracyPercentage,
+    };
+  }
 }

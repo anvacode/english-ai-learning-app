@@ -62,4 +62,17 @@ class MasteryEvaluator {
     // Hay resultados pero no alcanza dominio
     return LessonMasteryStatus.inProgress;
   }
+
+  /// Evalúa si todas las lecciones en una lista están dominadas.
+  Future<bool> areAllLessonsMastered(List<String> lessonIds) async {
+    if (lessonIds.isEmpty) return true;
+
+    for (final lessonId in lessonIds) {
+      final status = await evaluateLesson(lessonId);
+      if (status != LessonMasteryStatus.mastered) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
