@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../data/lessons_data.dart';
 import '../logic/mastery_evaluator.dart';
+import '../logic/badge_service.dart';
 import '../models/lesson.dart';
+import '../models/lesson_exercise.dart';
+import '../models/badge.dart' as achievement;
 import 'lesson_screen.dart';
+import 'lesson_flow_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
   const LessonsScreen({super.key});
@@ -36,6 +40,33 @@ class _LessonsScreenState extends State<LessonsScreen> {
     }
   }
 
+  Future<void> _openLesson(Lesson lesson) async {
+    final lessonStateChanged = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          // Use LessonFlowScreen for Animals lesson (with matching exercise)
+          if (lesson.id == 'animals') {
+            return LessonFlowScreen(
+              lesson: lesson,
+              exercises: const [
+                LessonExercise(type: ExerciseType.multipleChoice),
+                LessonExercise(type: ExerciseType.matching),
+              ],
+            );
+          }
+          // Use standard LessonScreen for other lessons
+          return LessonScreen(lesson: lesson);
+        },
+      ),
+    );
+    
+    // If lesson state changed (completed), rebuild this screen
+    if (lessonStateChanged == true) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,106 +84,91 @@ class _LessonsScreenState extends State<LessonsScreen> {
                 final isBeginnerLevel = levelIndex == 0;
                 final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Level title with lock indicator
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            level.title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
+                return FutureBuilder<bool>(
+                  future: isBeginnerLevel
+                      ? Future.value(true)
+                      : previousLevel != null
+                          ? _evaluator.areAllLessonsMastered(
+                              previousLevel.lessons.map((l) => l.id).toList(),
+                            )
+                          : Future.value(true),
+                  builder: (context, snapshot) {
+                    final isLevelUnlocked = snapshot.data ?? false;
+
+                    // Lock indicator for non-beginner levels
+                    final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
+                        ? ' 🔒'
+                        : '';
+
+                    // Build expansion tile content
+                    Widget tileContent;
+                    if (level.lessons.isEmpty) {
+                      tileContent = Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'No lessons available',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
-                        if (!isBeginnerLevel)
-                          FutureBuilder<bool>(
-                            future: previousLevel != null
-                                ? _evaluator.areAllLessonsMastered(
-                                    previousLevel.lessons.map((l) => l.id).toList(),
-                                  )
-                                : Future.value(true),
-                            builder: (context, snapshot) {
-                              final isUnlocked = snapshot.data ?? false;
-                              if (!isUnlocked) {
-                                return const Padding(
-                                  padding: EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    '🔒',
-                                    style: TextStyle(fontSize: 18),
-                                  ),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            },
+                      );
+                    } else if (!isLevelUnlocked && !isBeginnerLevel) {
+                      tileContent = Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Text(
+                          'Completa el nivel anterior para desbloquear',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 8.0),
-                    // Lessons in this level
-                    FutureBuilder<bool>(
-                      future: isBeginnerLevel
-                          ? Future.value(true)
-                          : previousLevel != null
-                              ? _evaluator.areAllLessonsMastered(
-                                  previousLevel.lessons.map((l) => l.id).toList(),
-                                )
-                              : Future.value(true),
-                      builder: (context, snapshot) {
-                        final isLevelUnlocked = snapshot.data ?? false;
+                        ),
+                      );
+                    } else {
+                      tileContent = Column(
+                        children: level.lessons
+                            .map((lesson) => LessonListItem(
+                                  lesson: lesson,
+                                  evaluator: _evaluator,
+                                  getStatusColor: _getStatusColor,
+                                  getStatusText: _getStatusText,
+                                  isLocked: !isLevelUnlocked && !isBeginnerLevel,
+                                  onTap: () => _openLesson(lesson),
+                                ))
+                            .toList(),
+                      );
+                    }
 
-                        if (level.lessons.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'No lessons available',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          );
-                        }
-
-                        if (!isLevelUnlocked && !isBeginnerLevel) {
-                          return Container(
-                            padding: const EdgeInsets.all(12.0),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Text(
-                              'Completa el nivel anterior para desbloquear',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          children: level.lessons
-                              .map((lesson) => LessonListItem(
-                                    lesson: lesson,
-                                    evaluator: _evaluator,
-                                    getStatusColor: _getStatusColor,
-                                    getStatusText: _getStatusText,
-                                    isLocked: !isLevelUnlocked && !isBeginnerLevel,
-                                  ))
-                              .toList(),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12.0),
-                  ],
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
+                      child: ExpansionTile(
+                        initiallyExpanded: true,
+                        title: Text(
+                          '${level.title}$lockIcon',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            child: tileContent,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -167,6 +183,7 @@ class LessonListItem extends StatelessWidget {
   final Function(LessonMasteryStatus) getStatusColor;
   final Function(LessonMasteryStatus) getStatusText;
   final bool isLocked;
+  final VoidCallback onTap;
 
   const LessonListItem({
     super.key,
@@ -174,6 +191,7 @@ class LessonListItem extends StatelessWidget {
     required this.evaluator,
     required this.getStatusColor,
     required this.getStatusText,
+    required this.onTap,
     this.isLocked = false,
   });
 
@@ -182,16 +200,7 @@ class LessonListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
       child: InkWell(
-        onTap: isLocked
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LessonScreen(lesson: lesson),
-                  ),
-                );
-              },
+        onTap: isLocked ? null : onTap,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Opacity(
@@ -204,14 +213,36 @@ class LessonListItem extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        lesson.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              lesson.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Badge icon if mastered
+                          FutureBuilder<achievement.Badge?>(
+                            future: BadgeService.getBadge(lesson),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData && snapshot.data != null && snapshot.data!.unlocked) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(
+                                    snapshot.data!.icon,
+                                    style: const TextStyle(fontSize: 20),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(

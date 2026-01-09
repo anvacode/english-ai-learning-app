@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/lesson.dart';
 import '../models/lesson_item.dart';
+import '../models/lesson_exercise.dart';
 import '../models/lesson_category.dart';
 import '../models/lesson_level.dart';
 
@@ -83,6 +84,9 @@ final List<Lesson> lessonsList = [
         correctAnswerIndex: 0,
       ),
     ],
+    exercises: const [
+      LessonExercise(type: ExerciseType.multipleChoice),
+    ],
   ),
   Lesson(
     id: 'fruits',
@@ -146,6 +150,9 @@ final List<Lesson> lessonsList = [
         correctAnswerIndex: 0,
       ),
     ],
+    exercises: const [
+      LessonExercise(type: ExerciseType.multipleChoice),
+    ],
   ),
   Lesson(
     id: 'animals',
@@ -208,6 +215,10 @@ final List<Lesson> lessonsList = [
         options: ['fish', 'bird', 'snake'],
         correctAnswerIndex: 0,
       ),
+    ],
+    exercises: const [
+      LessonExercise(type: ExerciseType.multipleChoice),
+      LessonExercise(type: ExerciseType.matching),
     ],
   ),
 ];

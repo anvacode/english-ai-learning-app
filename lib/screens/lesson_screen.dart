@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/lesson.dart';
 import '../models/activity_result.dart';
+import '../models/matching_item.dart';
 import '../logic/activity_result_service.dart';
 import '../logic/lesson_progress_evaluator.dart';
+import '../logic/badge_service.dart';
+import '../logic/lesson_controller.dart';
+import '../models/badge.dart' as achievement;
+import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
   final Lesson lesson;
+  final VoidCallback? onExerciseCompleted; // Callback when this exercise completes
 
-  const LessonScreen({super.key, required this.lesson});
+  const LessonScreen({
+    super.key,
+    required this.lesson,
+    this.onExerciseCompleted,
+  });
 
   @override
   State<LessonScreen> createState() => _LessonScreenState();
@@ -20,21 +31,38 @@ class _LessonScreenState extends State<LessonScreen> {
   LessonProgressStatus status = LessonProgressStatus.notStarted;
   int currentItemIndex = 0;
 
+  // Completion flag to prevent looping
+  bool _exerciseCompleted = false;
+
   // Temporary UI interaction state (reset per item)
   int? _selectedAnswerIndex;
   bool _answered = false;
   bool? _isCorrect;
+  
+  // Randomized options for current item
+  late List<String> _randomizedOptions;
+  late String _correctAnswerValue; // The correct answer as a string, not index
+  
+  // Badge state
+  achievement.Badge? _badge;
 
   @override
   void initState() {
     super.initState();
     totalCount = widget.lesson.items.length;
+    // Initialize LessonController with total questions for this exercise
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LessonController>().initializeLesson(totalCount);
+    });
     _loadProgressAndPosition();
   }
 
   Future<void> _loadProgressAndPosition() async {
     final service = LessonProgressService();
     final progress = await service.evaluate(widget.lesson);
+    
+    // Load badge
+    final badge = await BadgeService.getBadge(widget.lesson);
 
     // Determine first incomplete index from persisted results
     final results = await ActivityResultService.getActivityResults();
@@ -59,15 +87,30 @@ class _LessonScreenState extends State<LessonScreen> {
       totalCount = progress.totalCount;
       status = progress.status;
       currentItemIndex = firstIncomplete;
+      _badge = badge;
+      _randomizeOptions();
     });
+  }
+
+  /// Randomize options for the current item
+  void _randomizeOptions() {
+    if (currentItemIndex < widget.lesson.items.length) {
+      final currentItem = widget.lesson.items[currentItemIndex];
+      // Store the correct answer VALUE before shuffling
+      _correctAnswerValue = currentItem.options[currentItem.correctAnswerIndex];
+      // Shuffle options
+      _randomizedOptions = List<String>.from(currentItem.options);
+      _randomizedOptions.shuffle();
+    }
   }
 
   // Save answer first, then evaluate, then setState (persistence order enforced)
   Future<void> _handleOptionTap(int tappedIndex) async {
-    if (status == LessonProgressStatus.mastered) return;
+    if (status == LessonProgressStatus.mastered || _exerciseCompleted) return;
 
     final currentItem = widget.lesson.items[currentItemIndex];
-    final isCorrect = tappedIndex == currentItem.correctAnswerIndex;
+    final selectedOption = _randomizedOptions[tappedIndex];
+    final isCorrect = selectedOption == _correctAnswerValue;
 
     final result = ActivityResult(
       lessonId: widget.lesson.id,
@@ -83,7 +126,13 @@ class _LessonScreenState extends State<LessonScreen> {
     final service = LessonProgressService();
     final progress = await service.evaluate(widget.lesson);
 
-    // 3) Update UI with feedback
+    // Capture context before async operation
+    if (!mounted) return;
+    final lessonController = context.read<LessonController>();
+    
+    // 3) Update UI with feedback and progress via Provider
+    lessonController.submitAnswer(isCorrect: isCorrect);
+    
     setState(() {
       _selectedAnswerIndex = tappedIndex;
       _answered = true;
@@ -92,10 +141,30 @@ class _LessonScreenState extends State<LessonScreen> {
       totalCount = progress.totalCount;
       status = progress.status;
     });
+
+    // 4) Check if exercise is complete using Provider state
+    if (lessonController.isLessonCompleted && !_exerciseCompleted) {
+      // All items in this exercise are complete - call callback ONCE immediately
+      _exerciseCompleted = true; // Prevent looping
+      if (widget.onExerciseCompleted != null) {
+        // In flow mode: signal exercise completion immediately
+        if (mounted) {
+          widget.onExerciseCompleted!();
+        }
+      } else {
+        // Standalone mode: check for mastery and navigate
+        if (progress.status == LessonProgressStatus.mastered) {
+          _exitAfterMastery();
+        }
+      }
+    }
   }
 
   // Handle advancing to next item or retry
   Future<void> _onNextOrRetry() async {
+    // Don't advance if exercise is complete
+    if (_exerciseCompleted) return;
+    
     if (_isCorrect == true) {
       // Correct answer: advance to next incomplete item
       final results = await ActivityResultService.getActivityResults();
@@ -118,6 +187,7 @@ class _LessonScreenState extends State<LessonScreen> {
         _selectedAnswerIndex = null;
         _answered = false;
         _isCorrect = null;
+        _randomizeOptions(); // Re-randomize for the new item
       });
     } else {
       // Incorrect: reset for retry
@@ -129,9 +199,96 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
+  // Navigate back to LessonsScreen after mastery
+  void _exitAfterMastery() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        // Standalone mode: check if animals lesson and navigate to matching
+        if (widget.lesson.id == 'animals') {
+          _navigateToMatchingExercise();
+        } else {
+          Navigator.pop(context, true); // Return true to signal state changed
+        }
+      }
+    });
+  }
+
+  void _navigateToMatchingExercise() {
+    // Build matching items for animals
+    final matchingItems = [
+      const MatchingItem(
+        id: 'dog',
+        imagePath: 'assets/images/animals/dog.jpg',
+        correctWord: 'dog',
+        title: 'Perro',
+      ),
+      const MatchingItem(
+        id: 'cat',
+        imagePath: 'assets/images/animals/cat.jpg',
+        correctWord: 'cat',
+        title: 'Gato',
+      ),
+      const MatchingItem(
+        id: 'cow',
+        imagePath: 'assets/images/animals/cow.jpg',
+        correctWord: 'cow',
+        title: 'Vaca',
+      ),
+    ];
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MatchingExerciseScreen(
+          lessonId: widget.lesson.id,
+          title: widget.lesson.title,
+          items: matchingItems,
+        ),
+      ),
+    ).then((result) {
+      // When matching exercise returns, pop this screen with true to signal completion
+      if (result == true && mounted) {
+        Navigator.pop(context, true);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = widget.lesson.items;
+    
+    // If exercise is complete, show completion feedback and stop rendering
+    if (_exerciseCompleted) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Lección')),
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '✓ Correcto',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '🎉 Ejercicio completado',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
     if (currentItemIndex >= items.length) {
       return Scaffold(
         appBar: AppBar(title: const Text('Lección')),
@@ -149,11 +306,15 @@ class _LessonScreenState extends State<LessonScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: LinearProgressIndicator(
-                value: totalCount > 0 ? (completedCount / totalCount) : 0,
-                backgroundColor: Colors.grey[300],
-                color: Colors.deepPurple,
-                minHeight: 8,
+              child: Consumer<LessonController>(
+                builder: (context, lessonController, _) {
+                  return LinearProgressIndicator(
+                    value: lessonController.progress,
+                    backgroundColor: Colors.grey[300],
+                    color: Colors.deepPurple,
+                    minHeight: 8,
+                  );
+                },
               ),
             ),
 
@@ -225,7 +386,7 @@ class _LessonScreenState extends State<LessonScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Column(
                       children: List.generate(
-                        currentItem.options.length,
+                        _randomizedOptions.length,
                         (index) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 6.0),
                           child: SizedBox(
@@ -244,13 +405,13 @@ class _LessonScreenState extends State<LessonScreen> {
                                     ? Colors.deepPurple
                                     : Colors.grey[200],
                                 disabledBackgroundColor: _answered
-                                    ? (index == currentItem.correctAnswerIndex
+                                    ? (_randomizedOptions[index] == _correctAnswerValue
                                         ? Colors.green[300]
                                         : Colors.grey[300])
                                     : Colors.grey[200],
                               ),
                               child: Text(
-                                currentItem.options[index],
+                                _randomizedOptions[index],
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: _selectedAnswerIndex == index && !_answered
@@ -328,9 +489,22 @@ class _LessonScreenState extends State<LessonScreen> {
                   if (status == LessonProgressStatus.mastered)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      child: const Text(
-                        '🎉 ¡Lección dominada!',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            '🎉 ¡Lección dominada!',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          if (_badge != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
 

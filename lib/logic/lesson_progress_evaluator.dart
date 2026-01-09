@@ -22,14 +22,40 @@ class LessonProgress {
   });
 }
 
-/// Servicio único que calcula progreso de lecciones.
+/// Servizio único que calcula progreso de lecciones.
 ///
-/// Reglas estrictas (no variaciones):
-/// - filtra resultados por lessonId e isCorrect == true
-/// - cuenta itemIds únicos
-/// - aplica reglas exactas para el estado
+/// Reglas estrictas (basadas en ejercicios, no en intentos):
+/// - Cuenta ejercicios completados (max 1 por ejercicio)
+/// - Progress = ejercicios completados / total de ejercicios
+/// - El estado se determina por progress
 class LessonProgressService {
   Future<LessonProgress> evaluate(Lesson lesson) async {
+    // If lesson has no exercises defined, fall back to item-based progress
+    // (for backward compatibility with existing lessons)
+    if (lesson.exercises.isEmpty) {
+      return _evaluateItemBased(lesson);
+    }
+
+    // Exercise-based progress calculation
+    final completedExercises = await _getCompletedExercises(lesson);
+    final completedCount = completedExercises.length;
+    final totalCount = lesson.exercises.length;
+
+    final status = completedCount == 0
+        ? LessonProgressStatus.notStarted
+        : (completedCount < totalCount
+            ? LessonProgressStatus.inProgress
+            : LessonProgressStatus.mastered);
+
+    return LessonProgress(
+      completedCount: completedCount,
+      totalCount: totalCount,
+      status: status,
+    );
+  }
+
+  /// Item-based progress (legacy, for lessons without exercise definitions)
+  Future<LessonProgress> _evaluateItemBased(Lesson lesson) async {
     final allResults = await ActivityResultService.getActivityResults();
 
     final correctResults = allResults.where((r) =>
@@ -55,5 +81,52 @@ class LessonProgressService {
       totalCount: totalCount,
       status: status,
     );
+  }
+
+  /// Get the list of completed exercises for a lesson
+  Future<List<String>> _getCompletedExercises(Lesson lesson) async {
+    final completedExercises = <String>[];
+
+    // Check each exercise type
+    for (int i = 0; i < lesson.exercises.length; i++) {
+      final exercise = lesson.exercises[i];
+      final isCompleted = await _isExerciseCompleted(lesson, exercise, i);
+      if (isCompleted) {
+        completedExercises.add('exercise_$i');
+      }
+    }
+
+    return completedExercises;
+  }
+
+  /// Check if a specific exercise is completed
+  Future<bool> _isExerciseCompleted(
+    Lesson lesson,
+    dynamic exercise,
+    int exerciseIndex,
+  ) async {
+    final allResults = await ActivityResultService.getActivityResults();
+
+    // For multipleChoice exercises: check if all items are completed
+    if (exercise.type.toString() == 'ExerciseType.multipleChoice') {
+      final itemIds = lesson.items.map((item) => item.id).toSet();
+      final completedIds = allResults
+          .where((r) => r.lessonId == lesson.id && r.isCorrect)
+          .map((r) => r.itemId)
+          .toSet();
+      
+      // Exercise complete if all items are completed
+      return itemIds.every((id) => completedIds.contains(id));
+    }
+
+    // For matching exercises: check for matching_exercise result
+    if (exercise.type.toString() == 'ExerciseType.matching') {
+      return allResults.any((r) =>
+          r.lessonId == lesson.id &&
+          r.itemId == 'matching_exercise' &&
+          r.isCorrect);
+    }
+
+    return false;
   }
 }

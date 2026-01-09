@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'logic/student_service.dart';
+import 'logic/lesson_controller.dart';
 import 'models/student.dart';
 import 'screens/home_screen.dart';
 
@@ -12,12 +14,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'English AI App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return ChangeNotifierProvider(
+      create: (context) => LessonController(),
+      child: MaterialApp(
+        title: 'English AI App',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        ),
+        home: const StudentInitializer(),
       ),
-      home: const StudentInitializer(),
     );
   }
 }
@@ -61,8 +66,6 @@ class _StudentInitializerState extends State<StudentInitializer> {
             ),
           );
         }
-
-        final student = snapshot.data!;
 
         // Navegar a la pantalla principal con navegación
         return const HomeScreen();
