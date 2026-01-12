@@ -221,6 +221,72 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
+  Lesson(
+    id: 'classroom',
+    title: 'Objetos del aula',
+    question: '¿Qué objeto es este?',
+    items: [
+      LessonItem(
+        id: 'book',
+        title: 'Libro',
+        stimulusImageAsset: 'assets/images/classroom/book.jpg',
+        options: ['book', 'notebook', 'pencil'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'pencil',
+        title: 'Lápiz',
+        stimulusImageAsset: 'assets/images/classroom/pencil.jpg',
+        options: ['pencil', 'eraser', 'ruler'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'chair',
+        title: 'Silla',
+        stimulusImageAsset: 'assets/images/classroom/chair.jpg',
+        options: ['chair', 'table', 'backpack'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'table',
+        title: 'Mesa',
+        stimulusImageAsset: 'assets/images/classroom/table.jpg',
+        options: ['table', 'chair', 'notebook'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'notebook',
+        title: 'Cuaderno',
+        stimulusImageAsset: 'assets/images/classroom/notebook.jpg',
+        options: ['notebook', 'book', 'pencil'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'backpack',
+        title: 'Mochila',
+        stimulusImageAsset: 'assets/images/classroom/backpack.jpg',
+        options: ['backpack', 'chair', 'table'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'eraser',
+        title: 'Borrador',
+        stimulusImageAsset: 'assets/images/classroom/eraser.jpg',
+        options: ['eraser', 'pencil', 'ruler'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'ruler',
+        title: 'Regla',
+        stimulusImageAsset: 'assets/images/classroom/ruler.jpg',
+        options: ['ruler', 'eraser', 'pencil'],
+        correctAnswerIndex: 0,
+      ),
+    ],
+    exercises: const [
+      LessonExercise(type: ExerciseType.multipleChoice),
+    ],
+  ),
 ];
 
 /// Niveles educativos agrupando lecciones por dificultad.
@@ -228,7 +294,7 @@ final List<LessonLevel> lessonLevels = [
   LessonLevel(
     id: 'beginner',
     title: 'Principiante',
-    lessons: [lessonsList[0], lessonsList[1], lessonsList[2]], // Colors, Fruits, and Animals lessons
+    lessons: [lessonsList[0], lessonsList[1], lessonsList[2], lessonsList[3]], // Colors, Fruits, Animals, and Classroom Objects lessons
   ),
   LessonLevel(
     id: 'intermediate',
