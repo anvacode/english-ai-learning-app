@@ -292,11 +292,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Helper: Get lessons progress data
   Future<List<_LessonProgressItem>> _getLessonsProgress() async {
     final service = LessonProgressService();
+    final evaluator = MasteryEvaluator();
     final progressItems = <_LessonProgressItem>[];
 
     for (final lesson in lessonsList) {
       final progress = await service.evaluate(lesson);
       final badge = await BadgeService.getBadge(lesson);
+      
+      // Get actual mastery status (not accumulated progress evaluation)
+      final masteryStatus = await evaluator.evaluateLesson(lesson.id);
+      
+      // Convert LessonMasteryStatus to LessonProgressStatus (same values)
+      final displayStatus = switch (masteryStatus) {
+        LessonMasteryStatus.notStarted => LessonProgressStatus.notStarted,
+        LessonMasteryStatus.inProgress => LessonProgressStatus.inProgress,
+        LessonMasteryStatus.mastered => LessonProgressStatus.mastered,
+      };
 
       progressItems.add(
         _LessonProgressItem(
@@ -304,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: lesson.title,
           completedCount: progress.completedCount,
           totalCount: progress.totalCount,
-          status: progress.status,
+          status: displayStatus,
           badge: badge,
         ),
       );

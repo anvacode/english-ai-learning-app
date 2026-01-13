@@ -5,6 +5,7 @@ import '../models/activity_result.dart';
 import '../models/matching_item.dart';
 import '../logic/activity_result_service.dart';
 import '../logic/lesson_progress_evaluator.dart';
+import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_controller.dart';
 import '../models/badge.dart' as achievement;
@@ -168,14 +169,33 @@ class _LessonScreenState extends State<LessonScreen> {
     if (lessonController.isLessonCompleted && !_exerciseCompleted) {
       // All items in this exercise are complete - call callback ONCE immediately
       _exerciseCompleted = true; // Prevent looping
+      
+      // A lesson is mastered ONLY if the current attempt is perfect (100% correct)
+      final isCurrentAttemptPerfect = lessonController.correctAnswers == lessonController.totalQuestions;
+      
+      if (isCurrentAttemptPerfect) {
+        // Save lesson completion record (source of truth for mastery)
+        await LessonCompletionService.saveCompletion(widget.lesson.id);
+        
+        // Award badge (only on first perfect completion)
+        final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
+        if (badgeJustAwarded && mounted) {
+          // Reload badge to show it was just awarded
+          final badge = await BadgeService.getBadge(widget.lesson);
+          setState(() {
+            _badge = badge;
+          });
+        }
+      }
+      
       if (widget.onExerciseCompleted != null) {
         // In flow mode: signal exercise completion immediately
         if (mounted) {
           widget.onExerciseCompleted!();
         }
       } else {
-        // Standalone mode: check for mastery and navigate
-        if (progress.status == LessonProgressStatus.mastered) {
+        // Standalone mode: navigate after mastery (only if perfect attempt)
+        if (isCurrentAttemptPerfect) {
           _exitAfterMastery();
         }
       }

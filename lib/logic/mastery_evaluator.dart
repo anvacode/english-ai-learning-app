@@ -1,72 +1,55 @@
 import '../logic/activity_result_service.dart';
-import '../data/lessons_data.dart';
+import '../logic/lesson_completion_service.dart';
 
 /// Estados posibles del dominio de una lección.
 enum LessonMasteryStatus {
   /// La lección no ha sido iniciada (sin resultados).
   notStarted,
 
-  /// La lección ha sido iniciada pero no alcanza dominio.
+  /// La lección ha sido iniciada pero no fue dominada (attempted but not perfect).
   inProgress,
 
-  /// La lección ha sido dominada (80% accuracy AND all items completed at least once correctly).
+  /// La lección ha sido dominada (100% correct in a single attempt).
   mastered,
 }
 
-/// Evaluador de dominio de lecciones basado en criterios de precisión.
+/// Evaluador de dominio de lecciones basado en LessonCompletion records.
 /// 
-/// Criterio: Una lección se considera dominada cuando:
-/// 1. Todos los items han sido respondidos correctamente al menos una vez
-/// 2. La precisión global es >= 80%
+/// IMPORTANT: Lesson mastery is determined by the presence of a LessonCompletion record,
+/// NOT by analyzing ActivityResult data.
+/// 
+/// State logic:
+/// - mastered: LessonCompletion exists for this lesson
+/// - inProgress: No LessonCompletion, but at least one ActivityResult exists
+/// - notStarted: No LessonCompletion and no ActivityResult
 class MasteryEvaluator {
   /// Evalúa el estado de dominio de una lección.
   /// 
   /// [lessonId] identificador único de la lección.
   /// 
   /// Retorna:
-  /// - [LessonMasteryStatus.notStarted] si no hay resultados para la lección
-  /// - [LessonMasteryStatus.mastered] si todos los items completados y precisión >= 80%
-  /// - [LessonMasteryStatus.inProgress] si hay resultados pero no alcanza dominio
+  /// - [LessonMasteryStatus.mastered] si LessonCompletion existe
+  /// - [LessonMasteryStatus.inProgress] si hay ActivityResults pero no LessonCompletion
+  /// - [LessonMasteryStatus.notStarted] si no hay registro alguno
   Future<LessonMasteryStatus> evaluateLesson(String lessonId) async {
-    // Obtener la lección para acceder a los items
-    final lesson = lessonsList.firstWhere(
-      (l) => l.id == lessonId,
-      orElse: () => throw Exception('Lesson not found: $lessonId'),
-    );
+    // Check 1: Is this lesson completed (mastered)?
+    final isCompleted = await LessonCompletionService.isLessonCompleted(lessonId);
+    if (isCompleted) {
+      return LessonMasteryStatus.mastered;
+    }
 
-    // Obtener todos los resultados
+    // Check 2: Has this lesson been attempted?
     final allResults = await ActivityResultService.getActivityResults();
-
-    // Filtrar resultados por lessonId
     final lessonResults = allResults
         .where((result) => result.lessonId == lessonId)
         .toList();
 
-    // Si no hay resultados, la lección no ha sido iniciada
     if (lessonResults.isEmpty) {
       return LessonMasteryStatus.notStarted;
     }
 
-    // Check 1: All items must be answered at least once correctly
-    final itemIds = lesson.items.map((item) => item.id).toSet();
-    final completedIds = lessonResults
-        .where((r) => r.isCorrect)
-        .map((r) => r.itemId)
-        .toSet();
-
-    final allItemsCompleted = itemIds.every((id) => completedIds.contains(id));
-    if (!allItemsCompleted) {
-      return LessonMasteryStatus.inProgress;
-    }
-
-    // Check 2: Accuracy must be >= 80%
-    final totalAttempts = lessonResults.length;
-    final correctAttempts = lessonResults.where((r) => r.isCorrect).length;
-    final accuracyPercentage = (correctAttempts * 100) ~/ totalAttempts;
-
-    return accuracyPercentage >= 80
-        ? LessonMasteryStatus.mastered
-        : LessonMasteryStatus.inProgress;
+    // Has ActivityResults but no LessonCompletion = in progress
+    return LessonMasteryStatus.inProgress;
   }
 
   /// Evalúa si todas las lecciones en una lista están dominadas.

@@ -19,6 +19,13 @@ class LessonsScreen extends StatefulWidget {
 
 class _LessonsScreenState extends State<LessonsScreen> {
   final _evaluator = MasteryEvaluator();
+  late Future<void> _lessonStatusesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _lessonStatusesFuture = Future.value(); // Initialize with completed future
+  }
 
   Color _getStatusColor(LessonMasteryStatus status) {
     switch (status) {
@@ -75,9 +82,12 @@ class _LessonsScreenState extends State<LessonsScreen> {
       ),
     );
     
-    // If lesson state changed (completed), rebuild this screen
+    // If lesson state changed (completed), rebuild lesson statuses
     if (lessonStateChanged == true) {
-      setState(() {});
+      setState(() {
+        // Recreate the future to force FutureBuilder to re-evaluate lesson statuses
+        _lessonStatusesFuture = Future.value();
+      });
     }
   }
 
@@ -85,18 +95,21 @@ class _LessonsScreenState extends State<LessonsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lecciones')),
-      body: lessonLevels.isEmpty
-          ? const Center(
-              child: Text('No lessons available'),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: lessonLevels.length,
-              itemBuilder: (context, index) {
-                final level = lessonLevels[index];
-                final levelIndex = index;
-                final isBeginnerLevel = levelIndex == 0;
-                final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
+      body: FutureBuilder<void>(
+        future: _lessonStatusesFuture,
+        builder: (context, snapshot) {
+          return lessonLevels.isEmpty
+              ? const Center(
+                  child: Text('No lessons available'),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: lessonLevels.length,
+                  itemBuilder: (context, index) {
+                    final level = lessonLevels[index];
+                    final levelIndex = index;
+                    final isBeginnerLevel = levelIndex == 0;
+                    final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
 
                 return FutureBuilder<bool>(
                   future: isBeginnerLevel
@@ -185,7 +198,9 @@ class _LessonsScreenState extends State<LessonsScreen> {
                   },
                 );
               },
-            ),
+            );
+        },
+      ),
     );
   }
 }
