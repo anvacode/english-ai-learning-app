@@ -1,63 +1,88 @@
 import 'package:flutter/foundation.dart';
+import '../models/lesson_attempt.dart';
 
 /// Controller for managing lesson state using Provider.
-/// Handles question progression and answer tracking for a single exercise.
+/// Handles lesson-level progress and per-attempt state through LessonAttempt.
 class LessonController extends ChangeNotifier {
-  int _currentQuestionIndex = 0;
+  /// Per-lesson progress state (persists across attempts)
   int _totalQuestions = 0;
-  int _correctAnswers = 0;
 
-  /// Current question index (0-based)
-  int get currentQuestionIndex => _currentQuestionIndex;
+  /// Current attempt session (reset on retry)
+  LessonAttempt? _currentAttempt;
 
-  /// Total number of questions in this exercise
+  /// Total number of questions in the lesson
   int get totalQuestions => _totalQuestions;
 
-  /// Number of correct answers so far
-  int get correctAnswers => _correctAnswers;
+  /// Current question index in the active attempt
+  int get currentQuestionIndex => _currentAttempt?.currentQuestionIndex ?? 0;
+
+  /// Number of correct answers in the active attempt
+  int get correctAnswers => _currentAttempt?.correctAnswersCount ?? 0;
 
   /// Progress as a value between 0.0 and 1.0
   double get progress {
-    if (_totalQuestions == 0) return 0.0;
-    return _correctAnswers / _totalQuestions;
+    if (_currentAttempt == null || _totalQuestions == 0) return 0.0;
+    return _currentAttempt!.progress;
   }
 
-  /// Whether all questions have been answered correctly
+  /// Whether the current attempt is complete (all questions correct)
   bool get isLessonCompleted {
-    if (_totalQuestions == 0) return false;
-    return _correctAnswers == _totalQuestions;
+    if (_currentAttempt == null) return false;
+    return _currentAttempt!.isComplete;
   }
 
-  /// Initialize the lesson with total number of questions
+  /// Initialize/start a lesson with a fresh attempt
   void initializeLesson(int totalQuestions) {
-    _currentQuestionIndex = 0;
     _totalQuestions = totalQuestions;
-    _correctAnswers = 0;
+    // Create a new attempt - this ensures retry always starts fresh
+    _currentAttempt = LessonAttempt(totalQuestions: totalQuestions);
     notifyListeners();
   }
 
-  /// Submit an answer and update progress
+  /// Submit an answer and update the current attempt
   /// 
   /// Parameters:
-  /// - isCorrect: whether the submitted answer was correct
-  void submitAnswer({required bool isCorrect}) {
+  /// - itemId: the ID of the question item
+  /// - selectedOption: the user's selected answer
+  /// - isCorrect: whether the answer is correct
+  void submitAnswer({
+    required String itemId,
+    required String selectedOption,
+    required bool isCorrect,
+  }) {
+    if (_currentAttempt == null) return;
+
+    // Record the selected answer
+    _currentAttempt!.recordSelectedAnswer(itemId, selectedOption);
+
     // Only increment correct count if the answer was correct
     if (isCorrect) {
-      _correctAnswers++;
+      _currentAttempt!.recordCorrectAnswer(itemId);
     }
-    
+
     // Move to next question
-    _currentQuestionIndex++;
-    
-    // Notify listeners exactly once
+    _currentAttempt!.nextQuestion();
+
+    // Notify listeners of progress update
     notifyListeners();
   }
 
-  /// Reset the lesson state
+  /// Reset the lesson state (only use for testing or explicit reset)
   void reset() {
-    _currentQuestionIndex = 0;
     _totalQuestions = 0;
-    _correctAnswers = 0;
+    _currentAttempt = null;
     notifyListeners();
   }
+
+  /// Decrement the question index for a retry attempt
+  /// Called when a user wants to retry the current question
+  void decrementQuestionIndex() {
+    if (_currentAttempt != null && _currentAttempt!.currentQuestionIndex > 0) {
+      _currentAttempt!.previousQuestion();
+      notifyListeners();
+    }
+  }
+
+  /// Get the current attempt (for testing or advanced scenarios)
+  LessonAttempt? get currentAttempt => _currentAttempt;
 }

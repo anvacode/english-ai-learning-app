@@ -63,6 +63,12 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
   @override
   Widget build(BuildContext context) {
     final exercise = widget.exercises[_currentExerciseIndex];
+    final exerciseCount = widget.exercises.length;
+    
+    // Calculate progress offset and scale based on current exercise
+    // If there are 2 exercises: MC is 0.0-0.5, Matching is 0.5-1.0
+    final progressScale = 1.0 / exerciseCount;
+    final progressOffset = _currentExerciseIndex * progressScale;
 
     // Build the appropriate exercise screen based on type
     Widget exerciseScreen;
@@ -72,6 +78,8 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
           key: ValueKey('mc-$_currentExerciseIndex'),
           lesson: widget.lesson,
           onComplete: _onExerciseComplete,
+          progressOffset: progressOffset,
+          progressScale: progressScale,
         );
         break;
 
@@ -80,6 +88,8 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
           key: ValueKey('matching-$_currentExerciseIndex'),
           lesson: widget.lesson,
           onComplete: _onExerciseComplete,
+          progressOffset: progressOffset,
+          progressScale: progressScale,
         );
         break;
     }
@@ -94,11 +104,15 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
 class _MultipleChoiceExerciseWrapper extends StatefulWidget {
   final Lesson lesson;
   final VoidCallback onComplete;
+  final double progressOffset;
+  final double progressScale;
 
   const _MultipleChoiceExerciseWrapper({
     super.key,
     required this.lesson,
     required this.onComplete,
+    required this.progressOffset,
+    required this.progressScale,
   });
 
   @override
@@ -111,8 +125,11 @@ class _MultipleChoiceExerciseWrapperState
   @override
   Widget build(BuildContext context) {
     return LessonScreen(
+      key: UniqueKey(),
       lesson: widget.lesson,
       onExerciseCompleted: widget.onComplete,
+      progressOffset: widget.progressOffset,
+      progressScale: widget.progressScale,
     );
   }
 }
@@ -121,11 +138,15 @@ class _MultipleChoiceExerciseWrapperState
 class _MatchingExerciseWrapper extends StatefulWidget {
   final Lesson lesson;
   final VoidCallback onComplete;
+  final double progressOffset;
+  final double progressScale;
 
   const _MatchingExerciseWrapper({
     super.key,
     required this.lesson,
     required this.onComplete,
+    required this.progressOffset,
+    required this.progressScale,
   });
 
   @override
@@ -144,6 +165,8 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
       title: widget.lesson.title,
       items: matchingItems,
       onComplete: widget.onComplete,
+      progressOffset: widget.progressOffset,
+      progressScale: widget.progressScale,
     );
   }
 
@@ -168,6 +191,81 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
           imagePath: 'assets/images/animals/cow.jpg',
           correctWord: 'cow',
           title: 'Vaca',
+        ),
+        const MatchingItem(
+          id: 'chicken',
+          imagePath: 'assets/images/animals/chicken.jpg',
+          correctWord: 'chicken',
+          title: 'Pollo',
+        ),
+        const MatchingItem(
+          id: 'horse',
+          imagePath: 'assets/images/animals/horse.jpg',
+          correctWord: 'horse',
+          title: 'Caballo',
+        ),
+        const MatchingItem(
+          id: 'elephant',
+          imagePath: 'assets/images/animals/elephant.jpg',
+          correctWord: 'elephant',
+          title: 'Elefante',
+        ),
+        const MatchingItem(
+          id: 'bird',
+          imagePath: 'assets/images/animals/bird.jpg',
+          correctWord: 'bird',
+          title: 'Pájaro',
+        ),
+        const MatchingItem(
+          id: 'fish',
+          imagePath: 'assets/images/animals/fish.jpg',
+          correctWord: 'fish',
+          title: 'Pez',
+        ),
+      ];
+    } else if (lessonId == 'family_1') {
+      return [
+        const MatchingItem(
+          id: 'mother',
+          imagePath: 'assets/images/family/mother.jpg',
+          correctWord: 'mother',
+          title: 'Madre',
+        ),
+        const MatchingItem(
+          id: 'father',
+          imagePath: 'assets/images/family/father.jpg',
+          correctWord: 'father',
+          title: 'Padre',
+        ),
+        const MatchingItem(
+          id: 'brother',
+          imagePath: 'assets/images/family/brother.jpg',
+          correctWord: 'brother',
+          title: 'Hermano',
+        ),
+        const MatchingItem(
+          id: 'sister',
+          imagePath: 'assets/images/family/sister.jpg',
+          correctWord: 'sister',
+          title: 'Hermana',
+        ),
+        const MatchingItem(
+          id: 'grandfather',
+          imagePath: 'assets/images/family/grandfather.jpg',
+          correctWord: 'grandfather',
+          title: 'Abuelo',
+        ),
+        const MatchingItem(
+          id: 'grandmother',
+          imagePath: 'assets/images/family/grandmother.jpg',
+          correctWord: 'grandmother',
+          title: 'Abuela',
+        ),
+        const MatchingItem(
+          id: 'family',
+          imagePath: 'assets/images/family/family.jpg',
+          correctWord: 'family',
+          title: 'Familia',
         ),
       ];
     }

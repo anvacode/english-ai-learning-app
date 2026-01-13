@@ -8,6 +8,8 @@ class MatchingExerciseScreen extends StatefulWidget {
   final String title;
   final List<MatchingItem> items;
   final VoidCallback? onComplete; // Optional callback for flow orchestration
+  final double progressOffset; // Progress offset when used in flow (0.0-1.0)
+  final double progressScale; // Progress scale when used in flow (0.0-1.0)
 
   const MatchingExerciseScreen({
     super.key,
@@ -15,6 +17,8 @@ class MatchingExerciseScreen extends StatefulWidget {
     required this.title,
     required this.items,
     this.onComplete,
+    this.progressOffset = 0.0,
+    this.progressScale = 1.0,
   });
 
   @override
@@ -162,7 +166,8 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: _matchedIds.length / widget.items.length,
+                    value: widget.progressOffset + 
+                        (_matchedIds.length / widget.items.length) * widget.progressScale,
                     backgroundColor: Colors.grey[300],
                     color: Colors.deepPurple,
                     minHeight: 8,
@@ -187,21 +192,25 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                   children: [
                     // Images column
                     Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: widget.items
-                            .map((item) => _buildImageButton(item))
-                            .toList(),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: widget.items
+                              .map((item) => _buildImageButton(item))
+                              .toList(),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     // Words column
                     Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: widget.items
-                            .map((item) => _buildWordButton(item.correctWord))
-                            .toList(),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: widget.items
+                              .map((item) => _buildWordButton(item.correctWord))
+                              .toList(),
+                        ),
                       ),
                     ),
                   ],

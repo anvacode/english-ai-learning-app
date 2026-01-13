@@ -13,11 +13,15 @@ import 'matching_exercise_screen.dart';
 class LessonScreen extends StatefulWidget {
   final Lesson lesson;
   final VoidCallback? onExerciseCompleted; // Callback when this exercise completes
+  final double progressOffset; // Progress offset when used in flow (0.0-1.0)
+  final double progressScale; // Progress scale when used in flow (0.0-1.0)
 
   const LessonScreen({
     super.key,
     required this.lesson,
     this.onExerciseCompleted,
+    this.progressOffset = 0.0,
+    this.progressScale = 1.0,
   });
 
   @override
@@ -50,9 +54,11 @@ class _LessonScreenState extends State<LessonScreen> {
   void initState() {
     super.initState();
     totalCount = widget.lesson.items.length;
-    // Initialize LessonController with total questions for this exercise
+    // Defer controller initialization to after the frame to avoid assertion errors
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LessonController>().initializeLesson(totalCount);
+      if (mounted) {
+        context.read<LessonController>().initializeLesson(totalCount);
+      }
     });
     _loadProgressAndPosition();
   }
@@ -64,20 +70,32 @@ class _LessonScreenState extends State<LessonScreen> {
     // Load badge
     final badge = await BadgeService.getBadge(widget.lesson);
 
-    // Determine first incomplete index from persisted results
-    final results = await ActivityResultService.getActivityResults();
-    final completedIds = <String>{};
-    for (final r in results) {
-      if (r.lessonId == widget.lesson.id && r.isCorrect) completedIds.add(r.itemId);
-    }
-
+    // Determine starting question index based on lesson status
+    // Key distinction:
+    // - notStarted: Always start from question 0 (new attempt)
+    // - inProgress: Resume from first incomplete (continuation)
+    // - mastered: Start from first incomplete for review
     int firstIncomplete = 0;
-    for (var i = 0; i < widget.lesson.items.length; i++) {
-      if (!completedIds.contains(widget.lesson.items[i].id)) {
-        firstIncomplete = i;
-        break;
+    
+    if (progress.status == LessonProgressStatus.notStarted) {
+      // New attempt: always start from question 0
+      firstIncomplete = 0;
+    } else {
+      // Resume attempt: find first incomplete from persisted results
+      final results = await ActivityResultService.getActivityResults();
+      final completedIds = <String>{};
+      for (final r in results) {
+        if (r.lessonId == widget.lesson.id && r.isCorrect) completedIds.add(r.itemId);
       }
-      if (i == widget.lesson.items.length - 1) {
+
+      for (var i = 0; i < widget.lesson.items.length; i++) {
+        if (!completedIds.contains(widget.lesson.items[i].id)) {
+          firstIncomplete = i;
+          break;
+        }
+      }
+      // If all items are completed, start from the last item
+      if (completedIds.length == widget.lesson.items.length) {
         firstIncomplete = widget.lesson.items.length - 1;
       }
     }
@@ -131,7 +149,11 @@ class _LessonScreenState extends State<LessonScreen> {
     final lessonController = context.read<LessonController>();
     
     // 3) Update UI with feedback and progress via Provider
-    lessonController.submitAnswer(isCorrect: isCorrect);
+    lessonController.submitAnswer(
+      itemId: currentItem.id,
+      selectedOption: selectedOption,
+      isCorrect: isCorrect,
+    );
     
     setState(() {
       _selectedAnswerIndex = tappedIndex;
@@ -166,20 +188,13 @@ class _LessonScreenState extends State<LessonScreen> {
     if (_exerciseCompleted) return;
     
     if (_isCorrect == true) {
-      // Correct answer: advance to next incomplete item
-      final results = await ActivityResultService.getActivityResults();
-      final completedIds = <String>{};
-      for (final r in results) {
-        if (r.lessonId == widget.lesson.id && r.isCorrect) completedIds.add(r.itemId);
-      }
-
-      int nextIndex = currentItemIndex;
-      for (var i = currentItemIndex + 1; i < widget.lesson.items.length; i++) {
-        if (!completedIds.contains(widget.lesson.items[i].id)) {
-          nextIndex = i;
-          break;
-        }
-        if (i == widget.lesson.items.length - 1) nextIndex = widget.lesson.items.length - 1;
+      // Correct answer: advance to next question sequentially
+      // Do NOT use persisted results - they only control initial positioning
+      int nextIndex = currentItemIndex + 1;
+      
+      // If we've answered all questions, stay at the last one
+      if (nextIndex >= widget.lesson.items.length) {
+        nextIndex = widget.lesson.items.length - 1;
       }
 
       setState(() {
@@ -191,6 +206,10 @@ class _LessonScreenState extends State<LessonScreen> {
       });
     } else {
       // Incorrect: reset for retry
+      // Decrement controller's question index to allow retry of same question
+      final lessonController = context.read<LessonController>();
+      lessonController.decrementQuestionIndex();
+      
       setState(() {
         _selectedAnswerIndex = null;
         _answered = false;
@@ -203,8 +222,8 @@ class _LessonScreenState extends State<LessonScreen> {
   void _exitAfterMastery() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        // Standalone mode: check if animals lesson and navigate to matching
-        if (widget.lesson.id == 'animals') {
+        // Check if lesson has matching exercise and navigate to it
+        if (widget.lesson.id == 'animals' || widget.lesson.id == 'family_1') {
           _navigateToMatchingExercise();
         } else {
           Navigator.pop(context, true); // Return true to signal state changed
@@ -214,27 +233,78 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   void _navigateToMatchingExercise() {
-    // Build matching items for animals
-    final matchingItems = [
-      const MatchingItem(
-        id: 'dog',
-        imagePath: 'assets/images/animals/dog.jpg',
-        correctWord: 'dog',
-        title: 'Perro',
-      ),
-      const MatchingItem(
-        id: 'cat',
-        imagePath: 'assets/images/animals/cat.jpg',
-        correctWord: 'cat',
-        title: 'Gato',
-      ),
-      const MatchingItem(
-        id: 'cow',
-        imagePath: 'assets/images/animals/cow.jpg',
-        correctWord: 'cow',
-        title: 'Vaca',
-      ),
-    ];
+    // Build matching items based on lesson
+    List<MatchingItem> matchingItems = [];
+    
+    if (widget.lesson.id == 'animals') {
+      // Animals matching items
+      matchingItems = [
+        const MatchingItem(
+          id: 'dog',
+          imagePath: 'assets/images/animals/dog.jpg',
+          correctWord: 'dog',
+          title: 'Perro',
+        ),
+        const MatchingItem(
+          id: 'cat',
+          imagePath: 'assets/images/animals/cat.jpg',
+          correctWord: 'cat',
+          title: 'Gato',
+        ),
+        const MatchingItem(
+          id: 'cow',
+          imagePath: 'assets/images/animals/cow.jpg',
+          correctWord: 'cow',
+          title: 'Vaca',
+        ),
+      ];
+    } else if (widget.lesson.id == 'family_1') {
+      // Family matching items
+      matchingItems = [
+        const MatchingItem(
+          id: 'mother',
+          imagePath: 'assets/images/family/mother.jpg',
+          correctWord: 'mother',
+          title: 'Madre',
+        ),
+        const MatchingItem(
+          id: 'father',
+          imagePath: 'assets/images/family/father.jpg',
+          correctWord: 'father',
+          title: 'Padre',
+        ),
+        const MatchingItem(
+          id: 'brother',
+          imagePath: 'assets/images/family/brother.jpg',
+          correctWord: 'brother',
+          title: 'Hermano',
+        ),
+        const MatchingItem(
+          id: 'sister',
+          imagePath: 'assets/images/family/sister.jpg',
+          correctWord: 'sister',
+          title: 'Hermana',
+        ),
+        const MatchingItem(
+          id: 'grandfather',
+          imagePath: 'assets/images/family/grandfather.jpg',
+          correctWord: 'grandfather',
+          title: 'Abuelo',
+        ),
+        const MatchingItem(
+          id: 'grandmother',
+          imagePath: 'assets/images/family/grandmother.jpg',
+          correctWord: 'grandmother',
+          title: 'Abuela',
+        ),
+        const MatchingItem(
+          id: 'family',
+          imagePath: 'assets/images/family/family.jpg',
+          correctWord: 'family',
+          title: 'Familia',
+        ),
+      ];
+    }
 
     Navigator.push(
       context,
@@ -308,8 +378,11 @@ class _LessonScreenState extends State<LessonScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Consumer<LessonController>(
                 builder: (context, lessonController, _) {
+                  // Calculate progress with offset and scale
+                  final adjustedProgress = widget.progressOffset + 
+                      (lessonController.progress * widget.progressScale);
                   return LinearProgressIndicator(
-                    value: lessonController.progress,
+                    value: adjustedProgress,
                     backgroundColor: Colors.grey[300],
                     color: Colors.deepPurple,
                     minHeight: 8,

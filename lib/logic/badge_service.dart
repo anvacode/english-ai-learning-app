@@ -8,6 +8,7 @@ final Map<String, Map<String, String>> badgeDefinitions = {
   'fruits': {'title': 'Fruit Expert', 'icon': '🍎'},
   'animals': {'title': 'Animal Friend', 'icon': '🐾'},
   'classroom': {'title': 'Classroom Expert', 'icon': '📚'},
+  'family_1': {'title': 'Family Master', 'icon': '👨‍👩‍👧‍👦'},
 };
 
 /// Service para obtener badges basado en el progreso de las lecciones.

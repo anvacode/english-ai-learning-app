@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../data/lessons_data.dart';
 import '../logic/mastery_evaluator.dart';
 import '../logic/badge_service.dart';
+import '../logic/lesson_controller.dart';
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/badge.dart' as achievement;
@@ -45,18 +47,30 @@ class _LessonsScreenState extends State<LessonsScreen> {
       context,
       MaterialPageRoute(
         builder: (context) {
-          // Use LessonFlowScreen for Animals lesson (with matching exercise)
-          if (lesson.id == 'animals') {
-            return LessonFlowScreen(
-              lesson: lesson,
-              exercises: const [
-                LessonExercise(type: ExerciseType.multipleChoice),
-                LessonExercise(type: ExerciseType.matching),
-              ],
+          // Check if lesson has matching exercise
+          final hasMatching = lesson.exercises.any(
+            (e) => e.type == ExerciseType.matching,
+          );
+          
+          // Use LessonFlowScreen for lessons with matching exercise (Animals, Family)
+          if (hasMatching) {
+            return ChangeNotifierProvider(
+              create: (context) => LessonController(),
+              child: LessonFlowScreen(
+                key: UniqueKey(),
+                lesson: lesson,
+                exercises: lesson.exercises,
+              ),
             );
           }
-          // Use standard LessonScreen for other lessons
-          return LessonScreen(lesson: lesson);
+          // Use standard LessonScreen for lessons with only multiple-choice
+          return ChangeNotifierProvider(
+            create: (context) => LessonController(),
+            child: LessonScreen(
+              key: UniqueKey(),
+              lesson: lesson,
+            ),
+          );
         },
       ),
     );

@@ -107,16 +107,31 @@ class LessonProgressService {
   ) async {
     final allResults = await ActivityResultService.getActivityResults();
 
-    // For multipleChoice exercises: check if all items are completed
+    // For multipleChoice exercises: check if all items are completed AND accuracy >= 80%
     if (exercise.type.toString() == 'ExerciseType.multipleChoice') {
       final itemIds = lesson.items.map((item) => item.id).toSet();
-      final completedIds = allResults
-          .where((r) => r.lessonId == lesson.id && r.isCorrect)
+      final lessonResults = allResults.where((r) => r.lessonId == lesson.id).toList();
+      final completedIds = lessonResults
+          .where((r) => r.isCorrect)
           .map((r) => r.itemId)
           .toSet();
       
-      // Exercise complete if all items are completed
-      return itemIds.every((id) => completedIds.contains(id));
+      // First check: all items must be answered at least once correctly
+      final allItemsCompleted = itemIds.every((id) => completedIds.contains(id));
+      if (!allItemsCompleted) {
+        return false;
+      }
+      
+      // Second check: accuracy must be >= 80% to mark exercise as completed
+      final totalAttempts = lessonResults.length;
+      if (totalAttempts == 0) {
+        return false; // No attempts, not completed
+      }
+      
+      final correctAttempts = lessonResults.where((r) => r.isCorrect).length;
+      final accuracyPercentage = (correctAttempts * 100) ~/ totalAttempts;
+      
+      return accuracyPercentage >= 80; // Exercise complete only if accuracy >= 80%
     }
 
     // For matching exercises: check for matching_exercise result

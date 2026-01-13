@@ -287,6 +287,66 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.multipleChoice),
     ],
   ),
+  Lesson(
+    id: 'family_1',
+    title: 'Family',
+    question: '¿Qué miembro de la familia es este?',
+    items: [
+      LessonItem(
+        id: 'mother',
+        title: 'Mother',
+        stimulusImageAsset: 'assets/images/family/mother.jpg',
+        options: ['mother', 'father', 'sister'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'father',
+        title: 'Father',
+        stimulusImageAsset: 'assets/images/family/father.jpg',
+        options: ['father', 'mother', 'brother'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'brother',
+        title: 'Brother',
+        stimulusImageAsset: 'assets/images/family/brother.jpg',
+        options: ['brother', 'sister', 'father'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'sister',
+        title: 'Sister',
+        stimulusImageAsset: 'assets/images/family/sister.jpg',
+        options: ['sister', 'brother', 'mother'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'grandfather',
+        title: 'Grandfather',
+        stimulusImageAsset: 'assets/images/family/grandfather.jpg',
+        options: ['grandfather', 'grandmother', 'father'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'grandmother',
+        title: 'Grandmother',
+        stimulusImageAsset: 'assets/images/family/grandmother.jpg',
+        options: ['grandmother', 'grandfather', 'mother'],
+        correctAnswerIndex: 0,
+      ),
+      LessonItem(
+        id: 'family',
+        title: 'Family',
+        stimulusImageAsset: 'assets/images/family/family.jpg',
+        options: ['family', 'father', 'mother'],
+        correctAnswerIndex: 0,
+      ),
+    ],
+    exercises: const [
+      LessonExercise(type: ExerciseType.multipleChoice),
+      LessonExercise(type: ExerciseType.matching),
+    ],
+  ),
 ];
 
 /// Niveles educativos agrupando lecciones por dificultad.
@@ -294,7 +354,7 @@ final List<LessonLevel> lessonLevels = [
   LessonLevel(
     id: 'beginner',
     title: 'Principiante',
-    lessons: [lessonsList[0], lessonsList[1], lessonsList[2], lessonsList[3]], // Colors, Fruits, Animals, and Classroom Objects lessons
+    lessons: [lessonsList[0], lessonsList[1], lessonsList[2], lessonsList[3], lessonsList[4]], // Colors, Fruits, Animals, Classroom Objects, and Family lessons
   ),
   LessonLevel(
     id: 'intermediate',

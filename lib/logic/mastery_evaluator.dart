@@ -1,4 +1,5 @@
 import '../logic/activity_result_service.dart';
+import '../data/lessons_data.dart';
 
 /// Estados posibles del dominio de una lección.
 enum LessonMasteryStatus {
@@ -8,14 +9,15 @@ enum LessonMasteryStatus {
   /// La lección ha sido iniciada pero no alcanza dominio.
   inProgress,
 
-  /// La lección ha sido dominada (3 respuestas correctas consecutivas).
+  /// La lección ha sido dominada (80% accuracy AND all items completed at least once correctly).
   mastered,
 }
 
-/// Evaluador de dominio de lecciones basado en consistencia de respuestas.
+/// Evaluador de dominio de lecciones basado en criterios de precisión.
 /// 
-/// Criterio: Una lección se considera dominada cuando se obtienen
-/// 3 respuestas correctas consecutivas para esa lección.
+/// Criterio: Una lección se considera dominada cuando:
+/// 1. Todos los items han sido respondidos correctamente al menos una vez
+/// 2. La precisión global es >= 80%
 class MasteryEvaluator {
   /// Evalúa el estado de dominio de una lección.
   /// 
@@ -23,9 +25,15 @@ class MasteryEvaluator {
   /// 
   /// Retorna:
   /// - [LessonMasteryStatus.notStarted] si no hay resultados para la lección
-  /// - [LessonMasteryStatus.mastered] si hay 3 respuestas correctas consecutivas
+  /// - [LessonMasteryStatus.mastered] si todos los items completados y precisión >= 80%
   /// - [LessonMasteryStatus.inProgress] si hay resultados pero no alcanza dominio
   Future<LessonMasteryStatus> evaluateLesson(String lessonId) async {
+    // Obtener la lección para acceder a los items
+    final lesson = lessonsList.firstWhere(
+      (l) => l.id == lessonId,
+      orElse: () => throw Exception('Lesson not found: $lessonId'),
+    );
+
     // Obtener todos los resultados
     final allResults = await ActivityResultService.getActivityResults();
 
@@ -39,28 +47,26 @@ class MasteryEvaluator {
       return LessonMasteryStatus.notStarted;
     }
 
-    // Ordena por timestamp (cronológico) para evaluar en orden
-    lessonResults.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    // Check 1: All items must be answered at least once correctly
+    final itemIds = lesson.items.map((item) => item.id).toSet();
+    final completedIds = lessonResults
+        .where((r) => r.isCorrect)
+        .map((r) => r.itemId)
+        .toSet();
 
-    // Evaluar respuestas consecutivas correctas
-    int consecutiveCorrect = 0;
-
-    for (final result in lessonResults) {
-      if (result.isCorrect) {
-        consecutiveCorrect++;
-
-        // Si alcanza 3 correctas consecutivas, está dominada
-        if (consecutiveCorrect >= 3) {
-          return LessonMasteryStatus.mastered;
-        }
-      } else {
-        // Si hay una respuesta incorrecta, reinicia el contador
-        consecutiveCorrect = 0;
-      }
+    final allItemsCompleted = itemIds.every((id) => completedIds.contains(id));
+    if (!allItemsCompleted) {
+      return LessonMasteryStatus.inProgress;
     }
 
-    // Hay resultados pero no alcanza dominio
-    return LessonMasteryStatus.inProgress;
+    // Check 2: Accuracy must be >= 80%
+    final totalAttempts = lessonResults.length;
+    final correctAttempts = lessonResults.where((r) => r.isCorrect).length;
+    final accuracyPercentage = (correctAttempts * 100) ~/ totalAttempts;
+
+    return accuracyPercentage >= 80
+        ? LessonMasteryStatus.mastered
+        : LessonMasteryStatus.inProgress;
   }
 
   /// Evalúa si todas las lecciones en una lista están dominadas.
