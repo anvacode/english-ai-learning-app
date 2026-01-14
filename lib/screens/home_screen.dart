@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'lessons_screen.dart';
-import 'profile_screen.dart';
+import 'profile/profile_screen.dart';
 import 'settings_screen.dart';
 import 'achievements_screen.dart';
 
