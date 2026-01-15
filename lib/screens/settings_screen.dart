@@ -1,13 +1,52 @@
 import 'package:flutter/material.dart';
+import '../services/audio_service.dart';
 
 /// Pantalla de configuración básica de la aplicación.
 /// 
 /// Muestra opciones de configuración y preferencias del usuario.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final AudioService _audioService = AudioService();
+  bool _autoSpeakEnabled = true;
+  bool _soundsEnabled = true;
+  double _pitch = 1.0;
+  double _rate = 0.5;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAudioSettings();
+  }
+
+  Future<void> _loadAudioSettings() async {
+    await _audioService.initialize();
+    setState(() {
+      _autoSpeakEnabled = _audioService.autoSpeakEnabled;
+      _soundsEnabled = _audioService.soundsEnabled;
+      _pitch = _audioService.pitch;
+      _rate = _audioService.rate;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Configuración'),
+          elevation: 0,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración'),
@@ -51,6 +90,139 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
+          // Sección de audio
+          _SettingsSection(
+            title: 'Audio',
+            children: [
+              _SettingsTile(
+                icon: Icons.record_voice_over,
+                title: 'Pronunciación automática',
+                subtitle: 'Pronuncia palabras automáticamente',
+                trailing: Switch(
+                  value: _autoSpeakEnabled,
+                  onChanged: (value) async {
+                    setState(() {
+                      _autoSpeakEnabled = value;
+                    });
+                    await _audioService.setAutoSpeak(value);
+                  },
+                ),
+              ),
+              _SettingsTile(
+                icon: Icons.volume_up,
+                title: 'Efectos de sonido',
+                subtitle: 'Activar sonidos de la aplicación',
+                trailing: Switch(
+                  value: _soundsEnabled,
+                  onChanged: (value) async {
+                    setState(() {
+                      _soundsEnabled = value;
+                    });
+                    await _audioService.setSoundsEnabled(value);
+                  },
+                ),
+              ),
+              // Pitch slider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.tune,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Tono de voz',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          _pitch.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: _pitch,
+                      min: 0.5,
+                      max: 2.0,
+                      divisions: 15,
+                      label: _pitch.toStringAsFixed(1),
+                      onChanged: (value) async {
+                        setState(() {
+                          _pitch = value;
+                        });
+                        await _audioService.setPitch(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Rate slider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.speed,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Velocidad de habla',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          _rate.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: _rate,
+                      min: 0.0,
+                      max: 1.0,
+                      divisions: 10,
+                      label: _rate.toStringAsFixed(1),
+                      onChanged: (value) async {
+                        setState(() {
+                          _rate = value;
+                        });
+                        await _audioService.setRate(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
           // Sección de aplicación
           _SettingsSection(
             title: 'Aplicación',
@@ -59,17 +231,6 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.notifications,
                 title: 'Notificaciones',
                 subtitle: 'Gestiona las notificaciones',
-                trailing: Switch(
-                  value: true,
-                  onChanged: (value) {
-                    // TODO: Implementar guardado de preferencias
-                  },
-                ),
-              ),
-              _SettingsTile(
-                icon: Icons.volume_up,
-                title: 'Sonidos',
-                subtitle: 'Activar sonidos de la aplicación',
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {

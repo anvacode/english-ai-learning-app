@@ -10,6 +10,8 @@ import '../logic/badge_service.dart';
 import '../logic/lesson_controller.dart';
 import '../models/badge.dart' as achievement;
 import '../widgets/lesson_image.dart';
+import '../widgets/speaker_button.dart';
+import '../services/audio_service.dart';
 import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -51,11 +53,16 @@ class _LessonScreenState extends State<LessonScreen> {
   
   // Badge state
   achievement.Badge? _badge;
+  
+  // Audio service
+  final AudioService _audioService = AudioService();
 
   @override
   void initState() {
     super.initState();
     totalCount = widget.lesson.items.length;
+    // Initialize audio service
+    _audioService.initialize();
     // Defer controller initialization to after the frame to avoid assertion errors
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -110,6 +117,15 @@ class _LessonScreenState extends State<LessonScreen> {
       _badge = badge;
       _randomizeOptions();
     });
+    
+    // Auto-speak the current word when question appears
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && currentItemIndex < widget.lesson.items.length) {
+        final currentItem = widget.lesson.items[currentItemIndex];
+        final wordToSpeak = currentItem.options[currentItem.correctAnswerIndex];
+        _audioService.autoSpeak(wordToSpeak);
+      }
+    });
   }
 
   /// Randomize options for the current item
@@ -131,6 +147,9 @@ class _LessonScreenState extends State<LessonScreen> {
     final currentItem = widget.lesson.items[currentItemIndex];
     final selectedOption = _randomizedOptions[tappedIndex];
     final isCorrect = selectedOption == _correctAnswerValue;
+    
+    // Play click sound
+    await _audioService.playClickSound();
 
     final result = ActivityResult(
       lessonId: widget.lesson.id,
@@ -165,6 +184,13 @@ class _LessonScreenState extends State<LessonScreen> {
       totalCount = progress.totalCount;
       status = progress.status;
     });
+    
+    // Play feedback sound
+    if (isCorrect) {
+      await _audioService.playCorrectSound();
+    } else {
+      await _audioService.playWrongSound();
+    }
 
     // 4) Check if exercise is complete using Provider state
     if (lessonController.isLessonCompleted && !_exerciseCompleted) {
@@ -225,6 +251,13 @@ class _LessonScreenState extends State<LessonScreen> {
         _isCorrect = null;
         _randomizeOptions(); // Re-randomize for the new item
       });
+      
+      // Auto-speak the new word when advancing
+      if (nextIndex < widget.lesson.items.length) {
+        final nextItem = widget.lesson.items[nextIndex];
+        final wordToSpeak = nextItem.options[nextItem.correctAnswerIndex];
+        _audioService.autoSpeak(wordToSpeak);
+      }
     } else {
       // Incorrect: reset for retry
       // Decrement controller's question index to allow retry of same question
@@ -448,13 +481,27 @@ class _LessonScreenState extends State<LessonScreen> {
                     ),
                   ),
 
-                  // Question
+                  // Question with speaker button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      widget.lesson.question,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.lesson.question,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SpeakerButton(
+                          text: currentItem.options[currentItem.correctAnswerIndex],
+                          iconSize: 20,
+                          buttonSize: 36,
+                        ),
+                      ],
                     ),
                   ),
 
@@ -487,14 +534,28 @@ class _LessonScreenState extends State<LessonScreen> {
                                         : Colors.grey[300])
                                     : Colors.grey[200],
                               ),
-                              child: Text(
-                                _randomizedOptions[index],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: _selectedAnswerIndex == index && !_answered
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _randomizedOptions[index],
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _selectedAnswerIndex == index && !_answered
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  if (!_answered && status != LessonProgressStatus.mastered)
+                                    SpeakerButton(
+                                      text: _randomizedOptions[index],
+                                      iconSize: 18,
+                                      buttonSize: 32,
+                                      iconColor: _selectedAnswerIndex == index
+                                          ? Colors.white
+                                          : Colors.deepPurple,
+                                    ),
+                                ],
                               ),
                             ),
                           ),

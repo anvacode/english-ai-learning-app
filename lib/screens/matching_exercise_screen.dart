@@ -3,6 +3,8 @@ import '../models/matching_item.dart';
 import '../models/activity_result.dart';
 import '../logic/activity_result_service.dart';
 import '../widgets/lesson_image.dart';
+import '../widgets/speaker_button.dart';
+import '../services/audio_service.dart';
 
 class MatchingExerciseScreen extends StatefulWidget {
   final String lessonId;
@@ -37,12 +39,16 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   // Feedback state
   String? _feedbackMessage;
   bool? _lastCorrect;
+  
+  // Audio service
+  final AudioService _audioService = AudioService();
 
   @override
   void initState() {
     super.initState();
     _matchedIds = {};
     _resetSelection();
+    _audioService.initialize();
   }
 
   void _resetSelection() {
@@ -71,11 +77,17 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   Future<void> _attemptMatch() async {
     if (_selectedImageId == null || _selectedWord == null) return;
 
+    // Play click sound
+    await _audioService.playClickSound();
+
     // Find the matching item
     final item = widget.items.firstWhere((i) => i.id == _selectedImageId);
     final isCorrect = item.correctWord == _selectedWord;
 
     if (isCorrect) {
+      // Play correct sound
+      await _audioService.playCorrectSound();
+      
       // Lock the pair
       setState(() {
         _matchedIds.add(_selectedImageId!);
@@ -95,6 +107,9 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
         });
       }
     } else {
+      // Play wrong sound
+      await _audioService.playWrongSound();
+      
       // Incorrect attempt
       setState(() {
         _lastCorrect = false;
@@ -351,13 +366,25 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
             backgroundColor: isSelected ? Colors.deepPurple : Colors.grey[200],
             disabledBackgroundColor: Colors.green[100],
           ),
-          child: Text(
-            word,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : Colors.black,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                word,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : Colors.black,
+                ),
+              ),
+              if (!isUsedInMatch)
+                SpeakerButton(
+                  text: word,
+                  iconSize: 18,
+                  buttonSize: 32,
+                  iconColor: isSelected ? Colors.white : Colors.deepPurple,
+                ),
+            ],
           ),
         ),
       ),
