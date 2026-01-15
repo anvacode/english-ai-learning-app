@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../logic/first_time_service.dart';
 import '../logic/student_service.dart';
-import '../models/student.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
 

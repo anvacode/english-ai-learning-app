@@ -268,6 +268,291 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
           title: 'Familia',
         ),
       ];
+    } else if (lessonId == 'numbers') {
+      return [
+        const MatchingItem(
+          id: 'one',
+          imagePath: 'assets/images/numbers/one.jpg',
+          correctWord: 'one',
+          title: 'Uno',
+        ),
+        const MatchingItem(
+          id: 'two',
+          imagePath: 'assets/images/numbers/two.jpg',
+          correctWord: 'two',
+          title: 'Dos',
+        ),
+        const MatchingItem(
+          id: 'three',
+          imagePath: 'assets/images/numbers/three.jpg',
+          correctWord: 'three',
+          title: 'Tres',
+        ),
+        const MatchingItem(
+          id: 'four',
+          imagePath: 'assets/images/numbers/four.jpg',
+          correctWord: 'four',
+          title: 'Cuatro',
+        ),
+        const MatchingItem(
+          id: 'five',
+          imagePath: 'assets/images/numbers/five.jpg',
+          correctWord: 'five',
+          title: 'Cinco',
+        ),
+        const MatchingItem(
+          id: 'six',
+          imagePath: 'assets/images/numbers/six.jpg',
+          correctWord: 'six',
+          title: 'Seis',
+        ),
+        const MatchingItem(
+          id: 'seven',
+          imagePath: 'assets/images/numbers/seven.jpg',
+          correctWord: 'seven',
+          title: 'Siete',
+        ),
+        const MatchingItem(
+          id: 'eight',
+          imagePath: 'assets/images/numbers/eight.jpg',
+          correctWord: 'eight',
+          title: 'Ocho',
+        ),
+        const MatchingItem(
+          id: 'nine',
+          imagePath: 'assets/images/numbers/nine.jpg',
+          correctWord: 'nine',
+          title: 'Nueve',
+        ),
+        const MatchingItem(
+          id: 'ten',
+          imagePath: 'assets/images/numbers/ten.jpg',
+          correctWord: 'ten',
+          title: 'Diez',
+        ),
+      ];
+    } else if (lessonId == 'body_parts') {
+      return [
+        const MatchingItem(
+          id: 'head',
+          imagePath: 'assets/images/body_parts/head.jpg',
+          correctWord: 'head',
+          title: 'Cabeza',
+        ),
+        const MatchingItem(
+          id: 'eye',
+          imagePath: 'assets/images/body_parts/eye.jpg',
+          correctWord: 'eye',
+          title: 'Ojo',
+        ),
+        const MatchingItem(
+          id: 'nose',
+          imagePath: 'assets/images/body_parts/nose.jpg',
+          correctWord: 'nose',
+          title: 'Nariz',
+        ),
+        const MatchingItem(
+          id: 'mouth',
+          imagePath: 'assets/images/body_parts/mouth.jpg',
+          correctWord: 'mouth',
+          title: 'Boca',
+        ),
+        const MatchingItem(
+          id: 'hand',
+          imagePath: 'assets/images/body_parts/hand.jpg',
+          correctWord: 'hand',
+          title: 'Mano',
+        ),
+        const MatchingItem(
+          id: 'foot',
+          imagePath: 'assets/images/body_parts/foot.jpg',
+          correctWord: 'foot',
+          title: 'Pie',
+        ),
+        const MatchingItem(
+          id: 'arm',
+          imagePath: 'assets/images/body_parts/arm.jpg',
+          correctWord: 'arm',
+          title: 'Brazo',
+        ),
+        const MatchingItem(
+          id: 'leg',
+          imagePath: 'assets/images/body_parts/leg.jpg',
+          correctWord: 'leg',
+          title: 'Pierna',
+        ),
+        const MatchingItem(
+          id: 'ear',
+          imagePath: 'assets/images/body_parts/ear.jpg',
+          correctWord: 'ear',
+          title: 'Oreja',
+        ),
+        const MatchingItem(
+          id: 'hair',
+          imagePath: 'assets/images/body_parts/hair.jpg',
+          correctWord: 'hair',
+          title: 'Cabello',
+        ),
+      ];
+    } else if (lessonId == 'clothes') {
+      return [
+        const MatchingItem(
+          id: 'shirt',
+          imagePath: 'assets/images/clothes/shirt.jpg',
+          correctWord: 'shirt',
+          title: 'Camisa',
+        ),
+        const MatchingItem(
+          id: 'pants',
+          imagePath: 'assets/images/clothes/pants.jpg',
+          correctWord: 'pants',
+          title: 'Pantalones',
+        ),
+        const MatchingItem(
+          id: 'dress',
+          imagePath: 'assets/images/clothes/dress.jpg',
+          correctWord: 'dress',
+          title: 'Vestido',
+        ),
+        const MatchingItem(
+          id: 'shoes',
+          imagePath: 'assets/images/clothes/shoes.jpg',
+          correctWord: 'shoes',
+          title: 'Zapatos',
+        ),
+        const MatchingItem(
+          id: 'hat',
+          imagePath: 'assets/images/clothes/hat.jpg',
+          correctWord: 'hat',
+          title: 'Sombrero',
+        ),
+        const MatchingItem(
+          id: 'socks',
+          imagePath: 'assets/images/clothes/socks.jpg',
+          correctWord: 'socks',
+          title: 'Calcetines',
+        ),
+        const MatchingItem(
+          id: 'jacket',
+          imagePath: 'assets/images/clothes/jacket.jpg',
+          correctWord: 'jacket',
+          title: 'Chaqueta',
+        ),
+        const MatchingItem(
+          id: 'skirt',
+          imagePath: 'assets/images/clothes/skirt.jpg',
+          correctWord: 'skirt',
+          title: 'Falda',
+        ),
+      ];
+    } else if (lessonId == 'food_drinks') {
+      return [
+        const MatchingItem(
+          id: 'bread',
+          imagePath: 'assets/images/food/bread.jpg',
+          correctWord: 'bread',
+          title: 'Pan',
+        ),
+        const MatchingItem(
+          id: 'milk',
+          imagePath: 'assets/images/food/milk.jpg',
+          correctWord: 'milk',
+          title: 'Leche',
+        ),
+        const MatchingItem(
+          id: 'water',
+          imagePath: 'assets/images/food/water.jpg',
+          correctWord: 'water',
+          title: 'Agua',
+        ),
+        const MatchingItem(
+          id: 'egg',
+          imagePath: 'assets/images/food/egg.jpg',
+          correctWord: 'egg',
+          title: 'Huevo',
+        ),
+        const MatchingItem(
+          id: 'cheese',
+          imagePath: 'assets/images/food/cheese.jpg',
+          correctWord: 'cheese',
+          title: 'Queso',
+        ),
+        const MatchingItem(
+          id: 'rice',
+          imagePath: 'assets/images/food/rice.jpg',
+          correctWord: 'rice',
+          title: 'Arroz',
+        ),
+        const MatchingItem(
+          id: 'juice',
+          imagePath: 'assets/images/food/juice.jpg',
+          correctWord: 'juice',
+          title: 'Jugo',
+        ),
+        const MatchingItem(
+          id: 'cake',
+          imagePath: 'assets/images/food/cake.jpg',
+          correctWord: 'cake',
+          title: 'Pastel',
+        ),
+        const MatchingItem(
+          id: 'cookie',
+          imagePath: 'assets/images/food/cookie.jpg',
+          correctWord: 'cookie',
+          title: 'Galleta',
+        ),
+      ];
+    } else if (lessonId == 'actions') {
+      return [
+        const MatchingItem(
+          id: 'run',
+          imagePath: 'assets/images/actions/run.jpg',
+          correctWord: 'run',
+          title: 'Correr',
+        ),
+        const MatchingItem(
+          id: 'jump',
+          imagePath: 'assets/images/actions/jump.jpg',
+          correctWord: 'jump',
+          title: 'Saltar',
+        ),
+        const MatchingItem(
+          id: 'eat',
+          imagePath: 'assets/images/actions/eat.jpg',
+          correctWord: 'eat',
+          title: 'Comer',
+        ),
+        const MatchingItem(
+          id: 'sleep',
+          imagePath: 'assets/images/actions/sleep.jpg',
+          correctWord: 'sleep',
+          title: 'Dormir',
+        ),
+        const MatchingItem(
+          id: 'walk',
+          imagePath: 'assets/images/actions/walk.jpg',
+          correctWord: 'walk',
+          title: 'Caminar',
+        ),
+        const MatchingItem(
+          id: 'sit',
+          imagePath: 'assets/images/actions/sit.jpg',
+          correctWord: 'sit',
+          title: 'Sentarse',
+        ),
+        const MatchingItem(
+          id: 'stand',
+          imagePath: 'assets/images/actions/stand.jpg',
+          correctWord: 'stand',
+          title: 'Pararse',
+        ),
+        const MatchingItem(
+          id: 'drink',
+          imagePath: 'assets/images/actions/drink.jpg',
+          correctWord: 'drink',
+          title: 'Beber',
+        ),
+      ];
     }
     // Default empty list for other lessons
     return [];

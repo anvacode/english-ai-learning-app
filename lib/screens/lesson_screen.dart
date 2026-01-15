@@ -9,6 +9,7 @@ import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_controller.dart';
 import '../models/badge.dart' as achievement;
+import '../widgets/lesson_image.dart';
 import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -434,33 +435,16 @@ class _LessonScreenState extends State<LessonScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
                     child: Center(
-                      child: currentItem.stimulusImageAsset != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                currentItem.stimulusImageAsset!,
-                                height: 150,
-                                width: 150,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : currentItem.stimulusColor != null
-                              ? Container(
-                                  width: 110,
-                                  height: 110,
-                                  decoration: BoxDecoration(
-                                    color: currentItem.stimulusColor,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: LessonImage(
+                          imagePath: currentItem.stimulusImageAsset,
+                          fallbackColor: currentItem.stimulusColor,
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
 

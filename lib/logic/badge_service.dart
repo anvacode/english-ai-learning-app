@@ -10,6 +10,11 @@ final Map<String, Map<String, String>> badgeDefinitions = {
   'animals': {'title': 'Animal Friend', 'icon': '🐾'},
   'classroom': {'title': 'Classroom Expert', 'icon': '📚'},
   'family_1': {'title': 'Family Master', 'icon': '👨‍👩‍👧‍👦'},
+  'numbers': {'title': 'Number Wizard', 'icon': '🔢'},
+  'body_parts': {'title': 'Body Expert', 'icon': '👤'},
+  'clothes': {'title': 'Fashion Master', 'icon': '👕'},
+  'food_drinks': {'title': 'Food Lover', 'icon': '🍽️'},
+  'actions': {'title': 'Action Hero', 'icon': '🏃'},
 };
 
 /// Service para obtener badges basado en LessonCompletion records.

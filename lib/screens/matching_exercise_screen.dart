@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/matching_item.dart';
 import '../models/activity_result.dart';
 import '../logic/activity_result_service.dart';
+import '../widgets/lesson_image.dart';
 
 class MatchingExerciseScreen extends StatefulWidget {
   final String lessonId;
@@ -298,8 +299,8 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               // Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(7),
-                child: Image.asset(
-                  item.imagePath,
+                child: LessonImage(
+                  imagePath: item.imagePath,
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.cover,
