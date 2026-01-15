@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../../logic/user_profile_service.dart';
 import '../../logic/badge_service.dart';
 import '../../logic/mastery_evaluator.dart';
+import '../../logic/star_service.dart';
 import '../../data/lessons_data.dart';
 import '../../models/user_profile.dart';
 import '../../models/badge.dart' as achievement;
 import '../../widgets/avatar_widget.dart';
+import '../../widgets/star_display.dart';
 import '../../dialogs/edit_nickname_dialog.dart';
 import 'avatar_selection_screen.dart';
 
@@ -183,6 +185,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 32),
 
+            // Stars Section
+            _buildStarsSection(),
+
+            const SizedBox(height: 32),
+
             // Progress Statistics Section
             _buildProgressSection(),
 
@@ -190,6 +197,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Badges Preview Section
             _buildBadgesPreview(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStarsSection() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Estrellas',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
+                ),
+                StarDisplay(
+                  iconSize: 28,
+                  fontSize: 24,
+                  iconColor: Colors.amber[700],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            FutureBuilder<int>(
+              future: StarService.getTotalStars(),
+              builder: (context, snapshot) {
+                final totalStars = snapshot.data ?? 0;
+                return FutureBuilder<int>(
+                  future: StarService.getStarsEarnedToday(),
+                  builder: (context, snapshot) {
+                    final todayStars = snapshot.data ?? 0;
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total de estrellas:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              '$totalStars ⭐',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Ganadas hoy:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              '$todayStars ⭐',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),

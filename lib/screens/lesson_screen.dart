@@ -8,10 +8,12 @@ import '../logic/lesson_progress_evaluator.dart';
 import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_controller.dart';
+import '../logic/star_service.dart';
 import '../models/badge.dart' as achievement;
 import '../widgets/lesson_image.dart';
 import '../widgets/speaker_button.dart';
 import '../services/audio_service.dart';
+import '../dialogs/lesson_completion_dialog.dart';
 import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -200,9 +202,22 @@ class _LessonScreenState extends State<LessonScreen> {
       // A lesson is mastered ONLY if the current attempt is perfect (100% correct)
       final isCurrentAttemptPerfect = lessonController.correctAnswers == lessonController.totalQuestions;
       
+      int starsEarned = 0;
+      achievement.Badge? badgeToShow;
+      
       if (isCurrentAttemptPerfect) {
         // Save lesson completion record (source of truth for mastery)
         await LessonCompletionService.saveCompletion(widget.lesson.id);
+        
+        // Award stars for perfect lesson completion
+        const starsForCompletion = 20; // Base stars for completing a lesson
+        await StarService.addStars(
+          starsForCompletion,
+          'lesson_complete',
+          lessonId: widget.lesson.id,
+          description: 'Completaste la lección "${widget.lesson.title}"',
+        );
+        starsEarned = starsForCompletion;
         
         // Award badge (only on first perfect completion)
         final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
@@ -212,7 +227,39 @@ class _LessonScreenState extends State<LessonScreen> {
           setState(() {
             _badge = badge;
           });
+          badgeToShow = badge;
+        } else if (mounted) {
+          // Show existing badge if any
+          final badge = await BadgeService.getBadge(widget.lesson);
+          if (badge != null && badge.unlocked) {
+            badgeToShow = badge;
+          }
         }
+      } else {
+        // Award partial stars for completing lesson items (even if not perfect)
+        // This encourages progress even if not perfect
+        const starsForProgress = 5;
+        await StarService.addStars(
+          starsForProgress,
+          'lesson_progress',
+          lessonId: widget.lesson.id,
+          description: 'Progreso en la lección "${widget.lesson.title}"',
+        );
+        starsEarned = starsForProgress;
+      }
+      
+      // Show completion dialog with feedback
+      if (mounted) {
+        await LessonCompletionDialog.show(
+          context,
+          lessonTitle: widget.lesson.title,
+          starsEarned: starsEarned,
+          correctAnswers: lessonController.correctAnswers,
+          totalQuestions: lessonController.totalQuestions,
+          badgeIcon: badgeToShow?.icon,
+          badgeTitle: badgeToShow?.title,
+          isPerfectScore: isCurrentAttemptPerfect,
+        );
       }
       
       if (widget.onExerciseCompleted != null) {

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/matching_item.dart';
+import '../dialogs/lesson_completion_dialog.dart';
+import '../logic/star_service.dart';
+import '../logic/lesson_completion_service.dart';
+import '../logic/badge_service.dart';
+import '../models/badge.dart' as achievement;
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
 
@@ -40,24 +45,50 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
     }
   }
 
-  void _onLessonComplete() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('¡Lección Completada!'),
-        content: const Text('Felicidades por completar todos los ejercicios.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context, true); // Return to lessons with true flag
-            },
-            child: const Text('Continuar'),
-          ),
-        ],
-      ),
+  Future<void> _onLessonComplete() async {
+    // Award stars for completing the lesson flow
+    const starsForCompletion = 20;
+    await StarService.addStars(
+      starsForCompletion,
+      'lesson_complete',
+      lessonId: widget.lesson.id,
+      description: 'Completaste la lección "${widget.lesson.title}"',
     );
+    
+    // Save lesson completion
+    await LessonCompletionService.saveCompletion(widget.lesson.id);
+    
+    // Check for badge
+    final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
+    achievement.Badge? badgeToShow;
+    if (badgeJustAwarded) {
+      final badge = await BadgeService.getBadge(widget.lesson);
+      badgeToShow = badge;
+    } else {
+      final badge = await BadgeService.getBadge(widget.lesson);
+      if (badge != null && badge.unlocked) {
+        badgeToShow = badge;
+      }
+    }
+    
+    // Show completion dialog
+    if (mounted) {
+      await LessonCompletionDialog.show(
+        context,
+        lessonTitle: widget.lesson.title,
+        starsEarned: starsForCompletion,
+        correctAnswers: widget.lesson.items.length, // All items completed in flow
+        totalQuestions: widget.lesson.items.length,
+        badgeIcon: badgeToShow?.icon,
+        badgeTitle: badgeToShow?.title,
+        isPerfectScore: true, // Flow lessons are considered perfect when completed
+      );
+      
+      // Return to lessons screen
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    }
   }
 
   @override

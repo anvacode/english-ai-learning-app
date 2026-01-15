@@ -3,6 +3,8 @@ import 'lessons_screen.dart';
 import 'profile/profile_screen.dart';
 import 'settings_screen.dart';
 import 'achievements_screen.dart';
+import 'shop_screen.dart';
+import '../widgets/star_display.dart';
 
 /// Pantalla principal de navegación con GridView de opciones.
 /// 
@@ -71,6 +73,18 @@ class _HomeGridView extends StatelessWidget {
         title: const Text('English Learning'),
         elevation: 0,
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: StarDisplay(
+                iconSize: 24,
+                fontSize: 18,
+                showBackground: true,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -78,7 +92,7 @@ class _HomeGridView extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
+          childAspectRatio: 0.9,
           children: [
             _HomeGridItem(
               icon: '📚',
@@ -128,6 +142,19 @@ class _HomeGridView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AchievementsScreen(),
+                  ),
+                );
+              },
+            ),
+            _HomeGridItem(
+              icon: '🏪',
+              title: 'Tienda',
+              color: const Color(0xFFFF6B9D),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ShopScreen(),
                   ),
                 );
               },

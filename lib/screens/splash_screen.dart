@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../logic/first_time_service.dart';
 import '../logic/student_service.dart';
+import '../logic/star_service.dart';
+import '../dialogs/daily_login_reward_dialog.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
 
@@ -50,11 +52,33 @@ class _SplashScreenState extends State<SplashScreen>
     // Inicializar estudiante (necesario para mantener funcionalidad existente)
     await StudentService.initializeStudent();
     
-    // Esperar 3 segundos totales (incluyendo tiempo de inicialización)
-    await Future.delayed(const Duration(seconds: 3));
-
     // Verificar si es la primera vez
     final isFirstTime = await FirstTimeService.isFirstTime();
+    
+    // Si no es la primera vez, procesar login diario
+    if (!isFirstTime) {
+      // Procesar login diario (otorga recompensas y actualiza racha)
+      final starsEarned = await StarService.processDailyLogin();
+      
+      // Obtener racha después del login
+      final streakAfter = await StarService.getLoginStreak();
+      
+      // Calcular bono de racha (si la racha es > 1)
+      final streakBonus = streakAfter > 1 ? (streakAfter - 1) * 5 : 0;
+      
+      // Si se ganaron estrellas, mostrar diálogo de recompensas
+      if (starsEarned > 0 && mounted) {
+        await DailyLoginRewardDialog.show(
+          context,
+          starsEarned: starsEarned,
+          loginStreak: streakAfter,
+          streakBonus: streakBonus,
+        );
+      }
+    }
+    
+    // Esperar tiempo mínimo para mostrar splash
+    await Future.delayed(const Duration(seconds: 2));
 
     // Navegar a la pantalla correspondiente
     if (!mounted) return;

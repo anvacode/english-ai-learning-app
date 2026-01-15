@@ -7,6 +7,7 @@ import '../logic/lesson_controller.dart';
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/badge.dart' as achievement;
+import '../widgets/star_display.dart';
 import 'lesson_screen.dart';
 import 'lesson_flow_screen.dart';
 
@@ -94,7 +95,21 @@ class _LessonsScreenState extends State<LessonsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lecciones')),
+      appBar: AppBar(
+        title: const Text('Lecciones'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: StarDisplay(
+                iconSize: 24,
+                fontSize: 18,
+                showBackground: true,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: FutureBuilder<void>(
         future: _lessonStatusesFuture,
         builder: (context, snapshot) {
