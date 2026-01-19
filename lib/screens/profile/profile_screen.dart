@@ -9,6 +9,9 @@ import '../../models/badge.dart' as achievement;
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/star_display.dart';
 import '../../dialogs/edit_nickname_dialog.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/responsive_container.dart';
+import '../../theme/text_styles.dart';
 import 'avatar_selection_screen.dart';
 
 /// Pantalla de perfil del usuario.
@@ -70,13 +73,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text(
+          'My Profile',
+          style: context.headline2,
+        ),
         elevation: 0,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
+      body: ResponsiveContainer(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(context.horizontalPadding),
+          child: Column(
           children: [
             // Avatar Section
             FutureBuilder<UserProfile>(
@@ -94,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () => _editAvatar(profile),
                       child: AvatarWidget(
                         avatarId: profile.avatarId,
-                        size: 100,
+                        size: context.isMobile ? 100 : (context.isTablet ? 120 : 140),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -107,8 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text(
                             profile.nickname,
-                            style: const TextStyle(
-                              fontSize: 24,
+                            style: TextStyle(
+                              fontSize: context.isMobile ? 24 : (context.isTablet ? 28 : 32),
                               fontWeight: FontWeight.bold,
                               color: Colors.deepPurple,
                             ),
@@ -198,6 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Badges Preview Section
             _buildBadgesPreview(),
           ],
+          ),
         ),
       ),
     );
@@ -217,17 +225,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Estrellas',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: context.isMobile ? 20 : (context.isTablet ? 22 : 24),
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
                   ),
                 ),
                 StarDisplay(
-                  iconSize: 28,
-                  fontSize: 24,
+                  iconSize: context.isMobile ? 28 : 32,
+                  fontSize: context.isMobile ? 24 : 26,
                   iconColor: Colors.amber[700],
                 ),
               ],

@@ -8,6 +8,9 @@ import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/badge.dart' as achievement;
 import '../widgets/star_display.dart';
+import '../utils/responsive.dart';
+import '../widgets/responsive_container.dart';
+import '../theme/text_styles.dart';
 import 'lesson_screen.dart';
 import 'lesson_flow_screen.dart';
 
@@ -96,30 +99,34 @@ class _LessonsScreenState extends State<LessonsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lecciones'),
+        title: Text(
+          'Lecciones',
+          style: context.headline2,
+        ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: EdgeInsets.only(right: context.horizontalPadding),
             child: Center(
               child: StarDisplay(
-                iconSize: 24,
-                fontSize: 18,
+                iconSize: context.isMobile ? 24 : 28,
+                fontSize: context.isMobile ? 18 : 20,
                 showBackground: true,
               ),
             ),
           ),
         ],
       ),
-      body: FutureBuilder<void>(
-        future: _lessonStatusesFuture,
-        builder: (context, snapshot) {
-          return lessonLevels.isEmpty
-              ? const Center(
-                  child: Text('No lessons available'),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: lessonLevels.length,
+      body: ResponsiveContainer(
+        child: FutureBuilder<void>(
+          future: _lessonStatusesFuture,
+          builder: (context, snapshot) {
+            return lessonLevels.isEmpty
+                ? const Center(
+                    child: Text('No lessons available'),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(context.horizontalPadding),
+                    itemCount: lessonLevels.length,
                   itemBuilder: (context, index) {
                     final level = lessonLevels[index];
                     final levelIndex = index;
@@ -196,15 +203,18 @@ class _LessonsScreenState extends State<LessonsScreen> {
                         initiallyExpanded: true,
                         title: Text(
                           '${level.title}$lockIcon',
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: context.isMobile ? 16 : (context.isTablet ? 18 : 20),
                             fontWeight: FontWeight.bold,
                             color: Colors.deepPurple,
                           ),
                         ),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.horizontalPadding,
+                              vertical: 8.0,
+                            ),
                             child: tileContent,
                           ),
                         ],
@@ -214,7 +224,8 @@ class _LessonsScreenState extends State<LessonsScreen> {
                 );
               },
             );
-        },
+          },
+        ),
       ),
     );
   }
@@ -262,8 +273,8 @@ class LessonListItem extends StatelessWidget {
                           Expanded(
                             child: Text(
                               lesson.title,
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: TextStyle(
+                                fontSize: context.isMobile ? 16 : (context.isTablet ? 17 : 18),
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 2,

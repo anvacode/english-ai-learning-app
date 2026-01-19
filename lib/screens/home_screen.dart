@@ -5,6 +5,9 @@ import 'settings_screen.dart';
 import 'achievements_screen.dart';
 import 'shop_screen.dart';
 import '../widgets/star_display.dart';
+import '../utils/responsive.dart';
+import '../widgets/responsive_container.dart';
+import '../theme/text_styles.dart';
 
 /// Pantalla principal de navegación con GridView de opciones.
 /// 
@@ -70,26 +73,30 @@ class _HomeGridView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('English Learning'),
+        title: Text(
+          'English Learning',
+          style: context.headline2,
+        ),
         elevation: 0,
         centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: EdgeInsets.only(right: context.horizontalPadding),
             child: Center(
               child: StarDisplay(
-                iconSize: 24,
-                fontSize: 18,
+                iconSize: context.isMobile ? 24 : 28,
+                fontSize: context.isMobile ? 18 : 20,
                 showBackground: true,
               ),
             ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2,
+      body: ResponsiveContainer(
+        child: ResponsiveGrid(
+          mobileColumns: 2,
+          tabletColumns: 3,
+          desktopColumns: 4,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           childAspectRatio: 0.9,
@@ -251,13 +258,15 @@ class _HomeGridItemState extends State<_HomeGridItem>
                     children: [
                       Text(
                         widget.icon,
-                        style: const TextStyle(fontSize: 64),
+                        style: TextStyle(
+                          fontSize: context.isMobile ? 64 : (context.isTablet ? 72 : 80),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         widget.title,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: context.isMobile ? 18 : (context.isTablet ? 20 : 22),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),

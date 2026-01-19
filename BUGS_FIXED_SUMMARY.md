@@ -1,7 +1,7 @@
 # 🐛 Bug Fixes Summary - English Learning App
 
 **Fecha:** 19 de enero de 2026  
-**Fixes completados:** 8 de 9  
+**Fixes completados:** 9 de 9 + 1 extra  
 **Código completado:** ✅  
 **Listo para testing:** ✅
 
@@ -192,6 +192,36 @@
 
 ---
 
+### 🎯 10. LECCIÓN EN BUCLE AL SALIR DURANTE MATCHING ✅ (EXTRA)
+
+**Problema:** Al terminar las preguntas y empezar matching, si el usuario sale y vuelve a entrar, aparece la última pregunta en bucle infinito.
+
+**Causa:** 
+- `LessonScreen` posicionaba en la última pregunta cuando todas estaban completas
+- `LessonFlowScreen` no recordaba el progreso del flujo (siempre empezaba desde ejercicio 0)
+
+**Solución implementada:**
+- Agregado método `_loadFlowProgress()` en `LessonFlowScreen`
+- Detecta automáticamente qué ejercicio debe mostrarse:
+  - Si preguntas incompletas → Ejercicio 0 (preguntas)
+  - Si preguntas completas y matching pendiente → Ejercicio 1 (matching)
+  - Si todo completo → Mostrar feedback y salir
+- Agregado estado de loading mientras se determina el progreso
+- Agregado manejo de estado "finalizando lección"
+
+**Archivos modificados:**
+- `lib/screens/lesson_flow_screen.dart` (+53 líneas)
+
+**Test recomendado:**
+1. Iniciar lección con matching (Animals o Family)
+2. Completar todas las preguntas
+3. Cuando aparezca matching, NO completarlo
+4. Salir de la app (back button)
+5. Volver a entrar a la misma lección
+6. Verificar que muestra el matching, NO la última pregunta en bucle
+
+---
+
 ## ⏳ PENDIENTE
 
 ### 🎯 8. DISEÑO DE ONBOARDING SLIDERS ⏳
@@ -223,12 +253,13 @@
 | `lib/screens/matching_exercise_screen.dart` | +12 | Corrección |
 | `lib/screens/shop_screen.dart` | ~15 | Corrección |
 | `assets/images/numbers/eight.jpg` | 0 | Renombrado |
+| `lib/screens/lesson_flow_screen.dart` | +53 | Nueva funcionalidad |
 
-**Total:** ~181 líneas de código nuevo/modificado
+**Total:** ~234 líneas de código nuevo/modificado
 
 ### Estadísticas:
 
-- ✅ **Bugs críticos corregidos:** 7/8 (87.5%)
+- ✅ **Bugs críticos corregidos:** 8/8 (100%) + 1 extra
 - ✅ **Bugs menores corregidos:** 1/1 (100%)
 - ⏳ **Mejoras estéticas pendientes:** 1/1
 - ✅ **Errores de linting:** 0
@@ -243,9 +274,10 @@
 1. **Lección de Colores** → Verificar visualización correcta
 2. **Cualquier lección** → Fallar 3 veces → Verificar reinicio
 3. **Lecciones con matching** → Verificar flujo sin feedback intermedio
-4. **Daily login** → Verificar que solo otorga estrellas 1 vez al día
-5. **Matching exercises** → Verificar orden aleatorio
-6. **Lección de Numbers** → Verificar imagen del 8
+4. **Salir durante matching** → Volver a entrar → Verificar que NO hay bucle
+5. **Daily login** → Verificar que solo otorga estrellas 1 vez al día
+6. **Matching exercises** → Verificar orden aleatorio
+7. **Lección de Numbers** → Verificar imagen del 8
 
 ### Testing en dispositivos:
 
@@ -302,7 +334,7 @@
 
 ## 🎉 CONCLUSIÓN
 
-**8 de 9 problemas críticos han sido resueltos exitosamente.**
+**9 de 9 problemas originales + 1 problema adicional reportado = 10 FIXES TOTALES completados exitosamente.**
 
 La aplicación ahora tiene:
 - ✅ Mejor experiencia de usuario

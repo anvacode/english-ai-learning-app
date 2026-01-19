@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../logic/first_time_service.dart';
 import '../logic/student_service.dart';
 import '../logic/star_service.dart';
 import '../dialogs/daily_login_reward_dialog.dart';
-import 'onboarding_screen.dart';
+import 'onboarding/modern_onboarding_screen.dart';
 import 'home_screen.dart';
 
 /// Pantalla de splash que se muestra al iniciar la aplicación.
@@ -52,11 +53,13 @@ class _SplashScreenState extends State<SplashScreen>
     // Inicializar estudiante (necesario para mantener funcionalidad existente)
     await StudentService.initializeStudent();
     
-    // Verificar si es la primera vez
+    // Verificar si es la primera vez o si el onboarding no se completó
+    final prefs = await SharedPreferences.getInstance();
     final isFirstTime = await FirstTimeService.isFirstTime();
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
     
-    // Si no es la primera vez, procesar login diario
-    if (!isFirstTime) {
+    // Si no es la primera vez y completó el onboarding, procesar login diario
+    if (!isFirstTime && onboardingCompleted) {
       // Procesar login diario (otorga recompensas y actualiza racha)
       final starsEarned = await StarService.processDailyLogin();
       
@@ -85,9 +88,9 @@ class _SplashScreenState extends State<SplashScreen>
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => isFirstTime
-            ? const OnboardingScreen()
-            : const HomeScreen(),
+        builder: (context) => (!isFirstTime && onboardingCompleted)
+            ? const HomeScreen()
+            : const ModernOnboardingScreen(),
       ),
     );
   }

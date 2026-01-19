@@ -6,6 +6,7 @@ import '../dialogs/lesson_completion_dialog.dart';
 import '../logic/star_service.dart';
 import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
+import '../logic/activity_result_service.dart';
 import '../models/badge.dart' as achievement;
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
@@ -26,11 +27,63 @@ class LessonFlowScreen extends StatefulWidget {
 
 class _LessonFlowScreenState extends State<LessonFlowScreen> {
   late int _currentExerciseIndex;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _currentExerciseIndex = 0;
+    _loadFlowProgress();
+  }
+  
+  /// Carga el progreso del flujo desde SharedPreferences
+  Future<void> _loadFlowProgress() async {
+    // Determinar qué ejercicio debe mostrarse basándose en los resultados guardados
+    int exerciseToShow = 0;
+    
+    // Verificar si las preguntas múltiples están completadas
+    final results = await ActivityResultService.getActivityResults();
+    final lessonResults = results.where((r) => r.lessonId == widget.lesson.id).toList();
+    
+    // Contar cuántas preguntas únicas correctas hay
+    final completedQuestionIds = <String>{};
+    for (final result in lessonResults) {
+      if (result.isCorrect && result.itemId != 'matching_exercise') {
+        completedQuestionIds.add(result.itemId);
+      }
+    }
+    
+    // Si todas las preguntas están completadas, ir al matching (ejercicio 1)
+    if (completedQuestionIds.length >= widget.lesson.items.length) {
+      // Verificar si matching también está completo
+      final matchingComplete = lessonResults.any(
+        (r) => r.itemId == 'matching_exercise' && r.isCorrect
+      );
+      
+      if (matchingComplete) {
+        // Todo está completo - mostrar feedback y salir
+        exerciseToShow = widget.exercises.length; // Forzar completado
+      } else {
+        // Preguntas completas, matching pendiente
+        exerciseToShow = 1; // Ir al matching
+      }
+    } else {
+      // Preguntas incompletas, empezar desde el principio
+      exerciseToShow = 0;
+    }
+    
+    setState(() {
+      _currentExerciseIndex = exerciseToShow;
+      _isLoading = false;
+    });
+    
+    // Si todo está completo, mostrar feedback inmediatamente
+    if (_currentExerciseIndex >= widget.exercises.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _onLessonComplete();
+        }
+      });
+    }
   }
 
   void _onExerciseComplete() {
@@ -93,6 +146,31 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Mostrar loading mientras se determina el ejercicio correcto
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.lesson.title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    
+    // Si el índice excede los ejercicios, significa que todo está completo
+    if (_currentExerciseIndex >= widget.exercises.length) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.lesson.title)),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Finalizando lección...'),
+            ],
+          ),
+        ),
+      );
+    }
+    
     final exercise = widget.exercises[_currentExerciseIndex];
     final exerciseCount = widget.exercises.length;
     

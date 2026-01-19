@@ -5,6 +5,9 @@ import '../services/shop_service.dart';
 import '../services/theme_service.dart';
 import '../logic/star_service.dart';
 import '../widgets/star_display.dart';
+import '../utils/responsive.dart';
+import '../widgets/responsive_container.dart';
+import '../theme/text_styles.dart';
 
 /// Pantalla de la tienda de estrellas.
 /// 
@@ -148,15 +151,18 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tienda de Estrellas'),
+        title: Text(
+          'Tienda de Estrellas',
+          style: context.headline2,
+        ),
         elevation: 0,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: EdgeInsets.only(right: context.horizontalPadding),
             child: Center(
               child: StarDisplay(
-                iconSize: 24,
-                fontSize: 18,
+                iconSize: context.isMobile ? 24 : 28,
+                fontSize: context.isMobile ? 18 : 20,
                 showBackground: true,
               ),
             ),
@@ -165,63 +171,65 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Banner de estrellas disponibles
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.amber[100]!,
-                        Colors.orange[100]!,
+          : ResponsiveContainer(
+              child: Column(
+                children: [
+                  // Banner de estrellas disponibles
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(context.horizontalPadding),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.amber[100]!,
+                          Colors.orange[100]!,
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Tus Estrellas',
+                          style: TextStyle(
+                            fontSize: context.isMobile ? 16 : (context.isTablet ? 18 : 20),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$_totalStars ⭐',
+                          style: TextStyle(
+                            fontSize: context.isMobile ? 32 : (context.isTablet ? 36 : 40),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber[900],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Tus Estrellas',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$_totalStars ⭐',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber[900],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                // Lista de ítems
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isPurchased = _purchasedIds.contains(item.id);
-                      final canAfford = _totalStars >= item.price;
+                  // Lista de ítems
+                  Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.all(context.horizontalPadding),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final isPurchased = _purchasedIds.contains(item.id);
+                        final canAfford = _totalStars >= item.price;
 
-                      return _ShopItemCard(
-                        item: item,
-                        isPurchased: isPurchased,
-                        canAfford: canAfford,
-                        onPurchase: () => _purchaseItem(item),
-                      );
-                    },
+                        return _ShopItemCard(
+                          item: item,
+                          isPurchased: isPurchased,
+                          canAfford: canAfford,
+                          onPurchase: () => _purchaseItem(item),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
