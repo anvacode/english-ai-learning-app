@@ -45,12 +45,14 @@ class LessonController extends ChangeNotifier {
   /// - itemId: the ID of the question item
   /// - selectedOption: the user's selected answer
   /// - isCorrect: whether the answer is correct
-  void submitAnswer({
+  /// 
+  /// Returns whether the lesson should be restarted due to too many errors
+  bool submitAnswer({
     required String itemId,
     required String selectedOption,
     required bool isCorrect,
   }) {
-    if (_currentAttempt == null) return;
+    if (_currentAttempt == null) return false;
 
     // Record the selected answer
     _currentAttempt!.recordSelectedAnswer(itemId, selectedOption);
@@ -58,13 +60,36 @@ class LessonController extends ChangeNotifier {
     // Only increment correct count if the answer was correct
     if (isCorrect) {
       _currentAttempt!.recordCorrectAnswer(itemId);
+      // Move to next question only if correct
+      _currentAttempt!.nextQuestion();
+    } else {
+      // Record incorrect attempt
+      _currentAttempt!.recordIncorrectAnswer(itemId);
+      
+      // Check if max attempts exceeded - if so, restart lesson
+      if (_currentAttempt!.hasExceededMaxAttempts(itemId)) {
+        notifyListeners();
+        return true; // Signal that lesson should be restarted
+      }
     }
-
-    // Move to next question
-    _currentAttempt!.nextQuestion();
 
     // Notify listeners of progress update
     notifyListeners();
+    return false;
+  }
+  
+  /// Get number of incorrect attempts for current question
+  int getIncorrectAttemptsForCurrentQuestion(String itemId) {
+    if (_currentAttempt == null) return 0;
+    return _currentAttempt!.getIncorrectAttempts(itemId);
+  }
+  
+  /// Restart the lesson (resets to beginning with fresh attempt)
+  void restartLesson() {
+    if (_totalQuestions > 0) {
+      _currentAttempt = LessonAttempt(totalQuestions: _totalQuestions);
+      notifyListeners();
+    }
   }
 
   /// Reset the lesson state (only use for testing or explicit reset)

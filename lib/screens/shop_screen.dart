@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/shop_item.dart';
 import '../services/shop_service.dart';
+import '../services/theme_service.dart';
 import '../logic/star_service.dart';
 import '../widgets/star_display.dart';
 
@@ -85,25 +87,37 @@ class _ShopScreenState extends State<ShopScreen> {
 
       if (confirmed != true) return;
 
+      // Obtener ThemeService del contexto
+      final themeService = context.read<ThemeService>();
+
       // Realizar compra
-      await ShopService.purchaseItem(item);
+      await ShopService.purchaseItem(item, themeService: themeService);
 
       // Recargar datos
       await _loadData();
 
-      // Mostrar mensaje de éxito
+      // Mostrar mensaje de éxito específico según el tipo de ítem
       if (mounted) {
+        String message;
+        if (item.type == ShopItemType.avatar) {
+          message = '¡Avatar activado! Puedes verlo en tu perfil';
+        } else if (item.type == ShopItemType.theme) {
+          message = '¡Tema activado! Los colores han cambiado';
+        } else {
+          message = '¡${item.name} comprado exitosamente!';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 8),
-                Text('¡${item.name} comprado exitosamente!'),
+                Expanded(child: Text(message)),
               ],
             ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -339,25 +353,29 @@ class _ShopItemCard extends StatelessWidget {
                       fontSize: 14,
                       color: Colors.grey[600],
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: typeColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _getTypeLabel(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: typeColor,
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: typeColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _getTypeLabel(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: typeColor,
+                            ),
                           ),
                         ),
                       ),
@@ -378,22 +396,27 @@ class _ShopItemCard extends StatelessWidget {
 
             // Botón de compra
             if (!isPurchased) ...[
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: canAfford ? onPurchase : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  disabledBackgroundColor: Colors.grey[300],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 80,
+                child: ElevatedButton(
+                  onPressed: canAfford ? onPurchase : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    disabledBackgroundColor: Colors.grey[300],
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Comprar',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  child: const Text(
+                    'Comprar',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),

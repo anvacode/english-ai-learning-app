@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../services/effects_service.dart';
+import '../widgets/confetti_overlay.dart';
 
 /// Diálogo de feedback al completar una lección.
 /// 
@@ -8,6 +10,7 @@ import 'dart:math' as math;
 /// - Mensaje de celebración
 /// - Estadísticas de la lección
 /// - Badge si se desbloqueó
+/// - Efecto de confeti si está comprado y activo
 class LessonCompletionDialog extends StatefulWidget {
   final String lessonTitle;
   final int starsEarned;
@@ -66,6 +69,8 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
   late Animation<double> _celebrationAnimation;
   late Animation<double> _starAnimation;
   late Animation<double> _scaleAnimation;
+  
+  bool _showConfetti = false;
 
   @override
   void initState() {
@@ -115,6 +120,18 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
     Future.delayed(const Duration(milliseconds: 400), () {
       _starController.forward();
     });
+    
+    // Verificar si debe mostrar confeti
+    _checkConfettiEffect();
+  }
+  
+  Future<void> _checkConfettiEffect() async {
+    final shouldShow = await EffectsService.shouldShowConfetti();
+    if (mounted && shouldShow) {
+      setState(() {
+        _showConfetti = true;
+      });
+    }
   }
 
   @override
@@ -129,9 +146,26 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
   Widget build(BuildContext context) {
     final percentage = (widget.correctAnswers / widget.totalQuestions * 100).round();
 
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: Dialog(
+    return Stack(
+      children: [
+        // Confetti overlay
+        if (_showConfetti)
+          Positioned.fill(
+            child: ConfettiOverlay(
+              isPlaying: _showConfetti,
+              onComplete: () {
+                if (mounted) {
+                  setState(() {
+                    _showConfetti = false;
+                  });
+                }
+              },
+            ),
+          ),
+        // Dialog
+        ScaleTransition(
+          scale: _scaleAnimation,
+          child: Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
@@ -378,7 +412,9 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
             ),
           ),
         ),
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

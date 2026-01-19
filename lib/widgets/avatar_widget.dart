@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Widget que muestra un avatar circular.
 /// 
 /// Soporta avatares predefinidos (0-7) usando emojis
-/// o un placeholder por defecto.
+/// y avatares de tienda (8-10) con emojis especiales.
 class AvatarWidget extends StatelessWidget {
   final int avatarId;
   final double size;
@@ -16,7 +16,7 @@ class AvatarWidget extends StatelessWidget {
     this.backgroundColor,
   });
 
-  /// Lista de emojis para avatares predefinidos.
+  /// Lista de emojis para avatares predefinidos (0-7).
   static const List<String> _avatarEmojis = [
     '👤', // 0 - Persona genérica
     '👦', // 1 - Niño
@@ -27,8 +27,35 @@ class AvatarWidget extends StatelessWidget {
     '🦸', // 6 - Superhéroe
     '🦹', // 7 - Supervillano
   ];
+  
+  /// Avatares de tienda (8-10) - requieren compra
+  static const Map<int, String> _shopAvatarEmojis = {
+    8: '⭐', // Avatar Estrella
+    9: '🏆', // Avatar Campeón
+    10: '🦸', // Avatar Superhéroe (versión premium)
+  };
+  
+  /// Nombres de los avatares de tienda
+  static const Map<int, String> shopAvatarNames = {
+    8: 'Estrella',
+    9: 'Campeón',
+    10: 'Superhéroe',
+  };
+  
+  /// Verifica si un avatarId es de tienda
+  static bool isShopAvatar(int avatarId) {
+    return _shopAvatarEmojis.containsKey(avatarId);
+  }
+  
+  /// Obtiene todos los IDs de avatares de tienda
+  static List<int> get shopAvatarIds => _shopAvatarEmojis.keys.toList();
 
   String get _avatarEmoji {
+    // Primero verificar si es un avatar de tienda
+    if (_shopAvatarEmojis.containsKey(avatarId)) {
+      return _shopAvatarEmojis[avatarId]!;
+    }
+    // Luego verificar avatares predefinidos
     if (avatarId >= 0 && avatarId < _avatarEmojis.length) {
       return _avatarEmojis[avatarId];
     }

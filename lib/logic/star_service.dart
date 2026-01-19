@@ -60,14 +60,24 @@ class StarService {
   /// [type] es el tipo de transacción ('lesson_complete', 'daily_login', 'streak_bonus', etc.).
   /// [lessonId] es opcional y se usa si la transacción está relacionada con una lección.
   /// [description] es una descripción legible de la transacción.
+  /// [applyMultiplier] indica si se debe aplicar el multiplicador de power-ups (default: true).
   static Future<void> addStars(
     int amount,
     String type, {
     String? lessonId,
     String? description,
+    bool applyMultiplier = true,
   }) async {
     if (amount <= 0) {
       throw ArgumentError('Amount must be positive');
+    }
+
+    // Aplicar multiplicador de power-ups si está activo
+    int finalAmount = amount;
+    if (applyMultiplier) {
+      // Import dinámico para evitar dependencia circular
+      final multiplier = await _getStarMultiplier();
+      finalAmount = (amount * multiplier).round();
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -77,13 +87,18 @@ class StarService {
     final transactionId = const Uuid().v4();
     
     // Crear descripción por defecto si no se proporciona
-    final finalDescription = description ?? _getDefaultDescription(type, amount, lessonId);
+    String finalDescription = description ?? _getDefaultDescription(type, finalAmount, lessonId);
+    
+    // Agregar indicador de multiplicador si se aplicó
+    if (applyMultiplier && finalAmount > amount) {
+      finalDescription = '$finalDescription (x2 ⚡)';
+    }
     
     // Crear nueva transacción
     final transaction = StarTransaction(
       id: transactionId,
       type: type,
-      amount: amount,
+      amount: finalAmount,
       description: finalDescription,
       timestamp: DateTime.now(),
       lessonId: lessonId,
@@ -97,7 +112,26 @@ class StarService {
     
     // Actualizar total en cache
     final currentTotal = await getTotalStars();
-    await prefs.setInt(_totalStarsKey, currentTotal + amount);
+    await prefs.setInt(_totalStarsKey, currentTotal + finalAmount);
+  }
+  
+  /// Obtiene el multiplicador de estrellas actual (para power-ups).
+  static Future<double> _getStarMultiplier() async {
+    final prefs = await SharedPreferences.getInstance();
+    final expirationString = prefs.getString('powerup_expiration_powerup_double_stars');
+    
+    if (expirationString == null) return 1.0;
+    
+    try {
+      final expirationDate = DateTime.parse(expirationString);
+      if (DateTime.now().isBefore(expirationDate)) {
+        return 2.0; // Doble estrellas activo
+      }
+    } catch (e) {
+      // Error al parsear fecha
+    }
+    
+    return 1.0;
   }
 
   /// Gasta estrellas del usuario.
@@ -272,8 +306,25 @@ class StarService {
   /// 
   /// Otorga estrellas por login diario y bonos por racha.
   /// Retorna la cantidad total de estrellas ganadas.
+  /// Si ya se otorgaron estrellas hoy, retorna 0.
   static Future<int> processDailyLogin() async {
     await checkAndResetDailyEarnings();
+    
+    final prefs = await SharedPreferences.getInstance();
+    final lastLoginString = prefs.getString(_lastLoginDateKey);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Verificar si ya se procesó el login hoy
+    if (lastLoginString != null) {
+      final lastLogin = DateTime.parse(lastLoginString);
+      final lastLoginDate = DateTime(lastLogin.year, lastLogin.month, lastLogin.day);
+      
+      // Si ya inició sesión hoy, no otorgar estrellas nuevamente
+      if (lastLoginDate.isAtSameMomentAs(today)) {
+        return 0; // Ya se otorgaron estrellas hoy
+      }
+    }
     
     final streak = await updateLoginStreak();
     int totalEarned = 0;
@@ -284,6 +335,7 @@ class StarService {
       dailyLoginReward,
       'daily_login',
       description: 'Login diario',
+      applyMultiplier: false, // No aplicar multiplicador a login diario
     );
     totalEarned += dailyLoginReward;
     
@@ -295,6 +347,7 @@ class StarService {
           streakBonus,
           'streak_bonus',
           description: 'Bono de racha ($streak días)',
+          applyMultiplier: false, // No aplicar multiplicador a bonos de racha
         );
         totalEarned += streakBonus;
       }

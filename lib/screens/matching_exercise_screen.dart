@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' show Random;
 import '../models/matching_item.dart';
 import '../models/activity_result.dart';
 import '../logic/activity_result_service.dart';
@@ -42,6 +43,9 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   
   // Audio service
   final AudioService _audioService = AudioService();
+  
+  // Shuffled words for randomization
+  late List<String> _shuffledWords;
 
   @override
   void initState() {
@@ -49,6 +53,13 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     _matchedIds = {};
     _resetSelection();
     _audioService.initialize();
+    _shuffleWords();
+  }
+  
+  /// Mezcla las palabras para que no aparezcan en el mismo orden que las imágenes
+  void _shuffleWords() {
+    _shuffledWords = widget.items.map((item) => item.correctWord).toList();
+    _shuffledWords.shuffle(Random());
   }
 
   void _resetSelection() {
@@ -218,13 +229,13 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // Words column
+                    // Words column (shuffled)
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: widget.items
-                              .map((item) => _buildWordButton(item.correctWord))
+                          children: _shuffledWords
+                              .map((word) => _buildWordButton(word))
                               .toList(),
                         ),
                       ),

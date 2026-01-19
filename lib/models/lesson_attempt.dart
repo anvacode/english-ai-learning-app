@@ -15,6 +15,12 @@ class LessonAttempt {
 
   /// Track selected answers per item (itemId -> selectedOption)
   final Map<String, String> selectedAnswers = {};
+  
+  /// Track number of incorrect attempts per question (itemId -> count)
+  final Map<String, int> incorrectAttemptsPerQuestion = {};
+  
+  /// Maximum allowed incorrect attempts per question before restart
+  static const int maxIncorrectAttemptsPerQuestion = 3;
 
   LessonAttempt({required this.totalQuestions});
 
@@ -27,6 +33,21 @@ class LessonAttempt {
   /// Record a selected answer for an item
   void recordSelectedAnswer(String itemId, String selectedOption) {
     selectedAnswers[itemId] = selectedOption;
+  }
+  
+  /// Record an incorrect answer for an item
+  void recordIncorrectAnswer(String itemId) {
+    incorrectAttemptsPerQuestion[itemId] = (incorrectAttemptsPerQuestion[itemId] ?? 0) + 1;
+  }
+  
+  /// Check if an item has exceeded max incorrect attempts
+  bool hasExceededMaxAttempts(String itemId) {
+    return (incorrectAttemptsPerQuestion[itemId] ?? 0) >= maxIncorrectAttemptsPerQuestion;
+  }
+  
+  /// Get number of incorrect attempts for an item
+  int getIncorrectAttempts(String itemId) {
+    return incorrectAttemptsPerQuestion[itemId] ?? 0;
   }
 
   /// Get progress as a percentage (0.0 to 1.0)
@@ -60,5 +81,6 @@ class LessonAttempt {
     correctAnswersCount = 0;
     correctItemIds.clear();
     selectedAnswers.clear();
+    incorrectAttemptsPerQuestion.clear();
   }
 }

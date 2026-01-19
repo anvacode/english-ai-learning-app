@@ -12,7 +12,9 @@ import '../logic/star_service.dart';
 import '../models/badge.dart' as achievement;
 import '../widgets/lesson_image.dart';
 import '../widgets/speaker_button.dart';
+import '../widgets/sparkles_overlay.dart';
 import '../services/audio_service.dart';
+import '../services/effects_service.dart';
 import '../dialogs/lesson_completion_dialog.dart';
 import 'matching_exercise_screen.dart';
 
@@ -58,6 +60,10 @@ class _LessonScreenState extends State<LessonScreen> {
   
   // Audio service
   final AudioService _audioService = AudioService();
+  
+  // Sparkles effect state
+  bool _showSparkles = false;
+  Offset? _sparklesCenter;
 
   @override
   void initState() {
@@ -141,6 +147,19 @@ class _LessonScreenState extends State<LessonScreen> {
       _randomizedOptions.shuffle();
     }
   }
+  
+  /// Trigger sparkles effect on correct answer
+  Future<void> _triggerSparklesEffect() async {
+    final shouldShow = await EffectsService.shouldShowSparkles();
+    if (mounted && shouldShow) {
+      // Get center of screen for sparkles
+      final screenSize = MediaQuery.of(context).size;
+      setState(() {
+        _showSparkles = true;
+        _sparklesCenter = Offset(screenSize.width / 2, screenSize.height / 2);
+      });
+    }
+  }
 
   // Save answer first, then evaluate, then setState (persistence order enforced)
   Future<void> _handleOptionTap(int tappedIndex) async {
@@ -172,11 +191,57 @@ class _LessonScreenState extends State<LessonScreen> {
     final lessonController = context.read<LessonController>();
     
     // 3) Update UI with feedback and progress via Provider
-    lessonController.submitAnswer(
+    final shouldRestart = lessonController.submitAnswer(
       itemId: currentItem.id,
       selectedOption: selectedOption,
       isCorrect: isCorrect,
     );
+    
+    // Check if lesson should restart due to too many errors (3 per question)
+    if (shouldRestart) {
+      await _audioService.playWrongSound();
+      
+      // Show dialog informing about restart
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('🔄 Reiniciando lección'),
+            content: const Text(
+              'Has tenido 3 errores en esta pregunta. '
+              'Vamos a empezar la lección de nuevo para que puedas practicar más. '
+              '¡Tú puedes!',
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                ),
+                child: const Text('¡Vamos!', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      }
+      
+      // Restart the lesson
+      if (mounted) {
+        lessonController.restartLesson();
+        setState(() {
+          currentItemIndex = 0;
+          _selectedAnswerIndex = null;
+          _answered = false;
+          _isCorrect = null;
+          completedCount = 0;
+          totalCount = progress.totalCount;
+          status = LessonProgressStatus.inProgress;
+        });
+        _randomizeOptions();
+      }
+      return;
+    }
     
     setState(() {
       _selectedAnswerIndex = tappedIndex;
@@ -187,11 +252,25 @@ class _LessonScreenState extends State<LessonScreen> {
       status = progress.status;
     });
     
-    // Play feedback sound
+    // Play feedback sound and show sparkles effect
     if (isCorrect) {
       await _audioService.playCorrectSound();
+      // Show sparkles effect if purchased and active
+      _triggerSparklesEffect();
     } else {
       await _audioService.playWrongSound();
+      
+      // Show number of attempts left for this question
+      final attemptsLeft = 3 - lessonController.getIncorrectAttemptsForCurrentQuestion(currentItem.id);
+      if (attemptsLeft > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Intentos restantes para esta pregunta: $attemptsLeft'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.orange[700],
+          ),
+        );
+      }
     }
 
     // 4) Check if exercise is complete using Provider state
@@ -202,73 +281,77 @@ class _LessonScreenState extends State<LessonScreen> {
       // A lesson is mastered ONLY if the current attempt is perfect (100% correct)
       final isCurrentAttemptPerfect = lessonController.correctAnswers == lessonController.totalQuestions;
       
-      int starsEarned = 0;
-      achievement.Badge? badgeToShow;
-      
-      if (isCurrentAttemptPerfect) {
-        // Save lesson completion record (source of truth for mastery)
-        await LessonCompletionService.saveCompletion(widget.lesson.id);
-        
-        // Award stars for perfect lesson completion
-        const starsForCompletion = 20; // Base stars for completing a lesson
-        await StarService.addStars(
-          starsForCompletion,
-          'lesson_complete',
-          lessonId: widget.lesson.id,
-          description: 'Completaste la lección "${widget.lesson.title}"',
-        );
-        starsEarned = starsForCompletion;
-        
-        // Award badge (only on first perfect completion)
-        final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
-        if (badgeJustAwarded && mounted) {
-          // Reload badge to show it was just awarded
-          final badge = await BadgeService.getBadge(widget.lesson);
-          setState(() {
-            _badge = badge;
-          });
-          badgeToShow = badge;
-        } else if (mounted) {
-          // Show existing badge if any
-          final badge = await BadgeService.getBadge(widget.lesson);
-          if (badge != null && badge.unlocked) {
-            badgeToShow = badge;
-          }
-        }
-      } else {
-        // Award partial stars for completing lesson items (even if not perfect)
-        // This encourages progress even if not perfect
-        const starsForProgress = 5;
-        await StarService.addStars(
-          starsForProgress,
-          'lesson_progress',
-          lessonId: widget.lesson.id,
-          description: 'Progreso en la lección "${widget.lesson.title}"',
-        );
-        starsEarned = starsForProgress;
-      }
-      
-      // Show completion dialog with feedback
-      if (mounted) {
-        await LessonCompletionDialog.show(
-          context,
-          lessonTitle: widget.lesson.title,
-          starsEarned: starsEarned,
-          correctAnswers: lessonController.correctAnswers,
-          totalQuestions: lessonController.totalQuestions,
-          badgeIcon: badgeToShow?.icon,
-          badgeTitle: badgeToShow?.title,
-          isPerfectScore: isCurrentAttemptPerfect,
-        );
-      }
-      
+      // If we are in flow mode (onExerciseCompleted is not null), 
+      // don't show feedback/dialog yet - let the flow controller handle it
       if (widget.onExerciseCompleted != null) {
-        // In flow mode: signal exercise completion immediately
+        // In flow mode: just signal exercise completion without showing dialog
+        // The LessonFlowScreen will show feedback after ALL exercises are done
         if (mounted) {
           widget.onExerciseCompleted!();
         }
       } else {
-        // Standalone mode: navigate after mastery (only if perfect attempt)
+        // Standalone mode: Show feedback and award stars immediately
+        int starsEarned = 0;
+        achievement.Badge? badgeToShow;
+        
+        if (isCurrentAttemptPerfect) {
+          // Save lesson completion record (source of truth for mastery)
+          await LessonCompletionService.saveCompletion(widget.lesson.id);
+          
+          // Award stars for perfect lesson completion
+          const starsForCompletion = 20; // Base stars for completing a lesson
+          await StarService.addStars(
+            starsForCompletion,
+            'lesson_complete',
+            lessonId: widget.lesson.id,
+            description: 'Completaste la lección "${widget.lesson.title}"',
+          );
+          starsEarned = starsForCompletion;
+          
+          // Award badge (only on first perfect completion)
+          final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
+          if (badgeJustAwarded && mounted) {
+            // Reload badge to show it was just awarded
+            final badge = await BadgeService.getBadge(widget.lesson);
+            setState(() {
+              _badge = badge;
+            });
+            badgeToShow = badge;
+          } else if (mounted) {
+            // Show existing badge if any
+            final badge = await BadgeService.getBadge(widget.lesson);
+            if (badge != null && badge.unlocked) {
+              badgeToShow = badge;
+            }
+          }
+        } else {
+          // Award partial stars for completing lesson items (even if not perfect)
+          // This encourages progress even if not perfect
+          const starsForProgress = 5;
+          await StarService.addStars(
+            starsForProgress,
+            'lesson_progress',
+            lessonId: widget.lesson.id,
+            description: 'Progreso en la lección "${widget.lesson.title}"',
+          );
+          starsEarned = starsForProgress;
+        }
+        
+        // Show completion dialog with feedback (only in standalone mode)
+        if (mounted) {
+          await LessonCompletionDialog.show(
+            context,
+            lessonTitle: widget.lesson.title,
+            starsEarned: starsEarned,
+            correctAnswers: lessonController.correctAnswers,
+            totalQuestions: lessonController.totalQuestions,
+            badgeIcon: badgeToShow?.icon,
+            badgeTitle: badgeToShow?.title,
+            isPerfectScore: isCurrentAttemptPerfect,
+          );
+        }
+        
+        // Navigate after mastery (only if perfect attempt)
         if (isCurrentAttemptPerfect) {
           _exitAfterMastery();
         }
@@ -471,10 +554,12 @@ class _LessonScreenState extends State<LessonScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Lección')),
-      body: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Consumer<LessonController>(
@@ -698,7 +783,19 @@ class _LessonScreenState extends State<LessonScreen> {
             ),
           ],
         ),
+    ), // Cierre del SafeArea
+    if (_showSparkles && _sparklesCenter != null)
+      SparklesOverlay(
+        isPlaying: _showSparkles,
+        center: _sparklesCenter!,
+        onComplete: () {
+          setState(() {
+            _showSparkles = false;
+          });
+        },
       ),
-    );
-  }
+  ], // Cierre de children del Stack
+),
+);
+}
 }

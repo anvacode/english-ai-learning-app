@@ -50,9 +50,13 @@ class UserProfileService {
   }
 
   /// Actualiza el avatar del usuario.
+  /// 
+  /// Acepta avatarId de 0-7 (predefinidos) o 8-10 (tienda).
+  /// Para avatares de tienda (8-10), se debe verificar que estén comprados
+  /// antes de llamar a este método.
   static Future<void> updateAvatar(int avatarId) async {
-    if (avatarId < 0 || avatarId > 7) {
-      throw ArgumentError('avatarId must be between 0 and 7');
+    if (avatarId < 0 || avatarId > 10) {
+      throw ArgumentError('avatarId must be between 0 and 10');
     }
     final profile = await loadProfile();
     final updatedProfile = profile.copyWith(avatarId: avatarId);

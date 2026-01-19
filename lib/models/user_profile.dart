@@ -53,6 +53,9 @@ class UserProfile {
     );
   }
 
-  /// Valida que el avatarId esté en el rango válido (0-7).
-  bool get isValidAvatarId => avatarId >= 0 && avatarId <= 7;
+  /// Valida que el avatarId esté en el rango válido (0-7 predefinidos, 8-10 tienda).
+  bool get isValidAvatarId => avatarId >= 0 && avatarId <= 10;
+  
+  /// Verifica si el avatar actual es de tienda (requiere compra).
+  bool get isShopAvatar => avatarId >= 8 && avatarId <= 10;
 }

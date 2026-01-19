@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/audio_service.dart';
+import '../services/theme_service.dart';
+import '../services/shop_service.dart';
+import '../models/shop_item.dart';
+import 'purchased_items_screen.dart';
 
 /// Pantalla de configuración básica de la aplicación.
 /// 
@@ -34,6 +39,106 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _rate = _audioService.rate;
       _isLoading = false;
     });
+  }
+
+  Future<void> _showThemeSelector(BuildContext context) async {
+    final themeService = context.read<ThemeService>();
+    final purchasedThemes = await ShopService.getPurchasedItems();
+    final themes = purchasedThemes
+        .where((item) => item.type == ShopItemType.theme)
+        .toList();
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Seleccionar Tema',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Tema por defecto
+              _buildThemeOption(
+                context: context,
+                themeId: null,
+                name: 'Por defecto',
+                icon: '💜',
+                isActive: themeService.activeThemeId == null,
+                onTap: () async {
+                  await themeService.setActiveTheme(null);
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+              // Temas comprados
+              ...themes.map((theme) {
+                final themeId = theme.metadata?['themeId'] as String?;
+                return _buildThemeOption(
+                  context: context,
+                  themeId: themeId,
+                  name: theme.name,
+                  icon: theme.icon,
+                  isActive: themeService.activeThemeId == themeId,
+                  onTap: () async {
+                    if (themeId != null) {
+                      await themeService.setActiveTheme(themeId);
+                    }
+                    if (mounted) Navigator.pop(context);
+                  },
+                );
+              }),
+              if (themes.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    'Visita la tienda para comprar más temas',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption({
+    required BuildContext context,
+    required String? themeId,
+    required String name,
+    required String icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Text(icon, style: const TextStyle(fontSize: 28)),
+      title: Text(name),
+      trailing: isActive
+          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+          : null,
+      onTap: onTap,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      tileColor: isActive
+          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+          : null,
+    );
   }
 
   @override
@@ -217,6 +322,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Sección de personalización
+          _SettingsSection(
+            title: 'Personalización',
+            children: [
+              _SettingsTile(
+                icon: Icons.shopping_bag,
+                title: 'Mis Ítems',
+                subtitle: 'Gestiona tus ítems comprados',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PurchasedItemsScreen(),
+                    ),
+                  );
+                },
+              ),
+              Consumer<ThemeService>(
+                builder: (context, themeService, _) {
+                  final themeInfo = ThemeService.getThemeInfo(
+                    themeService.activeThemeId ?? 'default',
+                  );
+                  return _SettingsTile(
+                    icon: Icons.palette,
+                    title: 'Tema',
+                    subtitle: themeInfo['name'] as String? ?? 'Por defecto',
+                    onTap: () => _showThemeSelector(context),
+                  );
+                },
               ),
             ],
           ),

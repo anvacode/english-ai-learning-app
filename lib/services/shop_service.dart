@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/shop_item.dart';
 import '../logic/star_service.dart';
+import '../logic/user_profile_service.dart';
+import 'theme_service.dart';
 
 /// Servicio para manejar la tienda de estrellas.
 /// 
@@ -131,10 +133,14 @@ class ShopService {
   /// Compra un ítem usando estrellas.
   /// 
   /// [item] es el ítem a comprar.
+  /// [themeService] es opcional, permite activar temas inmediatamente.
   /// 
   /// Lanza una excepción si el usuario no tiene suficientes estrellas
   /// o si el ítem ya fue comprado.
-  static Future<void> purchaseItem(ShopItem item) async {
+  static Future<void> purchaseItem(
+    ShopItem item, {
+    ThemeService? themeService,
+  }) async {
     // Verificar si ya está comprado
     if (await isItemPurchased(item.id)) {
       throw StateError('Este ítem ya ha sido comprado');
@@ -160,6 +166,70 @@ class ShopService {
       _purchasedItemsKey,
       jsonEncode(purchasedIds.toList()),
     );
+    
+    // Activar automáticamente según el tipo de ítem
+    await _activateItemOnPurchase(item, themeService: themeService);
+  }
+  
+  /// Activa un ítem automáticamente después de comprarlo.
+  /// 
+  /// [themeService] es opcional, permite activar temas inmediatamente.
+  static Future<void> _activateItemOnPurchase(
+    ShopItem item, {
+    ThemeService? themeService,
+  }) async {
+    switch (item.type) {
+      case ShopItemType.avatar:
+        // Activar avatar automáticamente
+        final avatarId = item.metadata?['avatarId'] as int?;
+        if (avatarId != null) {
+          await UserProfileService.updateAvatar(avatarId);
+        }
+        break;
+        
+      case ShopItemType.theme:
+        // Activar tema automáticamente
+        final themeId = item.metadata?['themeId'] as String?;
+        if (themeId != null) {
+          if (themeService != null) {
+            // Aplicar tema inmediatamente usando Provider
+            await themeService.setActiveTheme(themeId);
+          } else {
+            // Fallback: guardar en SharedPreferences para próximo inicio
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('active_theme_id', themeId);
+          }
+        }
+        break;
+        
+      case ShopItemType.effect:
+        // Activar efecto automáticamente
+        final effectId = item.metadata?['effectId'] as String?;
+        if (effectId != null) {
+          final prefs = await SharedPreferences.getInstance();
+          final activeEffects = prefs.getStringList('active_effects')?.toSet() ?? {};
+          activeEffects.add(effectId);
+          await prefs.setStringList('active_effects', activeEffects.toList());
+        }
+        break;
+        
+      case ShopItemType.powerup:
+        // Activar power-up con su duración
+        final duration = item.metadata?['duration'] as int? ?? 3;
+        final expirationDate = DateTime.now().add(Duration(days: duration));
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'powerup_expiration_${item.id}',
+          expirationDate.toIso8601String(),
+        );
+        final activePowerUps = prefs.getStringList('active_powerups')?.toSet() ?? {};
+        activePowerUps.add(item.id);
+        await prefs.setStringList('active_powerups', activePowerUps.toList());
+        break;
+        
+      default:
+        break;
+    }
   }
 
   /// Obtiene todos los ítems comprados.

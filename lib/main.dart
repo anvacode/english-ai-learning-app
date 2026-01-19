@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'logic/lesson_controller.dart';
+import 'services/theme_service.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -12,14 +13,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LessonController(),
-      child: MaterialApp(
-        title: 'English AI App',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
-        home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LessonController()),
+        ChangeNotifierProvider(create: (context) => ThemeService()..initialize()),
+      ],
+      child: Consumer<ThemeService>(
+        builder: (context, themeService, child) {
+          return MaterialApp(
+            title: 'English AI App',
+            theme: ThemeService.getThemeData(themeService.activeThemeId),
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }
