@@ -64,6 +64,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    # Nivel Principiante
     - assets/images/fruits/
     - assets/images/animals/
     - assets/images/classroom/
@@ -73,6 +74,21 @@ flutter:
     - assets/images/clothes/
     - assets/images/food/
     - assets/images/actions/
+    # Nivel Intermedio
+    - assets/images/routines/
+    - assets/images/weather/
+    - assets/images/occupations/
+    - assets/images/transportation/
+    - assets/images/places/
+    - assets/images/meals/
+    - assets/images/clothing_ext/
+    - assets/images/emotions/
+    - assets/images/subjects/
+    - assets/images/sports/
+    # Nivel Avanzado
+    - assets/images/verbs/
+    - assets/images/prepositions/
+    - assets/images/adjectives/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

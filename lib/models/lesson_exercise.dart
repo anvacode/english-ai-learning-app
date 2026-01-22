@@ -2,6 +2,7 @@
 enum ExerciseType {
   multipleChoice,
   matching,
+  spelling,
 }
 
 /// A single exercise within a lesson flow.

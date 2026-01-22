@@ -10,6 +10,7 @@ import '../logic/activity_result_service.dart';
 import '../models/badge.dart' as achievement;
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
+import 'spelling_exercise_screen.dart';
 
 class LessonFlowScreen extends StatefulWidget {
   final Lesson lesson;
@@ -199,6 +200,14 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
           onComplete: _onExerciseComplete,
           progressOffset: progressOffset,
           progressScale: progressScale,
+        );
+        break;
+
+      case ExerciseType.spelling:
+        exerciseScreen = SpellingExerciseScreen(
+          key: ValueKey('spelling-$_currentExerciseIndex'),
+          lesson: widget.lesson,
+          onCompleted: _onExerciseComplete,
         );
         break;
     }
