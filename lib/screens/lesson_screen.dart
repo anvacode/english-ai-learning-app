@@ -13,6 +13,7 @@ import '../models/badge.dart' as achievement;
 import '../widgets/lesson_image.dart';
 import '../widgets/speaker_button.dart';
 import '../widgets/sparkles_overlay.dart';
+import '../widgets/translation_popup.dart';
 import '../services/audio_service.dart';
 import '../services/effects_service.dart';
 import '../dialogs/lesson_completion_dialog.dart';
@@ -295,18 +296,23 @@ class _LessonScreenState extends State<LessonScreen> {
         achievement.Badge? badgeToShow;
         
         if (isCurrentAttemptPerfect) {
+          // Check if lesson was already completed before
+          final wasAlreadyCompleted = await LessonCompletionService.isLessonCompleted(widget.lesson.id);
+          
           // Save lesson completion record (source of truth for mastery)
           await LessonCompletionService.saveCompletion(widget.lesson.id);
           
-          // Award stars for perfect lesson completion
-          const starsForCompletion = 20; // Base stars for completing a lesson
-          await StarService.addStars(
-            starsForCompletion,
-            'lesson_complete',
-            lessonId: widget.lesson.id,
-            description: 'Completaste la lección "${widget.lesson.title}"',
-          );
-          starsEarned = starsForCompletion;
+          // Award stars only if this is the first time completing the lesson
+          if (!wasAlreadyCompleted) {
+            const starsForCompletion = 20; // Base stars for completing a lesson
+            await StarService.addStars(
+              starsForCompletion,
+              'lesson_complete',
+              lessonId: widget.lesson.id,
+              description: 'Completaste la lección "${widget.lesson.title}"',
+            );
+            starsEarned = starsForCompletion;
+          }
           
           // Award badge (only on first perfect completion)
           final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
@@ -600,20 +606,26 @@ class _LessonScreenState extends State<LessonScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
                     child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: LessonImage(
-                          imagePath: currentItem.stimulusImageAsset,
-                          fallbackColor: currentItem.stimulusColor,
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.cover,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[50],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: LessonImage(
+                            imagePath: currentItem.stimulusImageAsset,
+                            fallbackColor: currentItem.stimulusColor,
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.contain, // Mostrar imagen completa sin recortar
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                  // Question with speaker button
+                  // Question with speaker button and translation helper
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -633,6 +645,28 @@ class _LessonScreenState extends State<LessonScreen> {
                           iconSize: 20,
                           buttonSize: 36,
                         ),
+                        const SizedBox(width: 4),
+                        // Botón de traducción
+                        IconButton(
+                          onPressed: () {
+                            final word = currentItem.options[currentItem.correctAnswerIndex];
+                            final translation = TranslationService.translate(word);
+                            TranslationPopup.show(
+                              context,
+                              word: word,
+                              translation: translation,
+                            );
+                          },
+                          icon: const Icon(Icons.help_outline),
+                          color: Colors.blue[600],
+                          iconSize: 24,
+                          tooltip: 'Ver traducción',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -643,51 +677,71 @@ class _LessonScreenState extends State<LessonScreen> {
                     child: Column(
                       children: List.generate(
                         _randomizedOptions.length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed: (status == LessonProgressStatus.mastered || _answered)
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _selectedAnswerIndex = index;
-                                      });
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _selectedAnswerIndex == index
-                                    ? Colors.deepPurple
-                                    : Colors.grey[200],
-                                disabledBackgroundColor: _answered
-                                    ? (_randomizedOptions[index] == _correctAnswerValue
-                                        ? Colors.green[300]
-                                        : Colors.grey[300])
-                                    : Colors.grey[200],
+                        (index) => Center( // Centrar botones horizontalmente
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6.0),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: MediaQuery.of(context).size.width * 0.85, // 85% del ancho
+                                minHeight: 56,
+                                maxHeight: 72, // Permitir hasta 2 líneas
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _randomizedOptions[index],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: _selectedAnswerIndex == index && !_answered
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
+                              child: ElevatedButton(
+                                onPressed: (status == LessonProgressStatus.mastered || _answered)
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _selectedAnswerIndex = index;
+                                        });
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _selectedAnswerIndex == index
+                                      ? Colors.deepPurple
+                                      : Colors.grey[200],
+                                  disabledBackgroundColor: _answered
+                                      ? (_randomizedOptions[index] == _correctAnswerValue
+                                          ? Colors.green[300]
+                                          : Colors.grey[300])
+                                      : Colors.grey[200],
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  if (!_answered && status != LessonProgressStatus.mastered)
-                                    SpeakerButton(
-                                      text: _randomizedOptions[index],
-                                      iconSize: 18,
-                                      buttonSize: 32,
-                                      iconColor: _selectedAnswerIndex == index
-                                          ? Colors.white
-                                          : Colors.deepPurple,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        _randomizedOptions[index],
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: _selectedAnswerIndex == index && !_answered
+                                              ? Colors.white
+                                              : Colors.black,
+                                          height: 1.2,
+                                        ),
+                                        textAlign: TextAlign.center, // Centrar texto
+                                        overflow: TextOverflow.visible,
+                                        softWrap: true,
+                                        maxLines: 2,
+                                      ),
                                     ),
-                                ],
+                                    if (!_answered && status != LessonProgressStatus.mastered) ...[
+                                      const SizedBox(width: 8),
+                                      SpeakerButton(
+                                        text: _randomizedOptions[index],
+                                        iconSize: 16,
+                                        buttonSize: 28,
+                                        iconColor: _selectedAnswerIndex == index
+                                            ? Colors.white
+                                            : Colors.deepPurple,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -700,57 +754,73 @@ class _LessonScreenState extends State<LessonScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: !_answered
-                        ? SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed: _selectedAnswerIndex != null && status != LessonProgressStatus.mastered
-                                  ? () => _handleOptionTap(_selectedAnswerIndex!)
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                disabledBackgroundColor: Colors.grey[300],
+                        ? Center( // Centrar botón
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 320,
+                                minHeight: 54,
                               ),
-                              child: const Text(
-                                'Enviar',
-                                style: TextStyle(fontSize: 16, color: Colors.white),
+                              child: ElevatedButton(
+                                onPressed: _selectedAnswerIndex != null && status != LessonProgressStatus.mastered
+                                    ? () => _handleOptionTap(_selectedAnswerIndex!)
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurple,
+                                  disabledBackgroundColor: Colors.grey[300],
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                ),
+                                child: const Text(
+                                  'Enviar',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           )
-                        : Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _isCorrect! ? Colors.green[100] : Colors.red[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _isCorrect! ? '✓ Correcto' : '✗ Intenta de nuevo',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: _isCorrect! ? Colors.green[700] : Colors.red[700],
+                        : Center( // Centrar contenedor de feedback
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 320),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: _isCorrect! ? Colors.green[100] : Colors.red[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _isCorrect! ? '✓ Correcto' : '✗ Intenta de nuevo',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: _isCorrect! ? Colors.green[700] : Colors.red[700],
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 40,
-                                  child: ElevatedButton(
+                                  const SizedBox(height: 12),
+                                  ElevatedButton(
                                     onPressed: _onNextOrRetry,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.deepPurple,
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                                      minimumSize: const Size(200, 48),
                                     ),
                                     child: Text(
                                       _isCorrect! ? 'Siguiente' : 'Reintentar',
-                                      style: const TextStyle(fontSize: 14, color: Colors.white),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                   ),

@@ -308,7 +308,7 @@ class ExampleStarBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withOpacity(0.4),
+            color: Colors.amber.withAlpha(102),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -338,7 +338,7 @@ class ExampleStarBanner extends StatelessWidget {
                 Text(
                   '¡Sigue aprendiendo para ganar más!',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                     fontSize: 12,
                   ),
                 ),

@@ -179,7 +179,7 @@ class _SparklesPainter extends CustomPainter {
       canvas.rotate(sparkle.rotationSpeed * adjustedProgress * math.pi);
 
       final paint = Paint()
-        ..color = sparkle.color.withOpacity(opacity)
+        ..color = sparkle.color.withAlpha((opacity * 255).round())
         ..style = PaintingStyle.fill;
 
       // Dibujar estrella de 4 puntas
@@ -209,7 +209,7 @@ class _SparklesPainter extends CustomPainter {
 
     // Brillo central
     final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(paint.color.opacity * 0.8)
+      ..color = Colors.white.withAlpha(((paint.color.a / 255.0) * 0.8 * 255).round())
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(Offset.zero, size * 0.15, glowPaint);

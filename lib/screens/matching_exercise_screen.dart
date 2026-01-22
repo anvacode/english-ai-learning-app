@@ -181,29 +181,29 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Progress indicator
+            // Progress indicator - más compacto
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8), // Reduced padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Emparejar palabras con imágenes',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15), // Smaller text
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6), // Reduced spacing
                   LinearProgressIndicator(
                     value: widget.progressOffset + 
                         (_matchedIds.length / widget.items.length) * widget.progressScale,
                     backgroundColor: Colors.grey[300],
                     color: Colors.deepPurple,
-                    minHeight: 8,
+                    minHeight: 6, // Thinner bar
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3), // Reduced spacing
                   Text(
                     '${_matchedIds.length} / ${widget.items.length} parejas',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11, // Smaller text
                       color: Colors.grey[600],
                     ),
                   ),
@@ -214,7 +214,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
             // Images and words layout
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 12.0), // Reduced padding
                 child: Row(
                   children: [
                     // Images column
@@ -228,7 +228,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12), // Reduced spacing
                     // Words column (shuffled)
                     Expanded(
                       child: SingleChildScrollView(
@@ -245,19 +245,19 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               ),
             ),
 
-            // Feedback and action button
+            // Feedback and action button - más compacto
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12), // Reduced padding
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_feedbackMessage != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
+                      padding: const EdgeInsets.only(bottom: 8.0), // Reduced padding
                       child: Text(
                         _feedbackMessage!,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14, // Smaller text
                           fontWeight: FontWeight.bold,
                           color: _lastCorrect! ? Colors.green[700] : Colors.red[700],
                         ),
@@ -265,7 +265,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     ),
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 44, // Reduced height
                     child: ElevatedButton(
                       onPressed:
                           (_selectedImageId != null && _selectedWord != null)
@@ -298,12 +298,12 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     final isSelected = _selectedImageId == item.id;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
       child: GestureDetector(
         onTap: isMatched ? null : () => _selectImage(item.id),
         child: Container(
           width: double.infinity,
-          height: 100,
+          height: 85, // Reduced height
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? Colors.deepPurple : Colors.grey[300]!,
@@ -314,7 +314,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.deepPurple.withOpacity(0.3),
+                      color: Colors.deepPurple.withAlpha(76),
                       blurRadius: 8,
                     ),
                   ]
@@ -322,32 +322,35 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
           ),
           child: Stack(
             children: [
-              // Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: LessonImage(
-                  imagePath: item.imagePath,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
+              // Image con fondo para contenedor
+              Container(
+                color: Colors.grey[50],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(7),
+                  child: LessonImage(
+                    imagePath: item.imagePath,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.contain, // Mostrar imagen completa sin recortar
+                  ),
                 ),
               ),
-              // Matched checkmark
+              // Matched checkmark - más compacto
               if (isMatched)
                 Center(
                   child: Container(
-                    width: 50,
-                    height: 50,
+                    width: 40, // Reduced size
+                    height: 40, // Reduced size
                     decoration: BoxDecoration(
                       color: Colors.green,
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Center(
                       child: Text(
                         '✓',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 32,
+                          fontSize: 26, // Smaller text
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -367,10 +370,10 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
         _matchedIds.any((id) => widget.items.firstWhere((i) => i.id == id).correctWord == word);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
       child: SizedBox(
         width: double.infinity,
-        height: 48,
+        height: 44, // Reduced height
         child: ElevatedButton(
           onPressed: isUsedInMatch ? null : () => _selectWord(word),
           style: ElevatedButton.styleFrom(

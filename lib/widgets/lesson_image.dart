@@ -20,7 +20,7 @@ class LessonImage extends StatefulWidget {
     this.fallbackColor,
     this.width,
     this.height,
-    this.fit = BoxFit.cover,
+    this.fit = BoxFit.contain, // Cambio para mostrar imágenes completas sin recortar
   });
 
   @override
@@ -116,7 +116,7 @@ class _LessonImageState extends State<LessonImage>
         ),
         boxShadow: [
           BoxShadow(
-            color: (widget.fallbackColor ?? Colors.grey).withOpacity(0.3),
+            color: (widget.fallbackColor ?? Colors.grey).withAlpha(77),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -146,25 +146,26 @@ class _LessonImageState extends State<LessonImage>
     // Si el color es muy claro, usar borde oscuro
     final brightness = bgColor.computeLuminance();
     if (brightness > 0.5) {
-      return bgColor.withOpacity(0.6);
+      return bgColor.withAlpha(153);
     }
     // Si es oscuro, usar borde más claro
-    return Colors.white.withOpacity(0.3);
+    return Colors.white.withAlpha(77);
   }
 
   /// Obtiene un emoji relacionado con el color para hacerlo más visual
   String _getColorEmoji(Color color) {
-    // Comparar con colores comunes
-    if (color == Colors.red || color.value == Colors.red.value) return '🔴';
-    if (color == Colors.blue || color.value == Colors.blue.value) return '🔵';
-    if (color == Colors.green || color.value == Colors.green.value) return '🟢';
-    if (color == Colors.yellow || color.value == Colors.yellow.value) return '🟡';
-    if (color == Colors.orange || color.value == Colors.orange.value) return '🟠';
-    if (color == Colors.purple || color.value == Colors.purple.value) return '🟣';
-    if (color == Colors.brown || color.value == Colors.brown.value) return '🟤';
-    if (color == Colors.black || color.value == Colors.black.value) return '⚫';
-    if (color == Colors.white || color.value == Colors.white.value) return '⚪';
-    if (color == Colors.pink || color.value == Colors.pink.value) return '🩷';
+    // Comparar con colores comunes usando toARGB32
+    final colorValue = color.toARGB32();
+    if (colorValue == Colors.red.toARGB32()) return '🔴';
+    if (colorValue == Colors.blue.toARGB32()) return '🔵';
+    if (colorValue == Colors.green.toARGB32()) return '🟢';
+    if (colorValue == Colors.yellow.toARGB32()) return '🟡';
+    if (colorValue == Colors.orange.toARGB32()) return '🟠';
+    if (colorValue == Colors.purple.toARGB32()) return '🟣';
+    if (colorValue == Colors.brown.toARGB32()) return '🟤';
+    if (colorValue == Colors.black.toARGB32()) return '⚫';
+    if (colorValue == Colors.white.toARGB32()) return '⚪';
+    if (colorValue == Colors.pink.toARGB32()) return '🩷';
     
     // Color por defecto
     return '🎨';

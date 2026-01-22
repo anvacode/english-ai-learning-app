@@ -119,7 +119,7 @@ class ShopService {
       final jsonList = jsonDecode(jsonString) as List<dynamic>;
       return jsonList.cast<String>().toSet();
     } catch (e) {
-      print('Error decoding purchased items: $e');
+      // Error decoding purchased items: $e
       return {};
     }
   }

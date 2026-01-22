@@ -199,7 +199,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     color: Theme.of(context)
                         .colorScheme
                         .primary
-                        .withOpacity(0.3),
+                        .withAlpha(76),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

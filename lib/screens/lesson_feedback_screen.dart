@@ -159,7 +159,7 @@ class _LessonFeedbackScreenState extends State<LessonFeedbackScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(26),
         border: Border.all(color: color, width: 2),
         borderRadius: BorderRadius.circular(12),
       ),

@@ -28,7 +28,7 @@ class UserProfileService {
       return UserProfile.fromJson(json);
     } catch (e) {
       // Si hay error al deserializar, retornar perfil por defecto
-      print('Error loading user profile: $e');
+      // Error loading user profile: $e
       final defaultProfile = UserProfile.defaultProfile();
       await saveProfile(defaultProfile);
       return defaultProfile;

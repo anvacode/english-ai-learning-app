@@ -39,20 +39,36 @@ class StarDisplay extends StatefulWidget {
 }
 
 class _StarDisplayState extends State<StarDisplay> {
-  int _totalStars = 0;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadStars();
+    // Escuchar cambios en tiempo real
+    StarService.starCountNotifier.addListener(_onStarsChanged);
+  }
+  
+  @override
+  void dispose() {
+    // Remover listener al destruir el widget
+    StarService.starCountNotifier.removeListener(_onStarsChanged);
+    super.dispose();
+  }
+  
+  void _onStarsChanged() {
+    if (mounted) {
+      setState(() {
+        // El widget se reconstruirá con el nuevo valor
+      });
+    }
   }
 
   Future<void> _loadStars() async {
     final total = await StarService.getTotalStars();
     if (mounted) {
       setState(() {
-        _totalStars = total;
+        StarService.starCountNotifier.value = total;
         _isLoading = false;
       });
     }
@@ -92,7 +108,7 @@ class _StarDisplayState extends State<StarDisplay> {
         if (!widget.iconOnly) ...[
           const SizedBox(width: 4),
           Text(
-            _formatStars(_totalStars),
+            _formatStars(StarService.starCountNotifier.value),
             style: TextStyle(
               fontSize: widget.fontSize,
               fontWeight: FontWeight.bold,

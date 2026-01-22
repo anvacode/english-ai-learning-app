@@ -5,6 +5,7 @@ import '../services/shop_service.dart';
 import '../services/theme_service.dart';
 import '../logic/star_service.dart';
 import '../widgets/star_display.dart';
+import '../widgets/error_dialog.dart';
 import '../utils/responsive.dart';
 import '../widgets/responsive_container.dart';
 import '../theme/text_styles.dart';
@@ -91,6 +92,7 @@ class _ShopScreenState extends State<ShopScreen> {
       if (confirmed != true) return;
 
       // Obtener ThemeService del contexto
+      // ignore: use_build_context_synchronously
       final themeService = context.read<ThemeService>();
 
       // Realizar compra
@@ -126,21 +128,23 @@ class _ShopScreenState extends State<ShopScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(e.toString().replaceAll('Exception: ', '')),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        final errorMessage = e.toString().replaceAll('Exception: ', '').replaceAll('StateError: ', '');
+        
+        // Verificar si es un error de estrellas insuficientes
+        if (errorMessage.contains('Insufficient stars')) {
+          ErrorHelper.showInsufficientStarsError(
+            context,
+            required: item.price,
+            available: _totalStars,
+          );
+        } else {
+          // Otro tipo de error
+          ErrorHelper.showCustomError(
+            context,
+            title: 'Error en la Compra',
+            message: errorMessage,
+          );
+        }
       }
     }
   }
@@ -282,6 +286,23 @@ class _ShopItemCard extends StatelessWidget {
         return 'Otro';
     }
   }
+  
+  IconData _getTypeIcon() {
+    switch (item.type) {
+      case ShopItemType.avatar:
+        return Icons.person;
+      case ShopItemType.theme:
+        return Icons.palette;
+      case ShopItemType.effect:
+        return Icons.auto_awesome;
+      case ShopItemType.powerup:
+        return Icons.bolt;
+      case ShopItemType.content:
+        return Icons.extension;
+      default:
+        return Icons.shopping_bag;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -297,25 +318,38 @@ class _ShopItemCard extends StatelessWidget {
             : BorderSide.none,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Ícono del ítem
-            Container(
-              width: 60,
-              height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Ícono del ítem - optimizado para móvil
+              Container(
+                width: 52,
+                height: 52,
               decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.1),
+                gradient: LinearGradient(
+                  colors: [
+                    typeColor.withAlpha(51),
+                    typeColor.withAlpha(13),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: typeColor.withAlpha(76),
+                  width: 1.5,
+                ),
               ),
               child: Center(
                 child: Text(
                   item.icon,
-                  style: const TextStyle(fontSize: 32),
+                  style: const TextStyle(fontSize: 26),
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
 
             // Información del ítem
             Expanded(
@@ -328,45 +362,51 @@ class _ShopItemCard extends StatelessWidget {
                         child: Text(
                           item.name,
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (isPurchased)
+                      if (isPurchased) ...[
+                        const SizedBox(width: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 6,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Text(
                             'Comprado',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
                             ),
                           ),
                         ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     item.description,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.grey[600],
+                      height: 1.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
+                      // Badge de tipo con diseño mejorado para móvil
                       Flexible(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -374,24 +414,44 @@ class _ShopItemCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: typeColor.withOpacity(0.1),
+                            color: typeColor.withAlpha(38),
                             borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _getTypeLabel(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: typeColor,
+                            border: Border.all(
+                              color: typeColor.withAlpha(76),
+                              width: 1,
                             ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getTypeIcon(),
+                                size: 13,
+                                color: typeColor,
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  _getTypeLabel(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: typeColor,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 6),
                       Text(
                         '${item.price} ⭐',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.amber[700],
                         ),
@@ -404,23 +464,23 @@ class _ShopItemCard extends StatelessWidget {
 
             // Botón de compra
             if (!isPurchased) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               SizedBox(
-                width: 80,
+                width: 72,
                 child: ElevatedButton(
                   onPressed: canAfford ? onPurchase : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     disabledBackgroundColor: Colors.grey[300],
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: const Text(
                     'Comprar',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -430,6 +490,7 @@ class _ShopItemCard extends StatelessWidget {
               ),
             ],
           ],
+        ),
         ),
       ),
     );

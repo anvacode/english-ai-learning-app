@@ -145,7 +145,7 @@ class _StarCounterState extends State<StarCounter>
           _errorMessage = 'Error al cargar estrellas';
         });
       }
-      print('Error loading stars: $e');
+      // Error loading stars: $e
     }
   }
 
@@ -309,7 +309,7 @@ class _StarCounterState extends State<StarCounter>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withOpacity(0.3),
+            color: Colors.amber.withAlpha(76),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

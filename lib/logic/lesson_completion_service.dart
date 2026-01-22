@@ -58,7 +58,7 @@ class LessonCompletionService {
           .map((item) => LessonCompletion.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error decoding lesson completions: $e');
+      // Error decoding lesson completions: $e
       return [];
     }
   }

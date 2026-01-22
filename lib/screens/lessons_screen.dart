@@ -41,6 +41,19 @@ class _LessonsScreenState extends State<LessonsScreen> {
         return Colors.green;
     }
   }
+  
+  IconData _getLevelIcon(int levelIndex) {
+    switch (levelIndex) {
+      case 0:
+        return Icons.school; // Principiante
+      case 1:
+        return Icons.auto_awesome; // Intermedio
+      case 2:
+        return Icons.workspace_premium; // Avanzado
+      default:
+        return Icons.book;
+    }
+  }
 
   String _getStatusText(LessonMasteryStatus status) {
     switch (status) {
@@ -131,16 +144,19 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     final level = lessonLevels[index];
                     final levelIndex = index;
                     final isBeginnerLevel = levelIndex == 0;
-                    final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
+                    // final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
 
                 return FutureBuilder<bool>(
-                  future: isBeginnerLevel
-                      ? Future.value(true)
-                      : previousLevel != null
-                          ? _evaluator.areAllLessonsMastered(
-                              previousLevel.lessons.map((l) => l.id).toList(),
-                            )
-                          : Future.value(true),
+                  // TEMPORAL: Todos los niveles desbloqueados para testing
+                  future: Future.value(true),
+                  // PRODUCCIÓN: Descomentar el código siguiente y comentar la línea anterior
+                  // future: isBeginnerLevel
+                  //     ? Future.value(true)
+                  //     : previousLevel != null
+                  //         ? _evaluator.areAllLessonsMastered(
+                  //             previousLevel.lessons.map((l) => l.id).toList(),
+                  //           )
+                  //         : Future.value(true),
                   builder: (context, snapshot) {
                     final isLevelUnlocked = snapshot.data ?? false;
 
@@ -199,25 +215,69 @@ class _LessonsScreenState extends State<LessonsScreen> {
                       data: Theme.of(context).copyWith(
                         dividerColor: Colors.transparent,
                       ),
-                      child: ExpansionTile(
-                        initiallyExpanded: true,
-                        title: Text(
-                          '${level.title}$lockIcon',
-                          style: TextStyle(
-                            fontSize: context.isMobile ? 16 : (context.isTablet ? 18 : 20),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withAlpha(20),
+                              Theme.of(context).colorScheme.primary.withAlpha(5),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withAlpha(51),
+                            width: 2,
                           ),
                         ),
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: context.horizontalPadding,
-                              vertical: 8.0,
-                            ),
-                            child: tileContent,
+                        child: ExpansionTile(
+                          initiallyExpanded: true,
+                          title: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context).colorScheme.primary.withAlpha(76),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  _getLevelIcon(levelIndex),
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  '${level.title}$lockIcon',
+                                  style: TextStyle(
+                                    fontSize: context.isMobile ? 18 : (context.isTablet ? 20 : 22),
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.horizontalPadding,
+                                vertical: 8.0,
+                              ),
+                              child: tileContent,
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -341,7 +401,7 @@ class LessonListItem extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.9),
+                          color: statusColor.withAlpha(230),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

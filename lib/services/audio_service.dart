@@ -1,6 +1,6 @@
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:audioplayers/audioplayers.dart'; // Para usar cuando se agreguen archivos de audio
+import 'package:audioplayers/audioplayers.dart';
 
 /// Servicio para manejar audio, text-to-speech y efectos de sonido.
 /// 
@@ -14,8 +14,8 @@ class AudioService {
   AudioService._internal();
 
   FlutterTts? _flutterTts;
-  // AudioPlayer para efectos de sonido (se usará cuando se agreguen archivos de audio)
-  // final AudioPlayer _soundPlayer = AudioPlayer();
+  // AudioPlayer para efectos de sonido
+  final AudioPlayer _soundPlayer = AudioPlayer();
   
   // Configuración por defecto
   bool _autoSpeakEnabled = true;
@@ -144,47 +144,48 @@ class AudioService {
   /// Reproduce un sonido de respuesta correcta.
   /// 
   /// Usa un tono ascendente agradable para niños.
+  /// NOTA: Requiere archivo assets/sounds/correct.mp3
   Future<void> playCorrectSound() async {
     if (!_soundsEnabled) return;
     
     try {
-      // Nota: Para efectos de sonido reales, necesitarías archivos de audio.
-      // Por ahora, usamos un método que puede ser extendido.
-      // Puedes agregar archivos .mp3 o .wav en assets/sounds/ y usar:
-      // await _soundPlayer.play(AssetSource('sounds/correct.mp3'));
-      
-      // Placeholder: En una implementación completa, aquí se reproduciría
-      // un archivo de audio. Por ahora, solo verificamos que el servicio funcione.
+      await _soundPlayer.play(AssetSource('sounds/correct.mp3'));
     } catch (e) {
       // Silenciar errores de audio para no interrumpir la experiencia
-      print('Error playing correct sound: $e');
+      // Si el archivo no existe, la app seguirá funcionando sin audio
+      // Audio correcto no disponible: $e
     }
   }
 
   /// Reproduce un sonido de respuesta incorrecta.
   /// 
   /// Usa un tono suave y alentador.
+  /// NOTA: Requiere archivo assets/sounds/wrong.mp3
   Future<void> playWrongSound() async {
     if (!_soundsEnabled) return;
     
     try {
-      // Placeholder: Similar a playCorrectSound()
-      // await _soundPlayer.play(AssetSource('sounds/wrong.mp3'));
+      await _soundPlayer.play(AssetSource('sounds/wrong.mp3'));
     } catch (e) {
-      print('Error playing wrong sound: $e');
+      // Audio incorrecto no disponible: $e
     }
   }
 
   /// Reproduce un sonido de clic de botón.
+  /// NOTA: Requiere archivo assets/sounds/click.mp3
   Future<void> playClickSound() async {
     if (!_soundsEnabled) return;
     
     try {
-      // Placeholder: Similar a los anteriores
-      // await _soundPlayer.play(AssetSource('sounds/click.mp3'));
+      await _soundPlayer.play(AssetSource('sounds/click.mp3'));
     } catch (e) {
-      print('Error playing click sound: $e');
+      // Audio de clic no disponible: $e
     }
+  }
+  
+  /// Libera los recursos del AudioPlayer
+  void dispose() {
+    _soundPlayer.dispose();
   }
 
   // Getters para el estado actual

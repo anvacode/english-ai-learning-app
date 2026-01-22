@@ -4,6 +4,7 @@ import 'profile/profile_screen.dart';
 import 'settings_screen.dart';
 import 'achievements_screen.dart';
 import 'shop_screen.dart';
+import 'practice/practice_hub_screen.dart';
 import '../widgets/star_display.dart';
 import '../utils/responsive.dart';
 import '../widgets/responsive_container.dart';
@@ -29,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const _HomeGridView(),
     const LessonsScreen(),
+    const PracticeHubScreen(),
     const ProfileScreen(),
   ];
 
@@ -54,6 +56,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.book),
             label: 'Lecciones',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.games),
+            label: 'Práctica',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -242,7 +248,7 @@ class _HomeGridItemState extends State<_HomeGridItem>
                 end: Alignment.bottomRight,
                 colors: [
                   widget.color,
-                  widget.color.withOpacity(0.7),
+                  widget.color.withAlpha(178),
                 ],
               ),
             ),

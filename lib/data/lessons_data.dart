@@ -152,7 +152,7 @@ final List<Lesson> lessonsList = [
     ],
     exercises: const [
       LessonExercise(type: ExerciseType.multipleChoice),
-      LessonExercise(type: ExerciseType.spelling),
+      // Spelling movido a sección de Práctica
     ],
   ),
   Lesson(
@@ -220,7 +220,7 @@ final List<Lesson> lessonsList = [
     exercises: const [
       LessonExercise(type: ExerciseType.multipleChoice),
       LessonExercise(type: ExerciseType.matching),
-      LessonExercise(type: ExerciseType.spelling),
+      // Spelling movido a sección de Práctica
     ],
   ),
   Lesson(
@@ -1280,7 +1280,7 @@ final List<Lesson> lessonsList = [
     exercises: const [
       LessonExercise(type: ExerciseType.multipleChoice),
       LessonExercise(type: ExerciseType.matching),
-      LessonExercise(type: ExerciseType.spelling),
+      // Spelling movido a sección de Práctica
     ],
   ),
   

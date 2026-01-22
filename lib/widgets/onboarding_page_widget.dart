@@ -126,11 +126,11 @@ class _OnboardingPageWidgetState extends State<OnboardingPageWidget>
                     width: iconSize + 40,
                     height: iconSize + 40,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withAlpha(51),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withAlpha(51),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -141,7 +141,7 @@ class _OnboardingPageWidgetState extends State<OnboardingPageWidget>
                         width: iconSize,
                         height: iconSize,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withAlpha(76),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -171,7 +171,7 @@ class _OnboardingPageWidgetState extends State<OnboardingPageWidget>
                       height: 1.2,
                       shadows: [
                         Shadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withAlpha(76),
                           offset: const Offset(0, 2),
                           blurRadius: 4,
                         ),
@@ -193,11 +193,11 @@ class _OnboardingPageWidgetState extends State<OnboardingPageWidget>
                     widget.pageData.description,
                     style: TextStyle(
                       fontSize: descriptionFontSize,
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withAlpha(242),
                       height: 1.5,
                       shadows: [
                         Shadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withAlpha(51),
                           offset: const Offset(0, 1),
                           blurRadius: 3,
                         ),
@@ -249,7 +249,7 @@ class PageIndicator extends StatelessWidget {
             boxShadow: currentPage == index
                 ? [
                     BoxShadow(
-                      color: activeColor.withOpacity(0.5),
+                      color: activeColor.withAlpha(128),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

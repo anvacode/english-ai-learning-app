@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/star_transaction.dart';
@@ -14,6 +15,9 @@ class StarService {
   static const String _dailyEarningsKey = 'daily_stars_earned';
   static const String _lastLoginDateKey = 'last_login_date';
   static const String _loginStreakKey = 'login_streak';
+  
+  // Notificador para actualización en tiempo real del contador de estrellas
+  static final ValueNotifier<int> starCountNotifier = ValueNotifier<int>(0);
 
   /// Obtiene el total de estrellas del usuario.
   /// 
@@ -112,7 +116,11 @@ class StarService {
     
     // Actualizar total en cache
     final currentTotal = await getTotalStars();
-    await prefs.setInt(_totalStarsKey, currentTotal + finalAmount);
+    final newTotal = currentTotal + finalAmount;
+    await prefs.setInt(_totalStarsKey, newTotal);
+    
+    // Notificar cambio en tiempo real
+    starCountNotifier.value = newTotal;
   }
   
   /// Obtiene el multiplicador de estrellas actual (para power-ups).
@@ -173,7 +181,11 @@ class StarService {
     await _saveTransactions(transactions);
     
     // Actualizar total en cache
-    await prefs.setInt(_totalStarsKey, totalStars - amount);
+    final newTotal = totalStars - amount;
+    await prefs.setInt(_totalStarsKey, newTotal);
+    
+    // Notificar cambio en tiempo real
+    starCountNotifier.value = newTotal;
   }
 
   /// Obtiene el historial completo de transacciones.
@@ -198,7 +210,7 @@ class StarService {
       
       return transactions;
     } catch (e) {
-      print('Error decoding star transactions: $e');
+      // Error decoding star transactions: $e
       return [];
     }
   }

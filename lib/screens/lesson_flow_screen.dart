@@ -8,9 +8,11 @@ import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/activity_result_service.dart';
 import '../models/badge.dart' as achievement;
+import '../data/lessons_data.dart';
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
-import 'spelling_exercise_screen.dart';
+// Spelling movido a práctica - ya no se usa en el flujo de lecciones
+// import 'spelling_exercise_screen.dart';
 
 class LessonFlowScreen extends StatefulWidget {
   final Lesson lesson;
@@ -38,52 +40,64 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
   
   /// Carga el progreso del flujo desde SharedPreferences
   Future<void> _loadFlowProgress() async {
-    // Determinar qué ejercicio debe mostrarse basándose en los resultados guardados
-    int exerciseToShow = 0;
-    
-    // Verificar si las preguntas múltiples están completadas
-    final results = await ActivityResultService.getActivityResults();
-    final lessonResults = results.where((r) => r.lessonId == widget.lesson.id).toList();
-    
-    // Contar cuántas preguntas únicas correctas hay
-    final completedQuestionIds = <String>{};
-    for (final result in lessonResults) {
-      if (result.isCorrect && result.itemId != 'matching_exercise') {
-        completedQuestionIds.add(result.itemId);
-      }
-    }
-    
-    // Si todas las preguntas están completadas, ir al matching (ejercicio 1)
-    if (completedQuestionIds.length >= widget.lesson.items.length) {
-      // Verificar si matching también está completo
-      final matchingComplete = lessonResults.any(
-        (r) => r.itemId == 'matching_exercise' && r.isCorrect
-      );
+    try {
+      // Determinar qué ejercicio debe mostrarse basándose en los resultados guardados
+      int exerciseToShow = 0;
       
-      if (matchingComplete) {
-        // Todo está completo - mostrar feedback y salir
-        exerciseToShow = widget.exercises.length; // Forzar completado
-      } else {
-        // Preguntas completas, matching pendiente
-        exerciseToShow = 1; // Ir al matching
-      }
-    } else {
-      // Preguntas incompletas, empezar desde el principio
-      exerciseToShow = 0;
-    }
-    
-    setState(() {
-      _currentExerciseIndex = exerciseToShow;
-      _isLoading = false;
-    });
-    
-    // Si todo está completo, mostrar feedback inmediatamente
-    if (_currentExerciseIndex >= widget.exercises.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _onLessonComplete();
+      // Verificar si las preguntas múltiples están completadas
+      final results = await ActivityResultService.getActivityResults();
+      final lessonResults = results.where((r) => r.lessonId == widget.lesson.id).toList();
+      
+      // Contar cuántas preguntas únicas correctas hay
+      final completedQuestionIds = <String>{};
+      for (final result in lessonResults) {
+        if (result.isCorrect && result.itemId != 'matching_exercise') {
+          completedQuestionIds.add(result.itemId);
         }
-      });
+      }
+      
+      // Si todas las preguntas están completadas, ir al matching (ejercicio 1)
+      if (completedQuestionIds.length >= widget.lesson.items.length) {
+        // Verificar si matching también está completo
+        final matchingComplete = lessonResults.any(
+          (r) => r.itemId == 'matching_exercise' && r.isCorrect
+        );
+        
+        if (matchingComplete) {
+          // Todo está completo - mostrar feedback y salir
+          exerciseToShow = widget.exercises.length; // Forzar completado
+        } else {
+          // Preguntas completas, matching pendiente
+          exerciseToShow = 1; // Ir al matching
+        }
+      } else {
+        // Preguntas incompletas, empezar desde el principio
+        exerciseToShow = 0;
+      }
+      
+      if (mounted) {
+        setState(() {
+          _currentExerciseIndex = exerciseToShow;
+          _isLoading = false;
+        });
+      }
+      
+      // Si todo está completo, mostrar feedback inmediatamente
+      if (_currentExerciseIndex >= widget.exercises.length) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _onLessonComplete();
+          }
+        });
+      }
+    } catch (e) {
+      // En caso de error, empezar desde el principio sin mostrar el error
+      if (mounted) {
+        setState(() {
+          _currentExerciseIndex = 0;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,16 +114,23 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
   }
 
   Future<void> _onLessonComplete() async {
-    // Award stars for completing the lesson flow
-    const starsForCompletion = 20;
-    await StarService.addStars(
-      starsForCompletion,
-      'lesson_complete',
-      lessonId: widget.lesson.id,
-      description: 'Completaste la lección "${widget.lesson.title}"',
-    );
+    // Check if lesson was already completed before
+    final wasAlreadyCompleted = await LessonCompletionService.isLessonCompleted(widget.lesson.id);
     
-    // Save lesson completion
+    int starsForCompletion = 0;
+    
+    // Only award stars if this is the first time completing the lesson
+    if (!wasAlreadyCompleted) {
+      starsForCompletion = 20;
+      await StarService.addStars(
+        starsForCompletion,
+        'lesson_complete',
+        lessonId: widget.lesson.id,
+        description: 'Completaste la lección "${widget.lesson.title}"',
+      );
+    }
+    
+    // Save lesson completion (updates the record)
     await LessonCompletionService.saveCompletion(widget.lesson.id);
     
     // Check for badge
@@ -203,11 +224,11 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         );
         break;
 
+      // Spelling movido a sección de Práctica
       case ExerciseType.spelling:
-        exerciseScreen = SpellingExerciseScreen(
-          key: ValueKey('spelling-$_currentExerciseIndex'),
-          lesson: widget.lesson,
-          onCompleted: _onExerciseComplete,
+        // Ya no se usa en el flujo de lecciones
+        exerciseScreen = const Center(
+          child: Text('Spelling ahora está en la sección de Práctica'),
         );
         break;
     }
@@ -672,7 +693,34 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
         ),
       ];
     }
-    // Default empty list for other lessons
-    return [];
+    
+    // Para lecciones sin matching items definidos, generar automáticamente desde LessonItem
+    return _generateMatchingItemsFromLesson(lessonId);
+  }
+  
+  /// Genera MatchingItems automáticamente desde los LessonItem de una lección
+  List<MatchingItem> _generateMatchingItemsFromLesson(String lessonId) {
+    try {
+      // Buscar la lección en los datos
+      final lesson = lessonsList.firstWhere(
+        (l) => l.id == lessonId,
+        orElse: () => lessonsList.first,
+      );
+      
+      // Convertir LessonItem a MatchingItem, solo si tienen imagen
+      return lesson.items
+          .where((item) => item.stimulusImageAsset != null && item.stimulusImageAsset!.isNotEmpty)
+          .map((item) {
+        return MatchingItem(
+          id: item.id,
+          imagePath: item.stimulusImageAsset!,
+          correctWord: item.options[item.correctAnswerIndex],
+          title: item.title,
+        );
+      }).toList();
+    } catch (e) {
+      // En caso de error, retornar lista vacía para evitar crash
+      return [];
+    }
   }
 }

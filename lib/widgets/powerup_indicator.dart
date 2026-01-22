@@ -94,7 +94,7 @@ class _PowerUpIndicatorState extends State<PowerUpIndicator>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.withOpacity(0.4),
+                  color: Colors.orange.withAlpha(102),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -171,7 +171,7 @@ class _PowerUpIconState extends State<PowerUpIcon> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.5),
+            color: Colors.orange.withAlpha(128),
             blurRadius: 4,
           ),
         ],

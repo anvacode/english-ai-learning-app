@@ -49,8 +49,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .toList();
 
     if (!mounted) return;
-
-    showModalBottomSheet(
+    
+    await showModalBottomSheet(
+      // ignore: use_build_context_synchronously
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -79,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 isActive: themeService.activeThemeId == null,
                 onTap: () async {
                   await themeService.setActiveTheme(null);
+                  // ignore: use_build_context_synchronously
                   if (mounted) Navigator.pop(context);
                 },
               ),
@@ -95,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (themeId != null) {
                       await themeService.setActiveTheme(themeId);
                     }
+                    // ignore: use_build_context_synchronously
                     if (mounted) Navigator.pop(context);
                   },
                 );
@@ -136,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       tileColor: isActive
-          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(76)
           : null,
     );
   }

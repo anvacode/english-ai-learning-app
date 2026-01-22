@@ -165,7 +165,7 @@ class _ConfettiPainter extends CustomPainter {
       canvas.rotate(rotation);
 
       final paint = Paint()
-        ..color = piece.color.withOpacity(opacity)
+        ..color = piece.color.withAlpha((opacity * 255).round())
         ..style = PaintingStyle.fill;
 
       // Dibujar rectángulo de confeti

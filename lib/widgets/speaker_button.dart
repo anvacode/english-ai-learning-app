@@ -99,7 +99,7 @@ class _SpeakerButtonState extends State<SpeakerButton>
           height: widget.buttonSize,
           decoration: BoxDecoration(
             color: _isSpeaking 
-                ? iconColor.withOpacity(0.2)
+                ? iconColor.withAlpha(51)
                 : Colors.transparent,
             shape: BoxShape.circle,
           ),

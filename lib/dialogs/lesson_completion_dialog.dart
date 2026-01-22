@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../services/effects_service.dart';
 import '../widgets/confetti_overlay.dart';
+import '../utils/safe_math.dart';
 
 /// Diálogo de feedback al completar una lección.
 /// 
@@ -144,7 +145,7 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
 
   @override
   Widget build(BuildContext context) {
-    final percentage = (widget.correctAnswers / widget.totalQuestions * 100).round();
+    final percentage = safeRound(safePercentage(widget.correctAnswers, widget.totalQuestions));
 
     return Stack(
       children: [
@@ -291,7 +292,7 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withAlpha(13),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -323,7 +324,7 @@ class _LessonCompletionDialogState extends State<LessonCompletionDialog>
                     ),
                     const SizedBox(height: 10),
                     LinearProgressIndicator(
-                      value: widget.correctAnswers / widget.totalQuestions,
+                      value: safeDivideDouble(widget.correctAnswers.toDouble(), widget.totalQuestions.toDouble()),
                       backgroundColor: Colors.grey[200],
                       color: widget.isPerfectScore
                           ? Colors.green

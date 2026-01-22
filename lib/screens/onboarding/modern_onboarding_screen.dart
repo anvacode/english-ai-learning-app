@@ -151,7 +151,7 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
                 child: TextButton(
                   onPressed: _skipOnboarding,
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withAlpha(51),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -207,7 +207,7 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
                             foregroundColor: OnboardingPages
                                 .pages[_currentPage].primaryColor,
                             elevation: 8,
-                            shadowColor: Colors.black.withOpacity(0.3),
+                            shadowColor: Colors.black.withAlpha(76),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),

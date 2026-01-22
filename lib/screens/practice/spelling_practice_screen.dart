@@ -1,29 +1,33 @@
 import 'package:flutter/material.dart';
-import '../models/lesson.dart';
-import '../models/lesson_item.dart';
-import '../services/audio_service.dart';
-import '../widgets/lesson_image.dart';
+import '../../models/lesson.dart';
+import '../../models/lesson_item.dart';
+import '../../models/practice_activity.dart';
+import '../../services/audio_service.dart';
+import '../../widgets/lesson_image.dart';
+import '../../logic/practice_service.dart';
+import '../../logic/star_service.dart';
+import '../../data/lessons_data.dart';
 
-/// Pantalla de ejercicio de ortografía (Spelling Game)
+/// Pantalla de práctica de ortografía (Spelling Game)
 /// El niño debe arrastrar letras para formar la palabra correcta
-class SpellingExerciseScreen extends StatefulWidget {
-  final Lesson lesson;
-  final VoidCallback onCompleted;
+class SpellingPracticeScreen extends StatefulWidget {
+  final PracticeActivity activity;
 
-  const SpellingExerciseScreen({
+  const SpellingPracticeScreen({
     super.key,
-    required this.lesson,
-    required this.onCompleted,
+    required this.activity,
   });
 
   @override
-  State<SpellingExerciseScreen> createState() => _SpellingExerciseScreenState();
+  State<SpellingPracticeScreen> createState() => _SpellingPracticeScreenState();
 }
 
-class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
+class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
     with SingleTickerProviderStateMixin {
   late List<LessonItem> _items;
+  late Lesson _lesson;
   int _currentIndex = 0;
+  int _correctCount = 0;
   List<String> _placedLetters = [];
   List<String> _availableLetters = [];
   bool _isCorrect = false;
@@ -35,9 +39,7 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
   @override
   void initState() {
     super.initState();
-    _items = List.from(widget.lesson.items);
-    _items.shuffle();
-    _setupLetters();
+    _loadLesson();
     _audioService.initialize();
 
     _animationController = AnimationController(
@@ -50,6 +52,18 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
     );
   }
 
+  void _loadLesson() {
+    // Buscar la lección correspondiente al activity
+    final allLessons = lessonLevels.expand((level) => level.lessons).toList();
+    _lesson = allLessons.firstWhere(
+      (lesson) => lesson.id == widget.activity.lessonId,
+    );
+    
+    _items = List.from(_lesson.items);
+    _items.shuffle();
+    _setupLetters();
+  }
+
   void _setupLetters() {
     final word = _items[_currentIndex].title.toUpperCase();
     _placedLetters = [];
@@ -58,7 +72,7 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
     _showFeedback = false;
   }
 
-  void _checkAnswer() {
+  Future<void> _checkAnswer() async {
     final correctWord = _items[_currentIndex].title.toUpperCase();
     final userWord = _placedLetters.join('');
 
@@ -68,8 +82,25 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
     });
 
     if (_isCorrect) {
+      _correctCount++;
       _audioService.playCorrectSound();
       _animationController.forward(from: 0);
+      
+      // Guardar progreso inmediatamente después de cada respuesta correcta
+      await PracticeService.updateProgress(
+        activityId: widget.activity.id,
+        totalExercises: _items.length,
+        exercisesCompleted: 0, // No incrementamos aquí, solo al final
+        starsEarned: 1, // 1 estrella por palabra correcta
+      );
+
+      // Agregar estrellas al usuario
+      await StarService.addStars(
+        1,
+        'practice_spelling',
+        description: 'Spelling correcto: ${_items[_currentIndex].title}',
+      );
+
       Future.delayed(const Duration(milliseconds: 1500), _nextItem);
     } else {
       _audioService.playWrongSound();
@@ -83,7 +114,72 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
         _setupLetters();
       });
     } else {
-      widget.onCompleted();
+      _completeActivity();
+    }
+  }
+
+  Future<void> _completeActivity() async {
+    // Guardar progreso final
+    await PracticeService.updateProgress(
+      activityId: widget.activity.id,
+      totalExercises: _items.length,
+      exercisesCompleted: _items.length,
+      starsEarned: 0, // Ya se agregaron las estrellas individualmente
+      newScore: _correctCount,
+    );
+
+    // Bonus por completar toda la actividad
+    if (_correctCount == _items.length) {
+      await StarService.addStars(
+        5,
+        'practice_complete',
+        description: 'Spelling completado: ${_lesson.title}',
+      );
+    }
+
+    if (mounted) {
+      // Mostrar diálogo de completado
+      final totalStars = _correctCount + (_correctCount == _items.length ? 5 : 0);
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('¡Actividad Completada!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.star,
+                size: 64,
+                color: Colors.amber,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Palabras correctas: $_correctCount/${_items.length}',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Estrellas ganadas: $totalStars ⭐',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Cerrar diálogo
+                Navigator.pop(context); // Volver al hub
+              },
+              child: const Text('Continuar'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -124,8 +220,8 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Spelling: ${widget.lesson.title}'),
-        backgroundColor: Colors.deepPurple,
+        title: Text(widget.activity.title),
+        backgroundColor: Color(widget.activity.color),
         actions: [
           Center(
             child: Padding(
@@ -144,7 +240,7 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(widget.activity.color)),
             minHeight: 6,
           ),
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'shop_service.dart';
 import '../models/shop_item.dart';
+import '../theme/app_colors.dart';
 
 /// Servicio para gestionar los temas de la aplicación.
 /// 
@@ -100,9 +101,36 @@ class ThemeService extends ChangeNotifier {
     );
   }
   
-  /// ColorScheme por defecto (deepPurple)
-  static final ColorScheme _defaultColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.deepPurple,
+  /// ColorScheme por defecto - Moderna paleta azul profesional
+  static final ColorScheme _defaultColorScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: AppColors.primary,
+    onPrimary: Colors.white,
+    primaryContainer: AppColors.primaryLight,
+    onPrimaryContainer: AppColors.primaryDark,
+    secondary: AppColors.secondary,
+    onSecondary: Colors.white,
+    secondaryContainer: AppColors.secondaryLight,
+    onSecondaryContainer: AppColors.error,
+    tertiary: AppColors.accent,
+    onTertiary: AppColors.textPrimary,
+    tertiaryContainer: AppColors.warningLight,
+    onTertiaryContainer: AppColors.textSecondary,
+    error: AppColors.error,
+    onError: Colors.white,
+    errorContainer: AppColors.errorLight,
+    onErrorContainer: AppColors.textPrimary,
+    surface: AppColors.surface,
+    onSurface: AppColors.textPrimary,
+    surfaceContainerHighest: AppColors.surfaceVariant,
+    onSurfaceVariant: AppColors.textSecondary,
+    outline: AppColors.border,
+    outlineVariant: AppColors.divider,
+    shadow: Colors.black,
+    scrim: Colors.black,
+    inverseSurface: AppColors.primaryDark,
+    onInverseSurface: Colors.white,
+    inversePrimary: AppColors.primaryLight,
   );
   
   /// ColorScheme Arcoíris - colores brillantes y alegres
@@ -239,13 +267,13 @@ class ThemeService extends ChangeNotifier {
         };
       default:
         return {
-          'name': 'Por defecto',
-          'description': 'Tema clásico de la aplicación',
-          'icon': '💜',
+          'name': 'Moderno',
+          'description': 'Diseño profesional con azules y acentos cálidos',
+          'icon': '🎨',
           'previewColors': [
-            Colors.deepPurple,
-            Colors.deepPurple[300]!,
-            Colors.deepPurple[100]!,
+            AppColors.primary,
+            AppColors.secondary,
+            AppColors.accent,
           ],
         };
     }

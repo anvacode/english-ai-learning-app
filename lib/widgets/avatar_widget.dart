@@ -74,12 +74,12 @@ class AvatarWidget extends StatelessWidget {
         color: defaultBackgroundColor,
         shape: BoxShape.circle,
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.primary.withAlpha(76),
           width: 3,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
