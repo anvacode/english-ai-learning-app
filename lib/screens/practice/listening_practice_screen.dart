@@ -4,6 +4,7 @@ import '../../models/lesson_item.dart';
 import '../../models/activity_result.dart';
 import '../../logic/activity_result_service.dart';
 import '../../logic/star_service.dart';
+import '../../logic/practice_service.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
 import '../../data/lessons_data.dart';
@@ -198,6 +199,16 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
     } else if (accuracy >= 0.5) {
       stars = 5;
     }
+    
+    // Update practice progress
+    final activityId = '${widget.lessonId}_listening';
+    await PracticeService.updateProgress(
+      activityId: activityId,
+      totalExercises: _items.length,
+      exercisesCompleted: _correctCount,
+      starsEarned: stars,
+      newScore: _correctCount,
+    );
     
     if (stars > 0) {
       await StarService.addStars(
@@ -403,18 +414,21 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                     const SizedBox(height: 24),
                   ],
                   
-                  // Options (images or text)
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: _currentOptions.length,
-                    itemBuilder: (context, index) {
+                  // Options (images or text) - responsivo
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = MediaQuery.of(context).size.width < 768;
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: isMobile ? 12 : 16,
+                          mainAxisSpacing: isMobile ? 12 : 16,
+                          childAspectRatio: isMobile ? 1.0 : 1.2, // Más ancho en web
+                        ),
+                        itemCount: _currentOptions.length,
+                        itemBuilder: (context, index) {
                       final option = _currentOptions[index];
                       final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
                       final isSelected = _selectedIndex == index;
@@ -439,9 +453,9 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                         borderColor = isSelected ? Colors.blue : Colors.grey[300]!;
                       }
                       
-                      return GestureDetector(
-                        onTap: _answered ? null : () => _selectOption(index),
-                        child: Container(
+                          return GestureDetector(
+                            onTap: _answered ? null : () => _selectOption(index),
+                            child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: borderColor,
@@ -481,6 +495,8 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                             ],
                           ),
                         ),
+                      );
+                        },
                       );
                     },
                   ),

@@ -4,6 +4,7 @@ import 'dart:math' show Random;
 import '../../models/activity_result.dart';
 import '../../logic/activity_result_service.dart';
 import '../../logic/star_service.dart';
+import '../../logic/practice_service.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
 import '../../data/lessons_data.dart';
@@ -210,6 +211,17 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
     if (_elapsedSeconds < 60) {
       stars += 5;
     }
+    
+    // Update practice progress - el total de ejercicios es la mitad de las cartas (pares)
+    final totalExercises = _cards.length ~/ 2;
+    final activityId = '${widget.lessonId}_memory';
+    await PracticeService.updateProgress(
+      activityId: activityId,
+      totalExercises: totalExercises,
+      exercisesCompleted: totalExercises, // Todas las parejas completadas
+      starsEarned: stars,
+      newScore: totalExercises,
+    );
     
     await StarService.addStars(
       stars,

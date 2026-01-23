@@ -5,6 +5,7 @@ import '../../models/lesson_item.dart';
 import '../../models/activity_result.dart';
 import '../../logic/activity_result_service.dart';
 import '../../logic/star_service.dart';
+import '../../logic/practice_service.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
 import '../../data/lessons_data.dart';
@@ -167,6 +168,16 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
     final timeBonus = _secondsRemaining ~/ 5; // 1 star per 5 seconds remaining
     final matchBonus = _correctMatches * 2; // 2 stars per correct match
     final totalStars = timeBonus + matchBonus;
+    
+    // Update practice progress
+    final activityId = '${widget.lessonId}_speedmatch';
+    await PracticeService.updateProgress(
+      activityId: activityId,
+      totalExercises: _items.length,
+      exercisesCompleted: _correctMatches,
+      starsEarned: totalStars,
+      newScore: _correctMatches,
+    );
     
     if (totalStars > 0) {
       await StarService.addStars(

@@ -3,6 +3,7 @@ import '../models/lesson.dart';
 import '../models/lesson_item.dart';
 import '../services/audio_service.dart';
 import '../widgets/lesson_image.dart';
+import '../utils/responsive.dart';
 
 /// Pantalla de ejercicio de ortografía (Spelling Game)
 /// El niño debe arrastrar letras para formar la palabra correcta
@@ -166,15 +167,15 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: context.isMobile ? 30 : 20),
 
-                  // Imagen
+                  // Imagen - responsiva
                   ScaleTransition(
                     scale: _scaleAnimation,
                     child: currentItem.stimulusColor != null
                         ? Container(
-                            width: 200,
-                            height: 200,
+                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
                             decoration: BoxDecoration(
                               color: currentItem.stimulusColor,
                               borderRadius: BorderRadius.circular(12),
@@ -190,12 +191,12 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
                         : LessonImage(
                             imagePath: currentItem.stimulusImageAsset,
                             fallbackColor: Colors.grey[300],
-                            width: 200,
-                            height: 200,
+                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
                           ),
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: context.isMobile ? 30 : 20),
 
                   // Área de respuesta (letras colocadas)
                   Container(

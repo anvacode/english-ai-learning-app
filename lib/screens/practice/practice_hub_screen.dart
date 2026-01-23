@@ -235,7 +235,10 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
                                 crossAxisCount: crossAxisCount,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
-                                childAspectRatio: 0.75,
+                                // Aspect ratio responsivo: móvil más alto, web más cuadrado
+                                childAspectRatio: Responsive.isMobile(context)
+                                    ? 0.75
+                                    : (Responsive.isTablet(context) ? 0.95 : 1.1),
                               ),
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {

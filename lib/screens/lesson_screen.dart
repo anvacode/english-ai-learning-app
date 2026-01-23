@@ -18,6 +18,7 @@ import '../services/audio_service.dart';
 import '../services/effects_service.dart';
 import '../dialogs/lesson_completion_dialog.dart';
 import 'matching_exercise_screen.dart';
+import '../utils/responsive.dart';
 
 class LessonScreen extends StatefulWidget {
   final Lesson lesson;
@@ -602,9 +603,11 @@ class _LessonScreenState extends State<LessonScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Visual stimulus
+                  // Visual stimulus - responsivo
                   Padding(
-                    padding: const EdgeInsets.only(top: 12.0),
+                    padding: EdgeInsets.only(
+                      top: context.isMobile ? 12.0 : 8.0,
+                    ),
                     child: Center(
                       child: Container(
                         decoration: BoxDecoration(
@@ -616,8 +619,9 @@ class _LessonScreenState extends State<LessonScreen> {
                           child: LessonImage(
                             imagePath: currentItem.stimulusImageAsset,
                             fallbackColor: currentItem.stimulusColor,
-                            width: 200,
-                            height: 200,
+                            // Tamaño responsivo: más pequeño en web
+                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
                             fit: BoxFit.contain, // Mostrar imagen completa sin recortar
                           ),
                         ),
@@ -625,9 +629,12 @@ class _LessonScreenState extends State<LessonScreen> {
                     ),
                   ),
 
-                  // Question with speaker button and translation helper
+                  // Question with speaker button and translation helper - responsivo
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: context.isMobile ? 0 : 4.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -635,7 +642,10 @@ class _LessonScreenState extends State<LessonScreen> {
                         Flexible(
                           child: Text(
                             widget.lesson.question,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: context.isMobile ? 18 : 16, // Más pequeño en web
+                              fontWeight: FontWeight.bold,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -671,20 +681,28 @@ class _LessonScreenState extends State<LessonScreen> {
                     ),
                   ),
 
-                  // Options (only tappable if not answered)
+                  // Options (only tappable if not answered) - responsivo
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: context.isMobile ? 8.0 : 4.0,
+                    ),
                     child: Column(
                       children: List.generate(
                         _randomizedOptions.length,
                         (index) => Center( // Centrar botones horizontalmente
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6.0),
+                            padding: EdgeInsets.symmetric(
+                              vertical: context.isMobile ? 6.0 : 4.0,
+                            ),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.85, // 85% del ancho
-                                minHeight: 56,
-                                maxHeight: 72, // Permitir hasta 2 líneas
+                                // Más estrecho en web
+                                maxWidth: context.isMobile 
+                                    ? MediaQuery.of(context).size.width * 0.85
+                                    : (context.isTablet ? 400 : 350),
+                                minHeight: context.isMobile ? 52 : 44, // Más bajo en web
+                                maxHeight: context.isMobile ? 68 : 56, // Más compacto en web
                               ),
                               child: ElevatedButton(
                                 onPressed: (status == LessonProgressStatus.mastered || _answered)
@@ -703,7 +721,10 @@ class _LessonScreenState extends State<LessonScreen> {
                                           ? Colors.green[300]
                                           : Colors.grey[300])
                                       : Colors.grey[200],
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: context.isMobile ? 16 : 12,
+                                    vertical: context.isMobile ? 12 : 8,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -716,7 +737,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                       child: Text(
                                         _randomizedOptions[index],
                                         style: TextStyle(
-                                          fontSize: 15,
+                                          fontSize: context.isMobile ? 15 : 14, // Más pequeño en web
                                           fontWeight: FontWeight.w500,
                                           color: _selectedAnswerIndex == index && !_answered
                                               ? Colors.white

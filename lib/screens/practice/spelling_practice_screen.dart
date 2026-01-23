@@ -7,6 +7,7 @@ import '../../widgets/lesson_image.dart';
 import '../../logic/practice_service.dart';
 import '../../logic/star_service.dart';
 import '../../data/lessons_data.dart';
+import '../../utils/responsive.dart';
 
 /// Pantalla de práctica de ortografía (Spelling Game)
 /// El niño debe arrastrar letras para formar la palabra correcta
@@ -86,14 +87,6 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
       _audioService.playCorrectSound();
       _animationController.forward(from: 0);
       
-      // Guardar progreso inmediatamente después de cada respuesta correcta
-      await PracticeService.updateProgress(
-        activityId: widget.activity.id,
-        totalExercises: _items.length,
-        exercisesCompleted: 0, // No incrementamos aquí, solo al final
-        starsEarned: 1, // 1 estrella por palabra correcta
-      );
-
       // Agregar estrellas al usuario
       await StarService.addStars(
         1,
@@ -119,12 +112,15 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
   }
 
   Future<void> _completeActivity() async {
-    // Guardar progreso final
+    // Calcular estrellas ganadas
+    final starsEarned = _correctCount + (_correctCount == _items.length ? 5 : 0);
+    
+    // Guardar progreso final - actualizar con el número de ejercicios completados
     await PracticeService.updateProgress(
       activityId: widget.activity.id,
       totalExercises: _items.length,
-      exercisesCompleted: _items.length,
-      starsEarned: 0, // Ya se agregaron las estrellas individualmente
+      exercisesCompleted: _correctCount, // Número de palabras correctas
+      starsEarned: starsEarned,
       newScore: _correctCount,
     );
 
@@ -262,15 +258,15 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: context.isMobile ? 30 : 20),
 
-                  // Imagen
+                  // Imagen - responsiva
                   ScaleTransition(
                     scale: _scaleAnimation,
                     child: currentItem.stimulusColor != null
                         ? Container(
-                            width: 200,
-                            height: 200,
+                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
                             decoration: BoxDecoration(
                               color: currentItem.stimulusColor,
                               borderRadius: BorderRadius.circular(12),
@@ -286,12 +282,12 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                         : LessonImage(
                             imagePath: currentItem.stimulusImageAsset,
                             fallbackColor: Colors.grey[300],
-                            width: 200,
-                            height: 200,
+                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
                           ),
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: context.isMobile ? 30 : 20),
 
                   // Área de respuesta (letras colocadas)
                   Container(

@@ -296,6 +296,8 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   Widget _buildImageButton(MatchingItem item) {
     final isMatched = _matchedIds.contains(item.id);
     final isSelected = _selectedImageId == item.id;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
@@ -303,7 +305,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
         onTap: isMatched ? null : () => _selectImage(item.id),
         child: Container(
           width: double.infinity,
-          height: 85, // Reduced height
+          height: isMobile ? 85 : 70, // Más bajo en web
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? Colors.deepPurple : Colors.grey[300]!,
@@ -368,12 +370,14 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     final isSelected = _selectedWord == word;
     final isUsedInMatch =
         _matchedIds.any((id) => widget.items.firstWhere((i) => i.id == id).correctWord == word);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
       child: SizedBox(
         width: double.infinity,
-        height: 44, // Reduced height
+        height: isMobile ? 44 : 38, // Más bajo en web
         child: ElevatedButton(
           onPressed: isUsedInMatch ? null : () => _selectWord(word),
           style: ElevatedButton.styleFrom(
