@@ -1,0 +1,70 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../firebase_options.dart';
+
+class FirebaseService {
+  static final FirebaseService _instance = FirebaseService._internal();
+  factory FirebaseService() => _instance;
+
+  FirebaseService._internal();
+
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
+  bool _initialized = false;
+
+  FirebaseAuth get auth {
+    if (_auth == null) {
+      throw Exception('Firebase not initialized. Call initialize() first.');
+    }
+    return _auth!;
+  }
+
+  FirebaseFirestore get firestore {
+    if (_firestore == null) {
+      throw Exception('Firebase not initialized. Call initialize() first.');
+    }
+    return _firestore!;
+  }
+
+  bool get isInitialized => _initialized;
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      _auth = FirebaseAuth.instance;
+      _firestore = FirebaseFirestore.instance;
+
+      // Configure Firestore settings for offline persistence
+      _firestore!.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+
+      _initialized = true;
+      print('Firebase initialized successfully');
+    } catch (e) {
+      print('Error initializing Firebase: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> signOut() async {
+    await _auth?.signOut();
+  }
+
+  // Get current user stream
+  Stream<User?> get authStateChanges {
+    return _auth?.authStateChanges() ?? Stream.value(null);
+  }
+
+  // Get current user
+  User? get currentUser {
+    return _auth?.currentUser;
+  }
+}

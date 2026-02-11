@@ -8,6 +8,7 @@ import '../../models/user_profile.dart';
 import '../../models/badge.dart' as achievement;
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/star_display.dart';
+import '../../widgets/auth_status_widget.dart';
 import '../../dialogs/edit_nickname_dialog.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/responsive_container.dart';
@@ -85,6 +86,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.all(context.horizontalPadding),
           child: Column(
           children: [
+            // Auth Status Widget
+            const AuthStatusWidget(),
+            const SizedBox(height: 24),
+            
             // Avatar Section
             FutureBuilder<UserProfile>(
               future: _profileFuture,
