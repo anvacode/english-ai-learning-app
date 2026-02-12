@@ -113,17 +113,42 @@ class _HomeGridView extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: context.isMobile ? 80 : 120,
             floating: false,
-            pinned: true,
+            pinned: context.isMobile ? false : true,
+            snap: false,
+            elevation: context.isMobile ? 0 : 4,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'English Learning',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: context.isMobile ? 20 : 24,
-                ),
+              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+              title: Row(
+                children: [
+                  Text(
+                    'English Learning',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: context.isMobile ? 20 : 24,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (context.isMobile)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(30),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: StarDisplay(
+                        iconSize: 20,
+                        fontSize: 16,
+                        showBackground: false,
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                ],
               ),
               background: Container(
                 decoration: const BoxDecoration(
@@ -159,28 +184,30 @@ class _HomeGridView extends StatelessWidget {
                 ),
               ),
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+            actions: context.isMobile
+                ? []
+                : [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(30),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: StarDisplay(
+                            iconSize: 24,
+                            fontSize: 18,
+                            showBackground: false,
+                          ),
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(30),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: StarDisplay(
-                      iconSize: context.isMobile ? 20 : 24,
-                      fontSize: context.isMobile ? 16 : 18,
-                      showBackground: false,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                  ],
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
@@ -189,7 +216,7 @@ class _HomeGridView extends StatelessWidget {
                 crossAxisCount: context.isMobile
                     ? 2
                     : (context.isTablet ? 3 : 4),
-                childAspectRatio: 0.85,
+                childAspectRatio: context.isMobile ? 0.9 : 0.85,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
@@ -309,26 +336,28 @@ class _HomeGridView extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(context.isMobile ? 16 : 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Solo el emoji, grande y destacado
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(
+                        vertical: context.isMobile ? 12 : 20,
+                      ),
                       child: Text(
                         emoji,
-                        style: const TextStyle(fontSize: 72),
+                        style: TextStyle(fontSize: context.isMobile ? 56 : 72),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: context.isMobile ? 18 : 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -337,7 +366,7 @@ class _HomeGridView extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         color: Colors.white.withAlpha(80),
-                        fontSize: 14,
+                        fontSize: context.isMobile ? 13 : 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
