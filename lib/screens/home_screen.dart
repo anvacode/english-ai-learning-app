@@ -7,11 +7,11 @@ import 'shop_screen.dart';
 import 'practice/practice_hub_screen.dart';
 import '../widgets/star_display.dart';
 import '../utils/responsive.dart';
-import '../widgets/responsive_container.dart';
-import '../theme/text_styles.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 
 /// Pantalla principal de navegación con GridView de opciones.
-/// 
+///
 /// Muestra 4 opciones principales:
 /// - Lecciones
 /// - Perfil
@@ -38,34 +38,66 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withAlpha(20),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textTertiary,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: 'Lecciones',
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 12,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.games),
-            label: 'Práctica',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+          elevation: 0,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 0 ? AppIcons.home : Icons.home_outlined,
+              ),
+              label: 'Inicio',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 1 ? AppIcons.book : Icons.menu_book_outlined,
+              ),
+              label: 'Lecciones',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 2
+                    ? AppIcons.game
+                    : Icons.sports_esports_outlined,
+              ),
+              label: 'Práctica',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                _currentIndex == 3 ? AppIcons.user : Icons.person_outline,
+              ),
+              label: 'Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -78,208 +110,248 @@ class _HomeGridView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'English Learning',
-          style: context.headline2,
-        ),
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: context.horizontalPadding),
-            child: Center(
-              child: StarDisplay(
-                iconSize: context.isMobile ? 24 : 28,
-                fontSize: context.isMobile ? 18 : 20,
-                showBackground: true,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'English Learning',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: context.isMobile ? 20 : 24,
+                ),
               ),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -50,
+                      top: -50,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withAlpha(10),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -30,
+                      bottom: -30,
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withAlpha(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(30),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: StarDisplay(
+                      iconSize: context.isMobile ? 20 : 24,
+                      fontSize: context.isMobile ? 16 : 18,
+                      showBackground: false,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: context.isMobile
+                    ? 2
+                    : (context.isTablet ? 3 : 4),
+                childAspectRatio: 0.85,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              delegate: SliverChildListDelegate([
+                _buildMenuCard(
+                  context,
+                  icon: AppIcons.book,
+                  emoji: '📚',
+                  title: 'Lecciones',
+                  subtitle: 'Aprende inglés',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LessonsScreen()),
+                  ),
+                ),
+                _buildMenuCard(
+                  context,
+                  icon: AppIcons.user,
+                  emoji: '👤',
+                  title: 'Perfil',
+                  subtitle: 'Tu progreso',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  ),
+                ),
+                _buildMenuCard(
+                  context,
+                  icon: AppIcons.settings,
+                  emoji: '⚙️',
+                  title: 'Configuración',
+                  subtitle: 'Personaliza',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
+                ),
+                _buildMenuCard(
+                  context,
+                  icon: AppIcons.trophy,
+                  emoji: '🏆',
+                  title: 'Logros',
+                  subtitle: 'Tus medallas',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFfa709a), Color(0xFFfee140)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AchievementsScreen(),
+                    ),
+                  ),
+                ),
+                _buildMenuCard(
+                  context,
+                  icon: AppIcons.store,
+                  emoji: '🏪',
+                  title: 'Tienda',
+                  subtitle: 'Compra items',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFa8edea), Color(0xFFfed6e3)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ShopScreen()),
+                  ),
+                ),
+              ]),
             ),
           ),
         ],
       ),
-      body: ResponsiveContainer(
-        child: ResponsiveGrid(
-          mobileColumns: 2,
-          tabletColumns: 3,
-          desktopColumns: 4,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.9,
-          children: [
-            _HomeGridItem(
-              icon: '📚',
-              title: 'Lecciones',
-              color: const Color(0xFF6C63FF),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LessonsScreen(),
-                  ),
-                );
-              },
-            ),
-            _HomeGridItem(
-              icon: '👤',
-              title: 'Perfil',
-              color: const Color(0xFFFF6B6B),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-            _HomeGridItem(
-              icon: '⚙️',
-              title: 'Configuración',
-              color: const Color(0xFF4ECDC4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-            ),
-            _HomeGridItem(
-              icon: '🏆',
-              title: 'Logros',
-              color: const Color(0xFFFFD93D),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AchievementsScreen(),
-                  ),
-                );
-              },
-            ),
-            _HomeGridItem(
-              icon: '🏪',
-              title: 'Tienda',
-              color: const Color(0xFFFF6B9D),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ShopScreen(),
-                  ),
-                );
-              },
+    );
+  }
+
+  Widget _buildMenuCard(
+    BuildContext context, {
+    required IconData icon,
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required Gradient gradient,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: (gradient as LinearGradient).colors.first.withAlpha(60),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: -5,
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Widget que representa un ítem del GridView.
-class _HomeGridItem extends StatefulWidget {
-  final String icon;
-  final String title;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _HomeGridItem({
-    required this.icon,
-    required this.title,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  State<_HomeGridItem> createState() => _HomeGridItemState();
-}
-
-class _HomeGridItemState extends State<_HomeGridItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _animationController.forward(),
-      onTapUp: (_) {
-        _animationController.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _animationController.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  widget.color,
-                  widget.color.withAlpha(178),
-                ],
-              ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: widget.onTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.icon,
-                        style: TextStyle(
-                          fontSize: context.isMobile ? 64 : (context.isTablet ? 72 : 80),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(30),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 28),
                         ),
+                        Text(emoji, style: const TextStyle(fontSize: 32)),
+                      ],
+                    ),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.title,
-                        style: TextStyle(
-                          fontSize: context.isMobile ? 18 : (context.isTablet ? 20 : 22),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(80),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
