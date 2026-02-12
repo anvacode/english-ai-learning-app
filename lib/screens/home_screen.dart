@@ -316,10 +316,10 @@ class _HomeGridView extends StatelessWidget {
                     // Solo el emoji, grande y destacado
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Text(
                         emoji,
-                        style: const TextStyle(fontSize: 56),
+                        style: const TextStyle(fontSize: 72),
                         textAlign: TextAlign.center,
                       ),
                     ),
