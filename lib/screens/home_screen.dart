@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const _HomeGridView(),
     const LessonsScreen(),
     const PracticeHubScreen(),
-    const ProfileScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -92,9 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(
-                _currentIndex == 3 ? AppIcons.user : Icons.person_outline,
+                _currentIndex == 3
+                    ? AppIcons.settings
+                    : Icons.settings_outlined,
               ),
-              label: 'Perfil',
+              label: 'Configuración',
             ),
           ],
         ),
@@ -249,21 +251,6 @@ class _HomeGridView extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                  ),
-                ),
-                _buildMenuCard(
-                  context,
-                  emoji: '⚙️',
-                  title: 'Configuración',
-                  subtitle: 'Personaliza',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
                   ),
                 ),
                 _buildMenuCard(
