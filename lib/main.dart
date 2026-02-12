@@ -9,8 +9,14 @@ import 'screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await FirebaseService().initialize();
+  // Initialize Firebase with error handling
+  try {
+    await FirebaseService().initialize();
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('⚠️ Firebase initialization failed: $e');
+    print('🔄 App will continue in offline mode');
+  }
 
   runApp(const MyApp());
 }
@@ -24,7 +30,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => LessonController()),
-        ChangeNotifierProvider(create: (context) => ThemeService()..initialize()),
+        ChangeNotifierProvider(
+          create: (context) => ThemeService()..initialize(),
+        ),
       ],
       child: Consumer<ThemeService>(
         builder: (context, themeService, child) {

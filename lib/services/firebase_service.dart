@@ -47,10 +47,12 @@ class FirebaseService {
       );
 
       _initialized = true;
-      print('Firebase initialized successfully');
+      print('✅ Firebase initialized successfully');
     } catch (e) {
-      print('Error initializing Firebase: $e');
-      rethrow;
+      print('❌ Error initializing Firebase: $e');
+      // Don't rethrow - allow app to continue in offline mode
+      _initialized = false;
+      throw Exception('Firebase initialization failed: $e');
     }
   }
 
