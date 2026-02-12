@@ -24,22 +24,19 @@ class AuthStatusWidget extends StatelessWidget {
   }
 
   Widget _buildAuthenticatedWidget(
-      BuildContext context, AuthProvider authProvider) {
+    BuildContext context,
+    AuthProvider authProvider,
+  ) {
     final user = authProvider.user;
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade400,
-              Colors.green.shade600,
-            ],
+            colors: [Colors.green.shade400, Colors.green.shade600],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -49,7 +46,7 @@ class AuthStatusWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -74,10 +71,7 @@ class AuthStatusWidget extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? 'Usuario',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],
               ),
@@ -90,7 +84,8 @@ class AuthStatusWidget extends StatelessWidget {
                   builder: (context) => AlertDialog(
                     title: const Text('Cerrar Sesión'),
                     content: const Text(
-                        '¿Estás seguro de que quieres cerrar sesión?'),
+                      '¿Estás seguro de que quieres cerrar sesión?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -126,18 +121,13 @@ class AuthStatusWidget extends StatelessWidget {
   Widget _buildGuestWidget(BuildContext context) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.orange.shade400,
-              Colors.orange.shade600,
-            ],
+            colors: [Colors.orange.shade400, Colors.orange.shade600],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -150,7 +140,7 @@ class AuthStatusWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -175,10 +165,7 @@ class AuthStatusWidget extends StatelessWidget {
                       SizedBox(height: 4),
                       Text(
                         'Tu progreso no se sincroniza',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 14),
                       ),
                     ],
                   ),
@@ -219,18 +206,13 @@ class AuthStatusWidget extends StatelessWidget {
   Widget _buildUnauthenticatedWidget(BuildContext context) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade600,
-            ],
+            colors: [Colors.blue.shade400, Colors.blue.shade600],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -242,7 +224,7 @@ class AuthStatusWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
