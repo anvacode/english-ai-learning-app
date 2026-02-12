@@ -196,7 +196,6 @@ class _HomeGridView extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildMenuCard(
                   context,
-                  icon: AppIcons.book,
                   emoji: '📚',
                   title: 'Lecciones',
                   subtitle: 'Aprende inglés',
@@ -212,7 +211,6 @@ class _HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
-                  icon: AppIcons.user,
                   emoji: '👤',
                   title: 'Perfil',
                   subtitle: 'Tu progreso',
@@ -228,7 +226,6 @@ class _HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
-                  icon: AppIcons.settings,
                   emoji: '⚙️',
                   title: 'Configuración',
                   subtitle: 'Personaliza',
@@ -244,7 +241,6 @@ class _HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
-                  icon: AppIcons.trophy,
                   emoji: '🏆',
                   title: 'Logros',
                   subtitle: 'Tus medallas',
@@ -262,7 +258,6 @@ class _HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
-                  icon: AppIcons.store,
                   emoji: '🏪',
                   title: 'Tienda',
                   subtitle: 'Compra items',
@@ -286,7 +281,6 @@ class _HomeGridView extends StatelessWidget {
 
   Widget _buildMenuCard(
     BuildContext context, {
-    required IconData icon,
     required String emoji,
     required String title,
     required String subtitle,
@@ -319,19 +313,15 @@ class _HomeGridView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(30),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: Colors.white, size: 28),
-                        ),
-                        Text(emoji, style: const TextStyle(fontSize: 32)),
-                      ],
+                    // Solo el emoji, grande y destacado
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        emoji,
+                        style: const TextStyle(fontSize: 56),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     const Spacer(),
                     Text(
