@@ -7,6 +7,7 @@ enum PracticeActivityType {
   fillBlanks,
   pictureMemory,
   trueFalse,
+  pronunciation,
 }
 
 /// Modelo base para actividades de práctica
@@ -21,7 +22,7 @@ class PracticeActivity {
   final bool isUnlocked;
   final int requiredStars;
   final List<String> requiredLessons;
-  
+
   const PracticeActivity({
     required this.id,
     required this.lessonId,
@@ -52,6 +53,8 @@ class PracticeActivity {
         return 'Picture Memory';
       case PracticeActivityType.trueFalse:
         return 'True or False';
+      case PracticeActivityType.pronunciation:
+        return 'Pronunciation Practice';
     }
   }
 
@@ -72,6 +75,8 @@ class PracticeActivity {
         return 0xFF00BCD4; // Cyan
       case PracticeActivityType.trueFalse:
         return 0xFFE91E63; // Pink
+      case PracticeActivityType.pronunciation:
+        return 0xFF8BC34A; // Light Green
     }
   }
 
@@ -111,7 +116,7 @@ class PracticeProgress {
   final int bestScore;
   final DateTime? lastPlayed;
   final int timesPlayed;
-  
+
   const PracticeProgress({
     required this.activityId,
     this.completedExercises = 0,
@@ -179,7 +184,7 @@ class PracticeProgress {
       totalExercises: json['totalExercises'] as int,
       starsEarned: json['starsEarned'] as int? ?? 0,
       bestScore: json['bestScore'] as int? ?? 0,
-      lastPlayed: json['lastPlayed'] != null 
+      lastPlayed: json['lastPlayed'] != null
           ? DateTime.parse(json['lastPlayed'] as String)
           : null,
       timesPlayed: json['timesPlayed'] as int? ?? 0,

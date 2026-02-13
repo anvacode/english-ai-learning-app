@@ -9,6 +9,7 @@ import 'spelling_practice_screen.dart';
 import 'listening_practice_screen.dart';
 import 'speed_match_screen.dart';
 import 'memory_game_screen.dart';
+import 'pronunciation_practice_screen.dart';
 
 /// Pantalla principal del hub de prácticas
 class PracticeHubScreen extends StatefulWidget {
@@ -36,11 +37,12 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
 
     try {
       // Cargar actividades con estado de desbloqueo
-      final activities = await PracticeService.getAllActivitiesWithUnlockStatus();
-      
+      final activities =
+          await PracticeService.getAllActivitiesWithUnlockStatus();
+
       // Cargar progreso de todas las actividades
       final progressMap = await PracticeService.getAllProgress();
-      
+
       // Obtener estrellas totales globales
       final totalStars = await StarService.getTotalStars();
 
@@ -101,6 +103,9 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
       case PracticeActivityType.trueFalse:
         _showComingSoon('True or False');
         break;
+      case PracticeActivityType.pronunciation:
+        _navigateToPronunciation();
+        break;
     }
   }
 
@@ -120,7 +125,8 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ListeningPracticeScreen(lessonId: activity.lessonId),
+        builder: (context) =>
+            ListeningPracticeScreen(lessonId: activity.lessonId),
       ),
     ).then((_) {
       // Recargar datos cuando vuelve de la actividad
@@ -145,6 +151,18 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => MemoryGameScreen(lessonId: activity.lessonId),
+      ),
+    ).then((_) {
+      // Recargar datos cuando vuelve de la actividad
+      _loadData();
+    });
+  }
+
+  void _navigateToPronunciation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PronunciationPracticeScreen(),
       ),
     ).then((_) {
       // Recargar datos cuando vuelve de la actividad
@@ -218,46 +236,43 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
                       ),
                     ),
 
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16),
-                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                     // Grid de actividades
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       sliver: _filteredActivities.isEmpty
-                          ? SliverToBoxAdapter(
-                              child: _buildEmptyState(),
-                            )
+                          ? SliverToBoxAdapter(child: _buildEmptyState())
                           : SliverGrid(
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                // Aspect ratio responsivo: móvil más alto, web más cuadrado
-                                childAspectRatio: Responsive.isMobile(context)
-                                    ? 0.75
-                                    : (Responsive.isTablet(context) ? 0.95 : 1.1),
-                              ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  final activity = _filteredActivities[index];
-                                  final progress = _progressMap[activity.id];
-                                  return PracticeCard(
-                                    activity: activity,
-                                    progress: progress,
-                                    onTap: () => _onActivityTap(activity),
-                                  );
-                                },
-                                childCount: _filteredActivities.length,
-                              ),
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    // Aspect ratio responsivo: móvil más alto, web más cuadrado
+                                    childAspectRatio:
+                                        Responsive.isMobile(context)
+                                        ? 0.75
+                                        : (Responsive.isTablet(context)
+                                              ? 0.95
+                                              : 1.1),
+                                  ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final activity = _filteredActivities[index];
+                                final progress = _progressMap[activity.id];
+                                return PracticeCard(
+                                  activity: activity,
+                                  progress: progress,
+                                  onTap: () => _onActivityTap(activity),
+                                );
+                              }, childCount: _filteredActivities.length),
                             ),
                     ),
 
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 32),
-                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
                 ),
               ),
@@ -266,7 +281,9 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   }
 
   Widget _buildStatsHeader() {
-    final completedCount = _progressMap.values.where((p) => p.isCompleted).length;
+    final completedCount = _progressMap.values
+        .where((p) => p.isCompleted)
+        .length;
     final totalCount = _activities.where((a) => a.isUnlocked).length;
     final practiceStars = _progressMap.values.fold<int>(
       0,
@@ -345,10 +362,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ],
     );
@@ -357,7 +371,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   Widget _buildLessonFilter() {
     // Obtener lecciones únicas
     final lessonIds = _activities.map((a) => a.lessonId).toSet().toList();
-    
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -375,7 +389,9 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
           ),
           // Opciones por lección
           ...lessonIds.map((lessonId) {
-            final activity = _activities.firstWhere((a) => a.lessonId == lessonId);
+            final activity = _activities.firstWhere(
+              (a) => a.lessonId == lessonId,
+            );
             final lessonTitle = activity.title.split(':').last.trim();
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -402,11 +418,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No hay actividades disponibles',
@@ -419,10 +431,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
             const SizedBox(height: 8),
             Text(
               'Completa más lecciones para desbloquear actividades',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
           ],
