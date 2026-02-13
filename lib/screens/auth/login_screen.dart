@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/auth_provider.dart';
 import '../../theme/app_icons.dart';
+import '../../utils/feedback_messages.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -38,20 +39,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Inicio de sesión exitoso!'),
-            backgroundColor: Colors.green,
-          ),
+        final successMsg = FeedbackMessages.getAuthSuccessMessage(
+          'login_success',
+        );
+        context.showSuccessSnackbar(
+          '${successMsg['title']} ${successMsg['message']}',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        final errorCode = e.toString().contains('wrong-password')
+            ? 'wrong_password'
+            : e.toString().contains('user-not-found')
+            ? 'user_not_found'
+            : e.toString().contains('network')
+            ? 'network_error'
+            : 'unknown_error';
+        final errorMsg = FeedbackMessages.getAuthErrorMessage(errorCode);
+        context.showErrorSnackbar(
+          '${errorMsg['title']}\n${errorMsg['message']}',
         );
       }
     } finally {
@@ -64,6 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGuestMode() {
     context.read<AuthProvider>().createGuestSession();
     Navigator.of(context).pop();
+    final guestMsg = FeedbackMessages.getAuthSuccessMessage('guest_welcome');
+    context.showInfoSnackbar('${guestMsg['title']} ${guestMsg['message']}');
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -74,21 +82,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Inicio de sesión con Google exitoso!'),
-            backgroundColor: Colors.green,
-          ),
+        final successMsg = FeedbackMessages.getAuthSuccessMessage(
+          'google_signin_success',
+        );
+        context.showSuccessSnackbar(
+          '${successMsg['title']} ${successMsg['message']}',
         );
       }
     } catch (e) {
       if (mounted) {
         if (!e.toString().contains('cancelado')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
+          final errorMsg = FeedbackMessages.getAuthErrorMessage(
+            'unknown_error',
+          );
+          context.showErrorSnackbar(
+            '${errorMsg['title']}\n${errorMsg['message']}',
           );
         }
       }
