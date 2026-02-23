@@ -1,61 +1,78 @@
 /// Modelo que representa el perfil del usuario.
-/// 
+///
 /// Contiene información básica del usuario como nickname,
-/// avatar seleccionado y fecha de creación.
+/// avatar seleccionado, nivel de inglés y fecha de creación.
 class UserProfile {
   final String nickname;
-  final int avatarId; // 0-7 para avatares predefinidos
+  final int avatarId;
+  final String? englishLevel;
   final DateTime createdAt;
 
   const UserProfile({
     required this.nickname,
     required this.avatarId,
+    this.englishLevel,
     required this.createdAt,
   });
 
-  /// Crea un perfil con valores por defecto.
   factory UserProfile.defaultProfile() {
     return UserProfile(
       nickname: 'Estudiante',
       avatarId: 0,
+      englishLevel: null,
       createdAt: DateTime.now(),
     );
   }
 
-  /// Crea una copia del perfil con campos actualizados.
   UserProfile copyWith({
     String? nickname,
     int? avatarId,
+    String? englishLevel,
     DateTime? createdAt,
+    bool clearEnglishLevel = false,
   }) {
     return UserProfile(
       nickname: nickname ?? this.nickname,
       avatarId: avatarId ?? this.avatarId,
+      englishLevel: clearEnglishLevel
+          ? null
+          : (englishLevel ?? this.englishLevel),
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
-  /// Convierte el perfil a JSON para almacenamiento.
   Map<String, dynamic> toJson() {
     return {
       'nickname': nickname,
       'avatarId': avatarId,
+      'englishLevel': englishLevel,
       'createdAt': createdAt.toIso8601String(),
     };
   }
 
-  /// Crea un perfil desde JSON.
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       nickname: json['nickname'] as String,
       avatarId: json['avatarId'] as int,
+      englishLevel: json['englishLevel'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
-  /// Valida que el avatarId esté en el rango válido (0-7 predefinidos, 8-10 tienda).
   bool get isValidAvatarId => avatarId >= 0 && avatarId <= 10;
-  
-  /// Verifica si el avatar actual es de tienda (requiere compra).
+
   bool get isShopAvatar => avatarId >= 8 && avatarId <= 10;
+
+  String get englishLevelDisplayName {
+    switch (englishLevel) {
+      case 'beginner':
+        return 'Principiante';
+      case 'intermediate':
+        return 'Intermedio';
+      case 'advanced':
+        return 'Avanzado';
+      default:
+        return 'No determinado';
+    }
+  }
 }

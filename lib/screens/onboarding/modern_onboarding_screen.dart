@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/onboarding_page.dart';
 import '../../widgets/onboarding_page_widget.dart';
 import '../../utils/responsive.dart';
+import '../../dialogs/auth_prompt_dialog.dart';
 import '../home_screen.dart';
 
 /// Pantalla moderna de onboarding con diseño atractivo y animaciones.
-/// 
+///
 /// Muestra 4 slides con ilustraciones, títulos, descripciones y
 /// controles de navegación modernos.
 class ModernOnboardingScreen extends StatefulWidget {
@@ -28,16 +29,13 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _buttonAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
 
-    _buttonScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(
+    _buttonScaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(
         parent: _buttonAnimationController,
         curve: Curves.easeInOut,
@@ -63,7 +61,7 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
 
   Future<void> _completeOnboarding() async {
     if (_isAnimating) return;
-    
+
     setState(() {
       _isAnimating = true;
     });
@@ -72,30 +70,38 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
     await prefs.setBool('onboarding_completed', true);
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
-
-            var tween = Tween(begin: begin, end: end).chain(
-              CurveTween(curve: curve),
-            );
-
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: FadeTransition(
-                opacity: animation,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 600),
-        ),
+      final result = await AuthPromptDialog.show(
+        context,
+        isFromOnboarding: true,
       );
+
+      if (!mounted) return;
+
+      if (result != true) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const HomeScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+            transitionDuration: const Duration(milliseconds: 600),
+          ),
+        );
+      }
     }
   }
 
@@ -205,7 +211,8 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: OnboardingPages
-                                .pages[_currentPage].primaryColor,
+                                .pages[_currentPage]
+                                .primaryColor,
                             elevation: 8,
                             shadowColor: Colors.black.withAlpha(76),
                             shape: RoundedRectangleBorder(

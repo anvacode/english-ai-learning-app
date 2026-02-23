@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/auth_provider.dart';
+import '../../services/diagnostic_service.dart';
+import '../diagnostic/diagnostic_intro_screen.dart';
+import '../home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isNavigating = false;
 
   @override
   void dispose() {
@@ -28,17 +32,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isNavigating) return;
 
     setState(() => _isLoading = true);
 
     try {
       await context.read<AuthProvider>().createUserWithEmailAndPassword(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted && !_isNavigating) {
+        _isNavigating = true;
+        final diagnosticCompleted =
+            await DiagnosticService.isDiagnosticCompleted();
+
+        if (!context.mounted) return;
+
+        if (diagnosticCompleted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const DiagnosticIntroScreen(),
+            ),
+            (route) => false,
+          );
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Cuenta creada exitosamente!'),
@@ -63,13 +87,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    if (_isNavigating) return;
     setState(() => _isLoading = true);
 
     try {
       await context.read<AuthProvider>().signInWithGoogle();
 
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted && !_isNavigating) {
+        _isNavigating = true;
+        final diagnosticCompleted =
+            await DiagnosticService.isDiagnosticCompleted();
+
+        if (!context.mounted) return;
+
+        if (diagnosticCompleted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const DiagnosticIntroScreen(),
+            ),
+            (route) => false,
+          );
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Registro con Google exitoso!'),
@@ -79,7 +123,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        // No mostrar error si el usuario canceló
         if (!e.toString().contains('cancelado')) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -104,10 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade700,
-            ],
+            colors: [Colors.blue.shade400, Colors.blue.shade700],
           ),
         ),
         child: SafeArea(
@@ -157,12 +197,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 'Guarda tu progreso y accede desde cualquier dispositivo',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey.shade600,
-                                    ),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey.shade600),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 32),
@@ -267,7 +303,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 width: double.infinity,
                                 height: 48,
                                 child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _handleRegister,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : _handleRegister,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue.shade700,
                                     foregroundColor: Colors.white,
@@ -298,15 +336,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               // Divider
                               Row(
                                 children: [
-                                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey.shade300),
+                                  ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
                                     child: Text(
                                       'o regístrate con',
-                                      style: TextStyle(color: Colors.grey.shade600),
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                   ),
-                                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey.shade300),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 16),
@@ -316,9 +362,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 width: double.infinity,
                                 height: 48,
                                 child: OutlinedButton.icon(
-                                  onPressed: _isLoading ? null : _handleGoogleSignIn,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : _handleGoogleSignIn,
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.grey.shade400),
+                                    side: BorderSide(
+                                      color: Colors.grey.shade400,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -329,7 +379,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     height: 24,
                                     width: 24,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.g_mobiledata, size: 24, color: Colors.red);
+                                      return Icon(
+                                        Icons.g_mobiledata,
+                                        size: 24,
+                                        color: Colors.red,
+                                      );
                                     },
                                   ),
                                   label: const Text(
@@ -349,7 +403,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 children: [
                                   Text(
                                     '¿Ya tienes cuenta?',
-                                    style: TextStyle(color: Colors.grey.shade600),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () {

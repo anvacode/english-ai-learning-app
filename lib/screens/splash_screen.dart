@@ -3,12 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../logic/first_time_service.dart';
 import '../logic/student_service.dart';
 import '../logic/star_service.dart';
+import '../services/auth_prompt_service.dart';
 import '../dialogs/daily_login_reward_dialog.dart';
 import 'onboarding/modern_onboarding_screen.dart';
 import 'home_screen.dart';
 
 /// Pantalla de splash que se muestra al iniciar la aplicación.
-/// 
+///
 /// Muestra el logo con animación fade-in durante 3 segundos,
 /// inicializa el estudiante, luego verifica si es la primera vez
 /// del usuario y navega a OnboardingScreen o HomeScreen según corresponda.
@@ -27,20 +28,16 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Configurar animación fade-in
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
-    ));
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
 
     // Iniciar animación
     _animationController.forward();
@@ -50,25 +47,26 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeAndNavigate() async {
-    // Inicializar estudiante (necesario para mantener funcionalidad existente)
+    await AuthPromptService.incrementOpenCount();
+
     await StudentService.initializeStudent();
-    
+
     // Verificar si es la primera vez o si el onboarding no se completó
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = await FirstTimeService.isFirstTime();
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-    
+
     // Si no es la primera vez y completó el onboarding, procesar login diario
     if (!isFirstTime && onboardingCompleted) {
       // Procesar login diario (otorga recompensas y actualiza racha)
       final starsEarned = await StarService.processDailyLogin();
-      
+
       // Obtener racha después del login
       final streakAfter = await StarService.getLoginStreak();
-      
+
       // Calcular bono de racha (si la racha es > 1)
       final streakBonus = streakAfter > 1 ? (streakAfter - 1) * 5 : 0;
-      
+
       // Si se ganaron estrellas, mostrar diálogo de recompensas
       if (starsEarned > 0 && mounted) {
         await DailyLoginRewardDialog.show(
@@ -79,13 +77,13 @@ class _SplashScreenState extends State<SplashScreen>
         );
       }
     }
-    
+
     // Esperar tiempo mínimo para mostrar splash
     await Future.delayed(const Duration(seconds: 2));
 
     // Navegar a la pantalla correspondiente
     if (!mounted) return;
-    
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => (!isFirstTime && onboardingCompleted)

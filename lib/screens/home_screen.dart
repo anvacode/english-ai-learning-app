@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'lessons_screen.dart';
 import 'profile/profile_screen.dart';
 import 'settings_screen.dart';
 import 'achievements_screen.dart';
 import 'shop_screen.dart';
 import 'practice/practice_hub_screen.dart';
+import 'diagnostic/diagnostic_intro_screen.dart';
 import '../widgets/star_display.dart';
 import '../utils/responsive.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
+import '../logic/auth_provider.dart';
+import '../dialogs/auth_prompt_dialog.dart';
+import '../services/auth_prompt_service.dart';
+import '../services/diagnostic_service.dart';
 
-/// Pantalla principal de navegación con GridView de opciones.
-///
-/// Muestra 4 opciones principales:
-/// - Lecciones
-/// - Perfil
-/// - Configuración
-/// - Logros
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -26,6 +25,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  bool _authPromptChecked = false;
+  bool _diagnosticChecked = false;
+  bool _isNavigating = false;
 
   final List<Widget> _screens = [
     const _HomeGridView(),
@@ -33,6 +35,50 @@ class _HomeScreenState extends State<HomeScreen> {
     const PracticeHubScreen(),
     const SettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthAndDiagnostic();
+    });
+  }
+
+  Future<void> _checkAuthAndDiagnostic() async {
+    if (_authPromptChecked && _diagnosticChecked) return;
+    if (_isNavigating) return;
+
+    final authProvider = context.read<AuthProvider>();
+
+    if (!_authPromptChecked) {
+      final shouldShow = await AuthPromptService.shouldShowAuthPrompt(
+        isAuthenticated: authProvider.isAuthenticated,
+        isGuest: authProvider.isGuest,
+      );
+
+      if (shouldShow && mounted && !_isNavigating) {
+        await AuthPromptDialog.show(context);
+      }
+      _authPromptChecked = true;
+    }
+
+    if (!_diagnosticChecked && authProvider.isAuthenticated && !_isNavigating) {
+      final diagnosticCompleted =
+          await DiagnosticService.isDiagnosticCompleted();
+
+      if (!diagnosticCompleted && mounted && !_isNavigating) {
+        _isNavigating = true;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const DiagnosticIntroScreen(),
+          ),
+        );
+      }
+      _diagnosticChecked = true;
+    } else {
+      _diagnosticChecked = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -11,6 +11,7 @@ import '../widgets/star_display.dart';
 import '../utils/responsive.dart';
 import '../widgets/responsive_container.dart';
 import '../theme/text_styles.dart';
+import '../services/diagnostic_service.dart';
 import 'lesson_screen.dart';
 import 'lesson_flow_screen.dart';
 
@@ -24,11 +25,51 @@ class LessonsScreen extends StatefulWidget {
 class _LessonsScreenState extends State<LessonsScreen> {
   final _evaluator = MasteryEvaluator();
   late Future<void> _lessonStatusesFuture;
+  String? _userLevel;
+  List<String> _recommendedLessonIds = [];
 
   @override
   void initState() {
     super.initState();
-    _lessonStatusesFuture = Future.value(); // Initialize with completed future
+    _lessonStatusesFuture = Future.value();
+    _loadUserLevel();
+  }
+
+  Future<void> _loadUserLevel() async {
+    final level = await DiagnosticService.getUserLevel();
+
+    if (mounted) {
+      setState(() {
+        _userLevel = level;
+        _recommendedLessonIds = _getRecommendedLessons(level);
+      });
+    }
+  }
+
+  List<String> _getRecommendedLessons(String? level) {
+    switch (level) {
+      case 'beginner':
+        return ['colors', 'fruits', 'animals', 'numbers'];
+      case 'intermediate':
+        return ['daily_routines', 'weather_seasons', 'occupations'];
+      case 'advanced':
+        return ['verb_tenses', 'prepositions', 'adjectives_opposites'];
+      default:
+        return [];
+    }
+  }
+
+  Color _getLevelColor() {
+    switch (_userLevel) {
+      case 'beginner':
+        return Colors.green;
+      case 'intermediate':
+        return Colors.orange;
+      case 'advanced':
+        return Colors.red;
+      default:
+        return Colors.blue;
+    }
   }
 
   Color _getStatusColor(LessonMasteryStatus status) {
@@ -41,7 +82,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
         return Colors.green;
     }
   }
-  
+
   IconData _getLevelIcon(int levelIndex) {
     switch (levelIndex) {
       case 0:
@@ -75,7 +116,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
           final hasMatching = lesson.exercises.any(
             (e) => e.type == ExerciseType.matching,
           );
-          
+
           // Use LessonFlowScreen for lessons with matching exercise (Animals, Family)
           if (hasMatching) {
             return ChangeNotifierProvider(
@@ -90,15 +131,12 @@ class _LessonsScreenState extends State<LessonsScreen> {
           // Use standard LessonScreen for lessons with only multiple-choice
           return ChangeNotifierProvider(
             create: (context) => LessonController(),
-            child: LessonScreen(
-              key: UniqueKey(),
-              lesson: lesson,
-            ),
+            child: LessonScreen(key: UniqueKey(), lesson: lesson),
           );
         },
       ),
     );
-    
+
     // If lesson state changed (completed), rebuild lesson statuses
     if (lessonStateChanged == true) {
       setState(() {
@@ -112,10 +150,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Lecciones',
-          style: context.headline2,
-        ),
+        title: Text('Lecciones', style: context.headline2),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: context.horizontalPadding),
@@ -133,161 +168,312 @@ class _LessonsScreenState extends State<LessonsScreen> {
         child: FutureBuilder<void>(
           future: _lessonStatusesFuture,
           builder: (context, snapshot) {
-            return lessonLevels.isEmpty
-                ? const Center(
-                    child: Text('No lessons available'),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(context.horizontalPadding),
-                    itemCount: lessonLevels.length,
-                  itemBuilder: (context, index) {
+            if (lessonLevels.isEmpty) {
+              return const Center(child: Text('No lessons available'));
+            }
+
+            final hasRecommendations =
+                _userLevel != null && _recommendedLessonIds.isNotEmpty;
+
+            return CustomScrollView(
+              slivers: [
+                if (hasRecommendations) ...[
+                  SliverToBoxAdapter(child: _buildRecommendationBanner()),
+                ],
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
                     final level = lessonLevels[index];
                     final levelIndex = index;
                     final isBeginnerLevel = levelIndex == 0;
-                    // final previousLevel = !isBeginnerLevel ? lessonLevels[levelIndex - 1] : null;
 
-                return FutureBuilder<bool>(
-                  // TEMPORAL: Todos los niveles desbloqueados para testing
-                  future: Future.value(true),
-                  // PRODUCCIÓN: Descomentar el código siguiente y comentar la línea anterior
-                  // future: isBeginnerLevel
-                  //     ? Future.value(true)
-                  //     : previousLevel != null
-                  //         ? _evaluator.areAllLessonsMastered(
-                  //             previousLevel.lessons.map((l) => l.id).toList(),
-                  //           )
-                  //         : Future.value(true),
-                  builder: (context, snapshot) {
-                    final isLevelUnlocked = snapshot.data ?? false;
+                    return FutureBuilder<bool>(
+                      future: Future.value(true),
+                      builder: (context, snapshot) {
+                        final isLevelUnlocked = snapshot.data ?? false;
 
-                    // Lock indicator for non-beginner levels
-                    final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
-                        ? ' 🔒'
-                        : '';
+                        final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
+                            ? ' 🔒'
+                            : '';
 
-                    // Build expansion tile content
-                    Widget tileContent;
-                    if (level.lessons.isEmpty) {
-                      tileContent = Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'No lessons available',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      );
-                    } else if (!isLevelUnlocked && !isBeginnerLevel) {
-                      tileContent = Container(
-                        padding: const EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Text(
-                          'Completa el nivel anterior para desbloquear',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      );
-                    } else {
-                      tileContent = Column(
-                        children: level.lessons
-                            .map((lesson) => LessonListItem(
-                                  lesson: lesson,
-                                  evaluator: _evaluator,
-                                  getStatusColor: _getStatusColor,
-                                  getStatusText: _getStatusText,
-                                  isLocked: !isLevelUnlocked && !isBeginnerLevel,
-                                  onTap: () => _openLesson(lesson),
-                                ))
-                            .toList(),
-                      );
-                    }
-
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        dividerColor: Colors.transparent,
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary.withAlpha(20),
-                              Theme.of(context).colorScheme.primary.withAlpha(5),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withAlpha(51),
-                            width: 2,
-                          ),
-                        ),
-                        child: ExpansionTile(
-                          initiallyExpanded: true,
-                          title: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Theme.of(context).colorScheme.primary.withAlpha(76),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  _getLevelIcon(levelIndex),
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
+                        Widget tileContent;
+                        if (level.lessons.isEmpty) {
+                          tileContent = Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'No lessons available',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  '${level.title}$lockIcon',
-                                  style: TextStyle(
-                                    fontSize: context.isMobile ? 18 : (context.isTablet ? 20 : 22),
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: context.horizontalPadding,
-                                vertical: 8.0,
-                              ),
-                              child: tileContent,
                             ),
-                          ],
-                        ),
-                      ),
+                          );
+                        } else if (!isLevelUnlocked && !isBeginnerLevel) {
+                          tileContent = Container(
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: Text(
+                              'Completa el nivel anterior para desbloquear',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          );
+                        } else {
+                          tileContent = Column(
+                            children: level.lessons
+                                .map(
+                                  (lesson) => LessonListItem(
+                                    lesson: lesson,
+                                    evaluator: _evaluator,
+                                    getStatusColor: _getStatusColor,
+                                    getStatusText: _getStatusText,
+                                    isLocked:
+                                        !isLevelUnlocked && !isBeginnerLevel,
+                                    onTap: () => _openLesson(lesson),
+                                  ),
+                                )
+                                .toList(),
+                          );
+                        }
+
+                        return Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withAlpha(20),
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withAlpha(5),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withAlpha(51),
+                                width: 2,
+                              ),
+                            ),
+                            child: ExpansionTile(
+                              initiallyExpanded: true,
+                              title: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary.withAlpha(76),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      _getLevelIcon(levelIndex),
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '${level.title}$lockIcon',
+                                      style: TextStyle(
+                                        fontSize: context.isMobile
+                                            ? 18
+                                            : (context.isTablet ? 20 : 22),
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: context.horizontalPadding,
+                                    vertical: 8.0,
+                                  ),
+                                  child: tileContent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
-                  },
-                );
-              },
+                  }, childCount: lessonLevels.length),
+                ),
+              ],
             );
           },
         ),
       ),
     );
+  }
+
+  Widget _buildRecommendationBanner() {
+    return Container(
+      margin: EdgeInsets.only(
+        left: context.horizontalPadding,
+        right: context.horizontalPadding,
+        bottom: 16,
+        top: context.horizontalPadding,
+      ),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _getLevelColor().withAlpha(30),
+            _getLevelColor().withAlpha(10),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _getLevelColor().withAlpha(50), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _getLevelColor(),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Recomendado para ti',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _getLevelColor(),
+                      ),
+                    ),
+                    Text(
+                      'Basado en tu nivel ${_getLevelDisplayName()}',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _recommendedLessonIds.map((lessonId) {
+              final lesson = _findLessonById(lessonId);
+              if (lesson == null) return const SizedBox.shrink();
+
+              return InkWell(
+                onTap: () => _openLesson(lesson),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _getLevelColor().withAlpha(50)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(10),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.play_circle_outline,
+                        size: 18,
+                        color: _getLevelColor(),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        lesson.title,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: _getLevelColor(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getLevelDisplayName() {
+    switch (_userLevel) {
+      case 'beginner':
+        return 'Principiante';
+      case 'intermediate':
+        return 'Intermedio';
+      case 'advanced':
+        return 'Avanzado';
+      default:
+        return '';
+    }
+  }
+
+  Lesson? _findLessonById(String id) {
+    for (final level in lessonLevels) {
+      for (final lesson in level.lessons) {
+        if (lesson.id == id) {
+          return lesson;
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -334,7 +520,9 @@ class LessonListItem extends StatelessWidget {
                             child: Text(
                               lesson.title,
                               style: TextStyle(
-                                fontSize: context.isMobile ? 16 : (context.isTablet ? 17 : 18),
+                                fontSize: context.isMobile
+                                    ? 16
+                                    : (context.isTablet ? 17 : 18),
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 2,
@@ -345,7 +533,9 @@ class LessonListItem extends StatelessWidget {
                           FutureBuilder<achievement.Badge?>(
                             future: BadgeService.getBadge(lesson),
                             builder: (context, snapshot) {
-                              if (snapshot.hasData && snapshot.data != null && snapshot.data!.unlocked) {
+                              if (snapshot.hasData &&
+                                  snapshot.data != null &&
+                                  snapshot.data!.unlocked) {
                                 return Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
@@ -362,10 +552,7 @@ class LessonListItem extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'ID: ${lesson.id}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -373,10 +560,7 @@ class LessonListItem extends StatelessWidget {
                 const SizedBox(width: 16),
                 // Badge de estado de dominio o lock
                 if (isLocked)
-                  const Text(
-                    '🔒',
-                    style: TextStyle(fontSize: 24),
-                  )
+                  const Text('🔒', style: TextStyle(fontSize: 24))
                 else
                   FutureBuilder<LessonMasteryStatus>(
                     future: evaluator.evaluateLesson(lesson.id),
@@ -385,9 +569,7 @@ class LessonListItem extends StatelessWidget {
                         return const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         );
                       }
 
