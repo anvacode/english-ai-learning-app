@@ -152,6 +152,147 @@ class SpeechRecognitionService {
     return _evaluatePronunciation(_lastWords, targetWord);
   }
 
+  /// Escucha y evalúa la pronunciación de una frase (tiempo más largo)
+  Future<PronunciationResult> listenAndEvaluatePhrase(
+    String targetPhrase, {
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    if (!_isInitialized) {
+      final initialized = await initialize();
+      if (!initialized) {
+        return PronunciationResult(
+          recognizedText: '',
+          confidence: 0.0,
+          starRating: 0,
+          isCorrect: false,
+          message: '❌ No se pudo inicializar el micrófono',
+        );
+      }
+    }
+
+    _lastWords = '';
+    _isListening = true;
+
+    try {
+      await _speech.listen(
+        onResult: (result) {
+          _lastWords = result.recognizedWords;
+          _wordsController.add(_lastWords);
+        },
+        listenFor: timeout,
+        pauseFor: const Duration(seconds: 3),
+        localeId: 'en_US',
+      );
+
+      await Future.delayed(timeout);
+      await stopListening();
+
+      if (_lastWords.isEmpty) {
+        return PronunciationResult(
+          recognizedText: '',
+          confidence: 0.0,
+          starRating: 0,
+          isCorrect: false,
+          message: '🔇 No se detectó voz. Intenta hablar más claro y fuerte.',
+        );
+      }
+
+      return _evaluatePhrase(_lastWords, targetPhrase);
+    } catch (e) {
+      debugPrint('Error evaluando frase: $e');
+      return PronunciationResult(
+        recognizedText: '',
+        confidence: 0.0,
+        starRating: 0,
+        isCorrect: false,
+        message: '❌ Error al evaluar. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Evalúa la pronunciación de una frase con algoritmo más tolerante
+  PronunciationResult _evaluatePhrase(String recognized, String target) {
+    final normalizedRecognized = _normalizeText(recognized);
+    final normalizedTarget = _normalizeText(target);
+
+    double similarity;
+
+    // Para frases, usamos word-based similarity (más tolerante)
+    final recognizedWords = normalizedRecognized.split(' ');
+    final targetWords = normalizedTarget.split(' ');
+
+    final matchingWords = recognizedWords
+        .where(
+          (word) => targetWords.any(
+            (target) => _calculateSimilarity(word, target) >= 0.7,
+          ),
+        )
+        .length;
+
+    if (targetWords.isEmpty) {
+      similarity = 0.0;
+    } else {
+      // Combinar similarity de palabras con Levenshtein general
+      final wordSimilarity = matchingWords / targetWords.length;
+      final levenshteinSimilarity = _calculateSimilarity(
+        normalizedRecognized,
+        normalizedTarget,
+      );
+
+      // Peso mayor para las palabras que coinciden
+      similarity = (wordSimilarity * 0.7) + (levenshteinSimilarity * 0.3);
+    }
+
+    final starRating = _calculateStarRating(similarity);
+    final isCorrect = similarity >= 0.7;
+    final message = _generatePhraseFeedbackMessage(
+      starRating,
+      isCorrect,
+      recognized,
+      target,
+    );
+
+    return PronunciationResult(
+      recognizedText: recognized,
+      confidence: similarity,
+      starRating: starRating,
+      isCorrect: isCorrect,
+      message: message,
+    );
+  }
+
+  /// Genera feedback específico para frases
+  String _generatePhraseFeedbackMessage(
+    int starRating,
+    bool isCorrect,
+    String recognized,
+    String target,
+  ) {
+    if (isCorrect) {
+      switch (starRating) {
+        case 5:
+          return '🌟 ¡Perfecto! ¡Excellent pronunciation!';
+        case 4:
+          return '⭐ ¡Muy bien! Great job!';
+        case 3:
+          return '👍 ¡Bien! Keep practicing!';
+        default:
+          return '✅ ¡Correcto!';
+      }
+    } else {
+      final recognizedWords = recognized.toLowerCase().split(' ').length;
+      final targetWords = target.toLowerCase().split(' ').length;
+
+      if (recognizedWords < targetWords * 0.5) {
+        return '💬 Intenta decir todas las palabras de la frase';
+      } else if (recognizedWords > targetWords * 1.5) {
+        return '💬 Hablaste muy rápido. Intenta más lento';
+      } else {
+        return '💪 ¡Casi! Intenta mejorar la pronunciación';
+      }
+    }
+  }
+
   /// Evalúa la pronunciación comparando el texto reconocido con el objetivo
   PronunciationResult _evaluatePronunciation(String recognized, String target) {
     // Normalizar ambos textos

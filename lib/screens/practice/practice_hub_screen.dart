@@ -5,11 +5,13 @@ import '../../logic/star_service.dart';
 import '../../widgets/practice_card.dart';
 import '../../widgets/responsive_container.dart';
 import '../../utils/responsive.dart';
+import '../../theme/app_colors.dart';
 import 'spelling_practice_screen.dart';
 import 'listening_practice_screen.dart';
 import 'speed_match_screen.dart';
 import 'memory_game_screen.dart';
 import 'pronunciation_practice_screen.dart';
+import 'phrase_practice_screen.dart';
 
 /// Pantalla principal del hub de prácticas
 class PracticeHubScreen extends StatefulWidget {
@@ -165,7 +167,15 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
         builder: (context) => const PronunciationPracticeScreen(),
       ),
     ).then((_) {
-      // Recargar datos cuando vuelve de la actividad
+      _loadData();
+    });
+  }
+
+  void _navigateToPhrasePractice() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PhrasePracticeScreen()),
+    ).then((_) {
       _loadData();
     });
   }
@@ -277,6 +287,15 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
                 ),
               ),
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToPhrasePractice,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+        label: const Text(
+          'Práctica de Frases',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
