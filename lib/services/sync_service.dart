@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_service.dart';
 import '../logic/user_profile_service.dart';
 import '../logic/star_service.dart';
@@ -11,6 +12,9 @@ class SyncService {
   static final SyncService _instance = SyncService._internal();
   factory SyncService() => _instance;
   SyncService._internal();
+
+  static const String _lastSyncKey = 'last_sync_timestamp';
+  static const String _lastSyncedStarsKey = 'last_synced_stars';
 
   final FirebaseService _firebaseService = FirebaseService();
   bool _isSyncing = false;
@@ -39,7 +43,9 @@ class SyncService {
       final stars = await StarService.getTotalStars();
 
       // Crear referencia al documento del usuario
-      final userDoc = _firebaseService.firestore.collection('users').doc(user.uid);
+      final userDoc = _firebaseService.firestore
+          .collection('users')
+          .doc(user.uid);
 
       // Subir datos a Firebase
       await userDoc.set({
@@ -54,6 +60,11 @@ class SyncService {
           'lastUpdated': FieldValue.serverTimestamp(),
         },
       }, SetOptions(merge: true));
+
+      // Registrar timestamp de última sincronización para evitar duplicaciones
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_lastSyncKey, DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(_lastSyncedStarsKey, stars);
 
       print('✅ Sincronización completada exitosamente');
       return true;
@@ -110,8 +121,6 @@ class SyncService {
           final localStars = await StarService.getTotalStars();
 
           // Usar el valor mayor (fusión de datos)
-          // Nota: StarService no tiene método setStars directo, 
-          // necesitaríamos agregar transacciones para ajustar
           if (remoteStars > localStars) {
             final difference = remoteStars - localStars;
             await StarService.addStars(
@@ -175,5 +184,10 @@ class SyncService {
   void stopAutoSync() {
     _autoSyncTimer?.cancel();
     _autoSyncTimer = null;
+  }
+
+  /// Libera la instancia singleton (llamar al cerrar la app)
+  static void disposeInstance() {
+    _instance.stopAutoSync();
   }
 }

@@ -7,6 +7,7 @@ class LessonItem {
   final String title;
   final Color? stimulusColor;
   final String? stimulusImageAsset;
+  final String? stimulusText;
   final List<String> options;
   final int correctAnswerIndex;
 
@@ -15,6 +16,7 @@ class LessonItem {
     required this.title,
     this.stimulusColor,
     this.stimulusImageAsset,
+    this.stimulusText,
     required this.options,
     required this.correctAnswerIndex,
   });

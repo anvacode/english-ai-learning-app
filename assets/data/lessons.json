@@ -1,0 +1,72 @@
+{
+  "lessons": [
+    {
+      "id": "colors",
+      "title": "Colores",
+      "question": "¿Qué color es este?",
+      "items": [
+        {"id": "red", "title": "Red", "stimulusColor": "red", "options": ["red", "blue", "green"], "correctAnswerIndex": 0},
+        {"id": "blue", "title": "Blue", "stimulusColor": "blue", "options": ["red", "blue", "green"], "correctAnswerIndex": 1},
+        {"id": "green", "title": "Green", "stimulusColor": "green", "options": ["green", "yellow", "purple"], "correctAnswerIndex": 0},
+        {"id": "yellow", "title": "Yellow", "stimulusColor": "yellow", "options": ["yellow", "purple", "pink"], "correctAnswerIndex": 0},
+        {"id": "black", "title": "Black", "stimulusColor": "black", "options": ["black", "white", "gray"], "correctAnswerIndex": 0},
+        {"id": "white", "title": "White", "stimulusColor": "white", "options": ["white", "black", "gray"], "correctAnswerIndex": 0},
+        {"id": "orange", "title": "Orange", "stimulusColor": "orange", "options": ["purple", "orange", "brown"], "correctAnswerIndex": 1},
+        {"id": "purple", "title": "Purple", "stimulusColor": "purple", "options": ["orange", "purple", "pink"], "correctAnswerIndex": 1},
+        {"id": "pink", "title": "Pink", "stimulusColor": "pink", "options": ["blue", "pink", "red"], "correctAnswerIndex": 1},
+        {"id": "brown", "title": "Brown", "stimulusColor": "brown", "options": ["brown", "orange", "black"], "correctAnswerIndex": 0}
+      ],
+      "exercises": [{"type": "multipleChoice"}]
+    },
+    {
+      "id": "fruits",
+      "title": "Frutas",
+      "question": "¿Qué fruta es esta?",
+      "items": [
+        {"id": "apple", "title": "Apple", "stimulusImageAsset": "assets/images/fruits/apple.jpg", "options": ["apple", "banana", "orange"], "correctAnswerIndex": 0},
+        {"id": "banana", "title": "Banana", "stimulusImageAsset": "assets/images/fruits/banana.jpg", "options": ["banana", "apple", "strawberry"], "correctAnswerIndex": 0},
+        {"id": "orange", "title": "Orange", "stimulusImageAsset": "assets/images/fruits/orange.jpg", "options": ["orange", "apple", "lemon"], "correctAnswerIndex": 0},
+        {"id": "strawberry", "title": "Strawberry", "stimulusImageAsset": "assets/images/fruits/strawberry.jpg", "options": ["strawberry", "cherry", "apple"], "correctAnswerIndex": 0},
+        {"id": "grapes", "title": "Grapes", "stimulusImageAsset": "assets/images/fruits/grapes.jpg", "options": ["grapes", "blueberry", "banana"], "correctAnswerIndex": 0},
+        {"id": "pineapple", "title": "Pineapple", "stimulusImageAsset": "assets/images/fruits/pineapple.jpg", "options": ["pineapple", "banana", "mango"], "correctAnswerIndex": 0},
+        {"id": "watermelon", "title": "Watermelon", "stimulusImageAsset": "assets/images/fruits/watermelon.jpg", "options": ["watermelon", "apple", "orange"], "correctAnswerIndex": 0},
+        {"id": "pear", "title": "Pear", "stimulusImageAsset": "assets/images/fruits/pear.jpg", "options": ["pear", "apple", "peach"], "correctAnswerIndex": 0}
+      ],
+      "exercises": [{"type": "multipleChoice"}]
+    },
+    {
+      "id": "animals",
+      "title": "Animales",
+      "question": "¿Qué animal es este?",
+      "items": [
+        {"id": "dog", "title": "Dog", "stimulusImageAsset": "assets/images/animals/dog.jpg", "options": ["dog", "cat", "horse"], "correctAnswerIndex": 0},
+        {"id": "cat", "title": "Cat", "stimulusImageAsset": "assets/images/animals/cat.jpg", "options": ["cat", "dog", "bird"], "correctAnswerIndex": 0},
+        {"id": "cow", "title": "Cow", "stimulusImageAsset": "assets/images/animals/cow.jpg", "options": ["cow", "horse", "pig"], "correctAnswerIndex": 0},
+        {"id": "chicken", "title": "Chicken", "stimulusImageAsset": "assets/images/animals/chicken.jpg", "options": ["chicken", "duck", "bird"], "correctAnswerIndex": 0},
+        {"id": "horse", "title": "Horse", "stimulusImageAsset": "assets/images/animals/horse.jpg", "options": ["horse", "cow", "donkey"], "correctAnswerIndex": 0},
+        {"id": "elephant", "title": "Elephant", "stimulusImageAsset": "assets/images/animals/elephant.jpg", "options": ["elephant", "hippo", "cow"], "correctAnswerIndex": 0},
+        {"id": "bird", "title": "Bird", "stimulusImageAsset": "assets/images/animals/bird.jpg", "options": ["bird", "chicken", "fish"], "correctAnswerIndex": 0},
+        {"id": "fish", "title": "Fish", "stimulusImageAsset": "assets/images/animals/fish.jpg", "options": ["fish", "bird", "snake"], "correctAnswerIndex": 0}
+      ],
+      "exercises": [{"type": "multipleChoice"}, {"type": "matching"}]
+    },
+    {
+      "id": "numbers",
+      "title": "Números",
+      "question": "¿Qué número es este?",
+      "items": [
+        {"id": "one", "title": "One", "stimulusText": "1", "options": ["one", "two", "three"], "correctAnswerIndex": 0},
+        {"id": "two", "title": "Two", "stimulusText": "2", "options": ["one", "two", "three"], "correctAnswerIndex": 1},
+        {"id": "three", "title": "Three", "stimulusText": "3", "options": ["two", "three", "four"], "correctAnswerIndex": 1},
+        {"id": "four", "title": "Four", "stimulusText": "4", "options": ["four", "five", "six"], "correctAnswerIndex": 0},
+        {"id": "five", "title": "Five", "stimulusText": "5", "options": ["four", "five", "six"], "correctAnswerIndex": 1},
+        {"id": "six", "title": "Six", "stimulusText": "6", "options": ["five", "six", "seven"], "correctAnswerIndex": 1},
+        {"id": "seven", "title": "Seven", "stimulusText": "7", "options": ["six", "seven", "eight"], "correctAnswerIndex": 1},
+        {"id": "eight", "title": "Eight", "stimulusText": "8", "options": ["seven", "eight", "nine"], "correctAnswerIndex": 1},
+        {"id": "nine", "title": "Nine", "stimulusText": "9", "options": ["eight", "nine", "ten"], "correctAnswerIndex": 1},
+        {"id": "ten", "title": "Ten", "stimulusText": "10", "options": ["nine", "ten", "eleven"], "correctAnswerIndex": 1}
+      ],
+      "exercises": [{"type": "multipleChoice"}]
+    }
+  ]
+}

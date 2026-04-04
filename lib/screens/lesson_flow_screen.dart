@@ -37,17 +37,19 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
     super.initState();
     _loadFlowProgress();
   }
-  
+
   /// Carga el progreso del flujo desde SharedPreferences
   Future<void> _loadFlowProgress() async {
     try {
       // Determinar qué ejercicio debe mostrarse basándose en los resultados guardados
       int exerciseToShow = 0;
-      
+
       // Verificar si las preguntas múltiples están completadas
       final results = await ActivityResultService.getActivityResults();
-      final lessonResults = results.where((r) => r.lessonId == widget.lesson.id).toList();
-      
+      final lessonResults = results
+          .where((r) => r.lessonId == widget.lesson.id)
+          .toList();
+
       // Contar cuántas preguntas únicas correctas hay
       final completedQuestionIds = <String>{};
       for (final result in lessonResults) {
@@ -55,14 +57,14 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
           completedQuestionIds.add(result.itemId);
         }
       }
-      
+
       // Si todas las preguntas están completadas, ir al matching (ejercicio 1)
       if (completedQuestionIds.length >= widget.lesson.items.length) {
         // Verificar si matching también está completo
         final matchingComplete = lessonResults.any(
-          (r) => r.itemId == 'matching_exercise' && r.isCorrect
+          (r) => r.itemId == 'matching_exercise' && r.isCorrect,
         );
-        
+
         if (matchingComplete) {
           // Todo está completo - mostrar feedback y salir
           exerciseToShow = widget.exercises.length; // Forzar completado
@@ -74,14 +76,14 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         // Preguntas incompletas, empezar desde el principio
         exerciseToShow = 0;
       }
-      
+
       if (mounted) {
         setState(() {
           _currentExerciseIndex = exerciseToShow;
           _isLoading = false;
         });
       }
-      
+
       // Si todo está completo, mostrar feedback inmediatamente
       if (_currentExerciseIndex >= widget.exercises.length) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -115,10 +117,12 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
 
   Future<void> _onLessonComplete() async {
     // Check if lesson was already completed before
-    final wasAlreadyCompleted = await LessonCompletionService.isLessonCompleted(widget.lesson.id);
-    
+    final wasAlreadyCompleted = await LessonCompletionService.isLessonCompleted(
+      widget.lesson.id,
+    );
+
     int starsForCompletion = 0;
-    
+
     // Only award stars if this is the first time completing the lesson
     if (!wasAlreadyCompleted) {
       starsForCompletion = 20;
@@ -129,12 +133,14 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         description: 'Completaste la lección "${widget.lesson.title}"',
       );
     }
-    
+
     // Save lesson completion (updates the record)
     await LessonCompletionService.saveCompletion(widget.lesson.id);
-    
+
     // Check for badge
-    final badgeJustAwarded = await BadgeService.checkAndAwardBadge(widget.lesson);
+    final badgeJustAwarded = await BadgeService.checkAndAwardBadge(
+      widget.lesson,
+    );
     achievement.Badge? badgeToShow;
     if (badgeJustAwarded) {
       final badge = await BadgeService.getBadge(widget.lesson);
@@ -145,20 +151,22 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         badgeToShow = badge;
       }
     }
-    
+
     // Show completion dialog
     if (mounted) {
       await LessonCompletionDialog.show(
         context,
         lessonTitle: widget.lesson.title,
         starsEarned: starsForCompletion,
-        correctAnswers: widget.lesson.items.length, // All items completed in flow
+        correctAnswers:
+            widget.lesson.items.length, // All items completed in flow
         totalQuestions: widget.lesson.items.length,
         badgeIcon: badgeToShow?.icon,
         badgeTitle: badgeToShow?.title,
-        isPerfectScore: true, // Flow lessons are considered perfect when completed
+        isPerfectScore:
+            true, // Flow lessons are considered perfect when completed
       );
-      
+
       // Return to lessons screen
       if (mounted) {
         Navigator.pop(context, true);
@@ -175,7 +183,7 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     // Si el índice excede los ejercicios, significa que todo está completo
     if (_currentExerciseIndex >= widget.exercises.length) {
       return Scaffold(
@@ -192,10 +200,10 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         ),
       );
     }
-    
+
     final exercise = widget.exercises[_currentExerciseIndex];
     final exerciseCount = widget.exercises.length;
-    
+
     // Calculate progress offset and scale based on current exercise
     // If there are 2 exercises: MC is 0.0-0.5, Matching is 0.5-1.0
     final progressScale = 1.0 / exerciseCount;
@@ -226,16 +234,16 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
 
       // Spelling movido a sección de Práctica
       case ExerciseType.spelling:
-        // Ya no se usa en el flujo de lecciones
+      case ExerciseType.listening:
+      case ExerciseType.speaking:
+        // Por ahora, usar multiple choice como fallback
         exerciseScreen = const Center(
           child: Text('Spelling ahora está en la sección de Práctica'),
         );
         break;
     }
 
-    return Scaffold(
-      body: exerciseScreen,
-    );
+    return Scaffold(body: exerciseScreen);
   }
 }
 
@@ -693,11 +701,11 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
         ),
       ];
     }
-    
+
     // Para lecciones sin matching items definidos, generar automáticamente desde LessonItem
     return _generateMatchingItemsFromLesson(lessonId);
   }
-  
+
   /// Genera MatchingItems automáticamente desde los LessonItem de una lección
   List<MatchingItem> _generateMatchingItemsFromLesson(String lessonId) {
     try {
@@ -706,18 +714,23 @@ class _MatchingExerciseWrapperState extends State<_MatchingExerciseWrapper> {
         (l) => l.id == lessonId,
         orElse: () => lessonsList.first,
       );
-      
+
       // Convertir LessonItem a MatchingItem, solo si tienen imagen
       return lesson.items
-          .where((item) => item.stimulusImageAsset != null && item.stimulusImageAsset!.isNotEmpty)
+          .where(
+            (item) =>
+                item.stimulusImageAsset != null &&
+                item.stimulusImageAsset!.isNotEmpty,
+          )
           .map((item) {
-        return MatchingItem(
-          id: item.id,
-          imagePath: item.stimulusImageAsset!,
-          correctWord: item.options[item.correctAnswerIndex],
-          title: item.title,
-        );
-      }).toList();
+            return MatchingItem(
+              id: item.id,
+              imagePath: item.stimulusImageAsset!,
+              correctWord: item.options[item.correctAnswerIndex],
+              title: item.title,
+            );
+          })
+          .toList();
     } catch (e) {
       // En caso de error, retornar lista vacía para evitar crash
       return [];

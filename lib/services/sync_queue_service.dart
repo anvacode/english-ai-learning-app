@@ -8,6 +8,17 @@ import 'local_storage_service.dart';
 import 'firebase_service.dart';
 
 class SyncQueueService {
+  static final SyncQueueService _instance = SyncQueueService._internal();
+  static bool _initialized = false;
+  factory SyncQueueService() {
+    if (!_initialized) {
+      _instance._initialize();
+      _initialized = true;
+    }
+    return _instance;
+  }
+  SyncQueueService._internal();
+
   final LocalStorageService _localStorage = LocalStorageService();
   final FirebaseService _firebaseService = FirebaseService();
   final Connectivity _connectivity = Connectivity();
@@ -22,13 +33,11 @@ class SyncQueueService {
 
   Stream<QueueSyncStatus> get syncStatus => _syncStatusController.stream;
 
-  SyncQueueService() {
-    _initialize();
-  }
-
   void _initialize() {
     // Monitor connectivity changes
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      ConnectivityResult result,
+    ) {
       final wasOnline = _isOnline;
       _isOnline = result != ConnectivityResult.none;
 
@@ -119,9 +128,7 @@ class SyncQueueService {
         return;
       }
 
-      final results = await Future.wait(
-        operations.map(_processOperation),
-      );
+      final results = await Future.wait(operations.map(_processOperation));
 
       final successCount = results.where((success) => success).length;
       final failureCount = results.length - successCount;
@@ -239,8 +246,13 @@ class SyncQueueService {
       final doc = await docRef.get();
       if (!doc.exists) return null;
 
-      final remoteData = doc.data()!;
-      final remoteMetadata = SyncMetadata.fromJson(remoteData['metadata']);
+      final remoteData = doc.data();
+      if (remoteData == null) return null;
+
+      final metadataData = remoteData['metadata'];
+      if (metadataData == null) return null;
+
+      final remoteMetadata = SyncMetadata.fromJson(metadataData);
 
       // Check if remote is newer
       if (remoteMetadata.timestamp.isAfter(operation.metadata.timestamp)) {
@@ -267,7 +279,9 @@ class SyncQueueService {
   Future<void> _handleConflict(SyncConflict conflict) async {
     // For now, use simple timestamp-based resolution
     // Remote wins if it's newer
-    if (conflict.remoteMetadata.timestamp.isAfter(conflict.localMetadata.timestamp)) {
+    if (conflict.remoteMetadata.timestamp.isAfter(
+      conflict.localMetadata.timestamp,
+    )) {
       await _localStorage.saveSyncConflict(conflict.resolveWithRemote());
     } else {
       await _localStorage.saveSyncConflict(conflict.resolveWithLocal());
@@ -310,15 +324,14 @@ class SyncQueueService {
     _syncTimer?.cancel();
     _syncStatusController.close();
   }
+
+  /// Libera la instancia singleton (llamar al cerrar la app)
+  static void disposeInstance() {
+    _instance.dispose();
+  }
 }
 
-enum QueueSyncStatus {
-  idle,
-  processing,
-  success,
-  partialSuccess,
-  error,
-}
+enum QueueSyncStatus { idle, processing, success, partialSuccess, error }
 
 class SyncStatistics {
   final int pendingOperations;

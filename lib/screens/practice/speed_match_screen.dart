@@ -16,12 +16,9 @@ import '../../data/lessons_data.dart';
 /// - Bonos por tiempo restante
 class SpeedMatchScreen extends StatefulWidget {
   final String lessonId;
-  
-  const SpeedMatchScreen({
-    super.key,
-    required this.lessonId,
-  });
-  
+
+  const SpeedMatchScreen({super.key, required this.lessonId});
+
   @override
   State<SpeedMatchScreen> createState() => _SpeedMatchScreenState();
 }
@@ -29,21 +26,21 @@ class SpeedMatchScreen extends StatefulWidget {
 class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
   late List<LessonItem> _items;
   late Set<String> _matchedIds;
-  
+
   String? _selectedImageId;
   String? _selectedWord;
-  
+
   int _correctMatches = 0;
-  
+
   // Timer
   late int _secondsRemaining;
   Timer? _timer;
   bool _isCompleted = false;
-  
+
   final AudioService _audioService = AudioService();
-  
+
   static const int _totalSeconds = 60; // 1 minute per round
-  
+
   @override
   void initState() {
     super.initState();
@@ -51,14 +48,14 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
     _audioService.initialize();
     _startTimer();
   }
-  
+
   void _initializeGame() {
     // Find the lesson
     final lesson = lessonsList.firstWhere(
       (l) => l.id == widget.lessonId,
       orElse: () => lessonsList.first,
     );
-    
+
     // Take first 6 items (or all if less than 6)
     _items = lesson.items.take(6).toList();
     _items.shuffle(Random());
@@ -66,7 +63,7 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
     _secondsRemaining = _totalSeconds;
     _isCompleted = false;
   }
-  
+
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0 && !_isCompleted) {
@@ -81,57 +78,62 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
       }
     });
   }
-  
+
   void _selectImage(String itemId) {
     if (_matchedIds.contains(itemId) || _isCompleted) return;
-    
+
     setState(() {
       _selectedImageId = itemId;
     });
-    
+
     _audioService.playClickSound();
-    
+
     if (_selectedWord != null) {
       _attemptMatch();
     }
   }
-  
+
   void _selectWord(String word) {
     // Check if this word is already matched
-    final alreadyMatched = _items.any((item) =>
-        _matchedIds.contains(item.id) &&
-        item.options[item.correctAnswerIndex] == word);
-    
+    final alreadyMatched = _items.any(
+      (item) =>
+          _matchedIds.contains(item.id) &&
+          item.options[item.correctAnswerIndex] == word,
+    );
+
     if (alreadyMatched || _isCompleted) return;
-    
+
     setState(() {
       _selectedWord = word;
     });
-    
+
     _audioService.playClickSound();
-    
+
     if (_selectedImageId != null) {
       _attemptMatch();
     }
   }
-  
+
   Future<void> _attemptMatch() async {
     if (_selectedImageId == null || _selectedWord == null) return;
-    
-    final item = _items.firstWhere((i) => i.id == _selectedImageId);
+
+    final item = _items.firstWhere(
+      (i) => i.id == _selectedImageId,
+      orElse: () => _items.first,
+    );
     final correctWord = item.options[item.correctAnswerIndex];
     final isCorrect = correctWord == _selectedWord;
-    
+
     if (isCorrect) {
       await _audioService.playCorrectSound();
-      
+
       setState(() {
         _matchedIds.add(_selectedImageId!);
         _correctMatches++;
         _selectedImageId = null;
         _selectedWord = null;
       });
-      
+
       // Save result
       await ActivityResultService.saveActivityResult(
         ActivityResult(
@@ -141,34 +143,34 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
           timestamp: DateTime.now(),
         ),
       );
-      
+
       // Check if all matched
       if (_matchedIds.length == _items.length) {
         _finishGame();
       }
     } else {
       await _audioService.playWrongSound();
-      
+
       setState(() {
         _selectedImageId = null;
         _selectedWord = null;
       });
     }
   }
-  
+
   Future<void> _finishGame() async {
     if (_isCompleted) return;
-    
+
     _timer?.cancel();
     setState(() {
       _isCompleted = true;
     });
-    
+
     // Calculate score and award stars
     final timeBonus = _secondsRemaining ~/ 5; // 1 star per 5 seconds remaining
     final matchBonus = _correctMatches * 2; // 2 stars per correct match
     final totalStars = timeBonus + matchBonus;
-    
+
     // Update practice progress
     final activityId = '${widget.lessonId}_speedmatch';
     await PracticeService.updateProgress(
@@ -178,7 +180,7 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
       starsEarned: totalStars,
       newScore: _correctMatches,
     );
-    
+
     if (totalStars > 0) {
       await StarService.addStars(
         totalStars,
@@ -187,9 +189,9 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
         description: 'Speed Match completado',
       );
     }
-    
+
     if (!mounted) return;
-    
+
     // Show results dialog
     await showDialog(
       context: context,
@@ -240,26 +242,24 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                 _startTimer();
               });
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Reintentar'),
           ),
         ],
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final progress = _correctMatches / _items.length;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('⚡ Speed Match'),
@@ -269,7 +269,10 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _secondsRemaining <= 10 ? Colors.red : Colors.orange,
                   borderRadius: BorderRadius.circular(20),
@@ -302,7 +305,7 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
             minHeight: 8,
           ),
-          
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -311,14 +314,11 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                   // Instruction
                   const Text(
                     '¡Empareja las imágenes con las palabras lo más rápido posible!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Score
                   Text(
                     'Correctos: $_correctMatches/${_items.length}',
@@ -329,23 +329,24 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Images grid
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1,
+                        ),
                     itemCount: _items.length,
                     itemBuilder: (context, index) {
                       final item = _items[index];
                       final isMatched = _matchedIds.contains(item.id);
                       final isSelected = _selectedImageId == item.id;
-                      
+
                       return GestureDetector(
                         onTap: () => _selectImage(item.id),
                         child: Container(
@@ -354,8 +355,8 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                               color: isMatched
                                   ? Colors.green
                                   : isSelected
-                                      ? Colors.orange
-                                      : Colors.grey[300]!,
+                                  ? Colors.orange
+                                  : Colors.grey[300]!,
                               width: isSelected || isMatched ? 4 : 2,
                             ),
                             borderRadius: BorderRadius.circular(12),
@@ -383,9 +384,9 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Words list
                   Wrap(
                     spacing: 8,
@@ -395,7 +396,7 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                       final word = item.options[item.correctAnswerIndex];
                       final isMatched = _matchedIds.contains(item.id);
                       final isSelected = _selectedWord == word;
-                      
+
                       return GestureDetector(
                         onTap: () => _selectWord(word),
                         child: Container(
@@ -407,15 +408,15 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                             color: isMatched
                                 ? Colors.green[100]
                                 : isSelected
-                                    ? Colors.orange
-                                    : Colors.grey[200],
+                                ? Colors.orange
+                                : Colors.grey[200],
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isMatched
                                   ? Colors.green
                                   : isSelected
-                                      ? Colors.orange
-                                      : Colors.grey[400]!,
+                                  ? Colors.orange
+                                  : Colors.grey[400]!,
                               width: 2,
                             ),
                           ),
@@ -427,8 +428,8 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                               color: isSelected
                                   ? Colors.white
                                   : isMatched
-                                      ? Colors.green[900]
-                                      : Colors.black87,
+                                  ? Colors.green[900]
+                                  : Colors.black87,
                               decoration: isMatched
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,

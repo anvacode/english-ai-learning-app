@@ -4,7 +4,7 @@ import '../logic/badge_service.dart';
 import '../models/badge.dart' as achievement;
 
 /// Pantalla que muestra todos los badges/insignias del usuario.
-/// 
+///
 /// Muestra badges desbloqueados y bloqueados con información
 /// sobre cómo desbloquearlos.
 class AchievementsScreen extends StatelessWidget {
@@ -13,10 +13,7 @@ class AchievementsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Logros'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Logros'), elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -55,10 +52,7 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        const Text(
-                          '🎯',
-                          style: TextStyle(fontSize: 64),
-                        ),
+                        const Text('🎯', style: TextStyle(fontSize: 64)),
                         const SizedBox(height: 16),
                         const Text(
                           'Domina lecciones para desbloquear badges',
@@ -79,10 +73,7 @@ class AchievementsScreen extends StatelessWidget {
                   runSpacing: 16,
                   children: unlockedBadges
                       .map(
-                        (badge) => _BadgeCard(
-                          badge: badge,
-                          isUnlocked: true,
-                        ),
+                        (badge) => _BadgeCard(badge: badge, isUnlocked: true),
                       )
                       .toList(),
                 );
@@ -117,10 +108,7 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                     child: const Column(
                       children: [
-                        Text(
-                          '🎉',
-                          style: TextStyle(fontSize: 64),
-                        ),
+                        Text('🎉', style: TextStyle(fontSize: 64)),
                         SizedBox(height: 16),
                         Text(
                           '¡Felicidades! Desbloqueaste todos los badges',
@@ -141,10 +129,7 @@ class AchievementsScreen extends StatelessWidget {
                   runSpacing: 16,
                   children: lockedBadges
                       .map(
-                        (badge) => _BadgeCard(
-                          badge: badge,
-                          isUnlocked: false,
-                        ),
+                        (badge) => _BadgeCard(badge: badge, isUnlocked: false),
                       )
                       .toList(),
                 );
@@ -162,16 +147,19 @@ class _BadgeCard extends StatelessWidget {
   final achievement.Badge badge;
   final bool isUnlocked;
 
-  const _BadgeCard({
-    required this.badge,
-    required this.isUnlocked,
-  });
+  const _BadgeCard({required this.badge, required this.isUnlocked});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth < 900;
+    final badgeWidth = isMobile ? 80.0 : (isTablet ? 100.0 : 120.0);
+    final iconSize = isMobile ? 36.0 : (isTablet ? 44.0 : 48.0);
+
     return Container(
-      width: 120,
-      padding: const EdgeInsets.all(16.0),
+      width: badgeWidth,
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: isUnlocked ? Colors.amber[100] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
@@ -186,7 +174,7 @@ class _BadgeCard extends StatelessWidget {
           Text(
             badge.icon,
             style: TextStyle(
-              fontSize: 48,
+              fontSize: iconSize,
               color: isUnlocked ? null : Colors.grey[400],
             ),
           ),

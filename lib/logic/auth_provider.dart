@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_service.dart';
 import '../services/sync_service.dart';
 
 enum AuthStatus { uninitialized, authenticated, unauthenticated, guest }
 
 class AuthProvider extends ChangeNotifier {
+  static const String _guestIdKey = 'guest_session_id';
+
   final FirebaseService _firebaseService = FirebaseService();
   final SyncService _syncService = SyncService();
 
@@ -16,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus _status = AuthStatus.uninitialized;
   User? _user;
   String? _guestId;
+  bool _isDisposed = false;
 
   AuthStatus get status => _status;
   User? get user => _user;
@@ -40,7 +44,11 @@ class AuthProvider extends ChangeNotifier {
     }
 
     // Listen to auth state changes
-    _authSubscription = _firebaseService.authStateChanges.listen((User? user) async {
+    _authSubscription = _firebaseService.authStateChanges.listen((
+      User? user,
+    ) async {
+      if (_isDisposed) return;
+
       _user = user;
       if (user != null) {
         _status = AuthStatus.authenticated;
@@ -48,11 +56,21 @@ class AuthProvider extends ChangeNotifier {
         // Si había una sesión de invitado, migrar los datos
         if (_guestId != null) {
           print('🔄 Migrando datos de invitado...');
-          await _syncService.migrateGuestData(_guestId!);
+          final migrationSuccess = await _syncService.migrateGuestData(
+            _guestId!,
+          );
+          if (_isDisposed) return;
+
+          // Limpiar guestId de SharedPreferences
+          if (migrationSuccess) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove(_guestIdKey);
+          }
           _guestId = null;
         } else {
           // Descargar datos del usuario desde Firebase
           await _syncService.downloadUserData();
+          if (_isDisposed) return;
         }
 
         // Iniciar sincronización automática
@@ -62,17 +80,10 @@ class AuthProvider extends ChangeNotifier {
         _syncService.syncUserData();
       } else {
         // Check if there's a guest session
-        _checkGuestSession();
+        await _checkGuestSession();
       }
       notifyListeners();
     });
-  }
-
-  void _checkGuestSession() {
-    // TODO: Implement guest session check from local storage
-    // For now, we'll assume no guest session exists
-    _status = AuthStatus.unauthenticated;
-    notifyListeners();
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
@@ -223,11 +234,27 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Guest session methods
-  void createGuestSession() {
-    // TODO: Generate unique guest ID and save to local storage
-    _guestId = 'guest_${DateTime.now().millisecondsSinceEpoch}';
+  Future<void> createGuestSession() async {
+    final guestId = 'guest_${DateTime.now().millisecondsSinceEpoch}';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_guestIdKey, guestId);
+
+    _guestId = guestId;
     _status = AuthStatus.guest;
     _user = null;
+    notifyListeners();
+  }
+
+  Future<void> _checkGuestSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedGuestId = prefs.getString(_guestIdKey);
+
+    if (savedGuestId != null) {
+      _guestId = savedGuestId;
+      _status = AuthStatus.guest;
+    } else {
+      _status = AuthStatus.unauthenticated;
+    }
     notifyListeners();
   }
 
@@ -281,6 +308,8 @@ class AuthProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _syncService.stopAutoSync();
     _authSubscription?.cancel();
     super.dispose();
   }

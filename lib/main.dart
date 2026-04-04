@@ -1,9 +1,15 @@
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'logic/lesson_controller.dart';
 import 'logic/auth_provider.dart';
 import 'services/theme_service.dart';
 import 'services/firebase_service.dart';
+import 'services/audio_service.dart';
+import 'services/sync_service.dart';
+import 'services/sync_queue_service.dart';
 import 'screens/splash_screen.dart';
 
 void main() async {
@@ -17,6 +23,16 @@ void main() async {
     print('⚠️ Firebase initialization failed: $e');
     print('🔄 App will continue in offline mode');
   }
+
+  // Register lifecycle observer for cleanup on exit
+  AppLifecycleListener(
+    onExitRequested: () async {
+      AudioService.disposeInstance();
+      SyncService.disposeInstance();
+      SyncQueueService.disposeInstance();
+      return AppExitResponse.exit;
+    },
+  );
 
   runApp(const MyApp());
 }

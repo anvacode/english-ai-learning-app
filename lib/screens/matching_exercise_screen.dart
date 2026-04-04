@@ -32,18 +32,18 @@ class MatchingExerciseScreen extends StatefulWidget {
 class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   // Track matched pairs
   late Set<String> _matchedIds;
-  
+
   // Current selection state
   String? _selectedImageId;
   String? _selectedWord;
-  
+
   // Feedback state
   String? _feedbackMessage;
   bool? _lastCorrect;
-  
+
   // Audio service
   final AudioService _audioService = AudioService();
-  
+
   // Shuffled words for randomization
   late List<String> _shuffledWords;
 
@@ -55,7 +55,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     _audioService.initialize();
     _shuffleWords();
   }
-  
+
   /// Mezcla las palabras para que no aparezcan en el mismo orden que las imágenes
   void _shuffleWords() {
     _shuffledWords = widget.items.map((item) => item.correctWord).toList();
@@ -92,13 +92,16 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     await _audioService.playClickSound();
 
     // Find the matching item
-    final item = widget.items.firstWhere((i) => i.id == _selectedImageId);
+    final item = widget.items.firstWhere(
+      (i) => i.id == _selectedImageId,
+      orElse: () => widget.items.first,
+    );
     final isCorrect = item.correctWord == _selectedWord;
 
     if (isCorrect) {
       // Play correct sound
       await _audioService.playCorrectSound();
-      
+
       // Lock the pair
       setState(() {
         _matchedIds.add(_selectedImageId!);
@@ -120,7 +123,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
     } else {
       // Play wrong sound
       await _audioService.playWrongSound();
-      
+
       // Incorrect attempt
       setState(() {
         _lastCorrect = false;
@@ -161,7 +164,10 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Close dialog
-                  Navigator.pop(context, true); // Return to lessons with true flag
+                  Navigator.pop(
+                    context,
+                    true,
+                  ); // Return to lessons with true flag
                 },
                 child: const Text('Continuar'),
               ),
@@ -175,26 +181,33 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: SafeArea(
         child: Column(
           children: [
             // Progress indicator - más compacto
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8), // Reduced padding
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                12,
+                12,
+                8,
+              ), // Reduced padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Emparejar palabras con imágenes',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15), // Smaller text
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 15,
+                    ), // Smaller text
                   ),
                   const SizedBox(height: 6), // Reduced spacing
                   LinearProgressIndicator(
-                    value: widget.progressOffset + 
-                        (_matchedIds.length / widget.items.length) * widget.progressScale,
+                    value:
+                        widget.progressOffset +
+                        (_matchedIds.length / widget.items.length) *
+                            widget.progressScale,
                     backgroundColor: Colors.grey[300],
                     color: Colors.deepPurple,
                     minHeight: 6, // Thinner bar
@@ -214,7 +227,9 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
             // Images and words layout
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0), // Reduced padding
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                ), // Reduced padding
                 child: Row(
                   children: [
                     // Images column
@@ -247,19 +262,28 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
 
             // Feedback and action button - más compacto
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12), // Reduced padding
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                8,
+                12,
+                12,
+              ), // Reduced padding
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_feedbackMessage != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0), // Reduced padding
+                      padding: const EdgeInsets.only(
+                        bottom: 8.0,
+                      ), // Reduced padding
                       child: Text(
                         _feedbackMessage!,
                         style: TextStyle(
                           fontSize: 14, // Smaller text
                           fontWeight: FontWeight.bold,
-                          color: _lastCorrect! ? Colors.green[700] : Colors.red[700],
+                          color: _lastCorrect!
+                              ? Colors.green[700]
+                              : Colors.red[700],
                         ),
                       ),
                     ),
@@ -269,18 +293,15 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     child: ElevatedButton(
                       onPressed:
                           (_selectedImageId != null && _selectedWord != null)
-                              ? _attemptMatch
-                              : null,
+                          ? _attemptMatch
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
                         disabledBackgroundColor: Colors.grey[300],
                       ),
                       child: const Text(
                         'Emparejar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),
@@ -305,7 +326,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
         onTap: isMatched ? null : () => _selectImage(item.id),
         child: Container(
           width: double.infinity,
-          height: isMobile ? 85 : 70, // Más bajo en web
+          height: isMobile ? 90 : 85, // Más bajo en web
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? Colors.deepPurple : Colors.grey[300]!,
@@ -368,16 +389,20 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
 
   Widget _buildWordButton(String word) {
     final isSelected = _selectedWord == word;
-    final isUsedInMatch =
-        _matchedIds.any((id) => widget.items.firstWhere((i) => i.id == id).correctWord == word);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
+    final isUsedInMatch = _matchedIds.any(
+      (id) =>
+          widget.items
+              .firstWhere((i) => i.id == id, orElse: () => widget.items.first)
+              .correctWord ==
+          word,
+    );
+    final buttonHeight = 50.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: SizedBox(
         width: double.infinity,
-        height: isMobile ? 44 : 38, // Más bajo en web
+        height: buttonHeight, // Más bajo en web
         child: ElevatedButton(
           onPressed: isUsedInMatch ? null : () => _selectWord(word),
           style: ElevatedButton.styleFrom(

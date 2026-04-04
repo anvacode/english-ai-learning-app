@@ -1,9 +1,108 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/lesson.dart';
 import '../models/lesson_item.dart';
 import '../models/lesson_exercise.dart';
 import '../models/lesson_category.dart';
 import '../models/lesson_level.dart';
+
+/// Carga lecciones desde JSON con fallback a datos hardcodeados.
+Future<List<Lesson>> loadLessonsFromJson() async {
+  try {
+    final jsonString = await rootBundle.loadString('assets/data/lessons.json');
+    final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+    final lessonsJson = jsonData['lessons'] as List<dynamic>;
+
+    return lessonsJson.map((lessonJson) => _parseLesson(lessonJson)).toList();
+  } catch (e) {
+    print('⚠️ Error cargando lessons.json, usando datos locales: $e');
+    return lessonsList;
+  }
+}
+
+Lesson _parseLesson(Map<String, dynamic> json) {
+  final itemsJson = json['items'] as List<dynamic>? ?? [];
+  final exercisesJson = json['exercises'] as List<dynamic>? ?? [];
+
+  return Lesson(
+    id: json['id'] ?? '',
+    title: json['title'] ?? '',
+    question: json['question'] ?? '',
+    items: itemsJson.map((item) => _parseLessonItem(item)).toList(),
+    exercises: exercisesJson.map((ex) => _parseLessonExercise(ex)).toList(),
+  );
+}
+
+LessonItem _parseLessonItem(Map<String, dynamic> json) {
+  Color? color;
+  final colorStr = json['stimulusColor'] as String?;
+  if (colorStr != null) {
+    color = _colorFromString(colorStr);
+  }
+
+  return LessonItem(
+    id: json['id'] ?? '',
+    title: json['title'] ?? '',
+    stimulusColor: color,
+    stimulusImageAsset: json['stimulusImageAsset'],
+    stimulusText: json['stimulusText'],
+    options: (json['options'] as List<dynamic>?)?.cast<String>() ?? [],
+    correctAnswerIndex: json['correctAnswerIndex'] ?? 0,
+  );
+}
+
+LessonExercise _parseLessonExercise(Map<String, dynamic> json) {
+  final typeStr = json['type'] as String? ?? 'multipleChoice';
+  return LessonExercise(type: _exerciseTypeFromString(typeStr));
+}
+
+ExerciseType _exerciseTypeFromString(String type) {
+  switch (type) {
+    case 'multipleChoice':
+      return ExerciseType.multipleChoice;
+    case 'matching':
+      return ExerciseType.matching;
+    case 'spelling':
+      return ExerciseType.spelling;
+    case 'listening':
+      return ExerciseType.listening;
+    case 'speaking':
+      return ExerciseType.speaking;
+    default:
+      return ExerciseType.multipleChoice;
+  }
+}
+
+Color _colorFromString(String colorStr) {
+  switch (colorStr.toLowerCase()) {
+    case 'red':
+      return Colors.red;
+    case 'blue':
+      return Colors.blue;
+    case 'green':
+      return Colors.green;
+    case 'yellow':
+      return Colors.yellow;
+    case 'black':
+      return Colors.black;
+    case 'white':
+      return Colors.white;
+    case 'orange':
+      return Colors.orange;
+    case 'purple':
+      return Colors.purple;
+    case 'pink':
+      return Colors.pink;
+    case 'brown':
+      return Colors.brown;
+    case 'grey':
+    case 'gray':
+      return Colors.grey;
+    default:
+      return Colors.grey;
+  }
+}
 
 /// Datos offline de lecciones educativas para la app de inglés.
 /// Lecciones tipo: asociación visual + selección múltiple.
@@ -84,9 +183,7 @@ final List<Lesson> lessonsList = [
         correctAnswerIndex: 0,
       ),
     ],
-    exercises: const [
-      LessonExercise(type: ExerciseType.multipleChoice),
-    ],
+    exercises: const [LessonExercise(type: ExerciseType.multipleChoice)],
   ),
   Lesson(
     id: 'fruits',
@@ -285,9 +382,7 @@ final List<Lesson> lessonsList = [
         correctAnswerIndex: 0,
       ),
     ],
-    exercises: const [
-      LessonExercise(type: ExerciseType.multipleChoice),
-    ],
+    exercises: const [LessonExercise(type: ExerciseType.multipleChoice)],
   ),
   Lesson(
     id: 'family_1',
@@ -719,11 +814,11 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // ============================================================================
   // NIVEL INTERMEDIO - 10 LECCIONES
   // ============================================================================
-  
+
   // Lesson 11: Daily Routines
   Lesson(
     id: 'daily_routines',
@@ -792,7 +887,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 12: Weather & Seasons
   Lesson(
     id: 'weather_seasons',
@@ -868,7 +963,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 13: Occupations
   Lesson(
     id: 'occupations',
@@ -937,7 +1032,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 14: Transportation
   Lesson(
     id: 'transportation',
@@ -1006,7 +1101,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 15: Places in City
   Lesson(
     id: 'places_city',
@@ -1075,7 +1170,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 16: Food & Meals
   Lesson(
     id: 'meals',
@@ -1144,7 +1239,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 17: Clothing & Accessories
   Lesson(
     id: 'clothing_extended',
@@ -1213,7 +1308,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 18: Emotions & Feelings
   Lesson(
     id: 'emotions',
@@ -1283,7 +1378,7 @@ final List<Lesson> lessonsList = [
       // Spelling movido a sección de Práctica
     ],
   ),
-  
+
   // Lesson 19: School Subjects
   Lesson(
     id: 'school_subjects',
@@ -1352,7 +1447,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 20: Hobbies & Sports
   Lesson(
     id: 'hobbies_sports',
@@ -1421,11 +1516,11 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // ============================================================================
   // NIVEL AVANZADO - 8 LECCIONES
   // ============================================================================
-  
+
   // Lesson 21: Verb Tenses (Present & Past)
   Lesson(
     id: 'verb_tenses',
@@ -1494,7 +1589,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 22: Prepositions
   Lesson(
     id: 'prepositions',
@@ -1526,28 +1621,44 @@ final List<Lesson> lessonsList = [
         id: 'between',
         title: 'Between the chairs',
         stimulusImageAsset: 'assets/images/prepositions/between.jpg',
-        options: ['next to the chairs', 'between the chairs', 'behind the chairs'],
+        options: [
+          'next to the chairs',
+          'between the chairs',
+          'behind the chairs',
+        ],
         correctAnswerIndex: 1,
       ),
       LessonItem(
         id: 'next_to',
         title: 'Next to the door',
         stimulusImageAsset: 'assets/images/prepositions/next_to.jpg',
-        options: ['next to the door', 'behind the door', 'in front of the door'],
+        options: [
+          'next to the door',
+          'behind the door',
+          'in front of the door',
+        ],
         correctAnswerIndex: 0,
       ),
       LessonItem(
         id: 'behind',
         title: 'Behind the tree',
         stimulusImageAsset: 'assets/images/prepositions/behind.jpg',
-        options: ['in front of the tree', 'behind the tree', 'next to the tree'],
+        options: [
+          'in front of the tree',
+          'behind the tree',
+          'next to the tree',
+        ],
         correctAnswerIndex: 1,
       ),
       LessonItem(
         id: 'in_front_of',
         title: 'In front of the house',
         stimulusImageAsset: 'assets/images/prepositions/in_front.jpg',
-        options: ['in front of the house', 'behind the house', 'inside the house'],
+        options: [
+          'in front of the house',
+          'behind the house',
+          'inside the house',
+        ],
         correctAnswerIndex: 0,
       ),
       LessonItem(
@@ -1563,7 +1674,7 @@ final List<Lesson> lessonsList = [
       LessonExercise(type: ExerciseType.matching),
     ],
   ),
-  
+
   // Lesson 23: Adjectives & Opposites
   Lesson(
     id: 'adjectives_opposites',
@@ -1692,29 +1803,29 @@ final List<LessonCategory> lessonCategories = [
 /// ============================================================================
 /// LISTA DE IMÁGENES JPG REQUERIDAS
 /// ============================================================================
-/// 
+///
 /// Total: 220 imágenes JPG (Colors usa stimulusColor, no imágenes)
-/// 
+///
 /// ========== NIVEL PRINCIPIANTE (76 imágenes) ==========
-/// FRUITS (8): apple.jpg, banana.jpg, orange.jpg, strawberry.jpg, grapes.jpg, 
+/// FRUITS (8): apple.jpg, banana.jpg, orange.jpg, strawberry.jpg, grapes.jpg,
 ///             pineapple.jpg, watermelon.jpg, pear.jpg
-/// ANIMALS (8): dog.jpg, cat.jpg, cow.jpg, chicken.jpg, horse.jpg, elephant.jpg, 
+/// ANIMALS (8): dog.jpg, cat.jpg, cow.jpg, chicken.jpg, horse.jpg, elephant.jpg,
 ///              bird.jpg, fish.jpg
-/// CLASSROOM (8): book.jpg, pencil.jpg, chair.jpg, table.jpg, notebook.jpg, 
+/// CLASSROOM (8): book.jpg, pencil.jpg, chair.jpg, table.jpg, notebook.jpg,
 ///                backpack.jpg, eraser.jpg, ruler.jpg
-/// FAMILY (7): mother.jpg, father.jpg, brother.jpg, sister.jpg, grandfather.jpg, 
+/// FAMILY (7): mother.jpg, father.jpg, brother.jpg, sister.jpg, grandfather.jpg,
 ///             grandmother.jpg, family.jpg
-/// NUMBERS (10): one.jpg, two.jpg, three.jpg, four.jpg, five.jpg, six.jpg, 
+/// NUMBERS (10): one.jpg, two.jpg, three.jpg, four.jpg, five.jpg, six.jpg,
 ///               seven.jpg, eight.jpg, nine.jpg, ten.jpg
-/// BODY_PARTS (10): head.jpg, eye.jpg, nose.jpg, mouth.jpg, hand.jpg, foot.jpg, 
+/// BODY_PARTS (10): head.jpg, eye.jpg, nose.jpg, mouth.jpg, hand.jpg, foot.jpg,
 ///                  arm.jpg, leg.jpg, ear.jpg, hair.jpg
-/// CLOTHES (8): shirt.jpg, pants.jpg, dress.jpg, shoes.jpg, hat.jpg, socks.jpg, 
+/// CLOTHES (8): shirt.jpg, pants.jpg, dress.jpg, shoes.jpg, hat.jpg, socks.jpg,
 ///              jacket.jpg, skirt.jpg
-/// FOOD_DRINKS (9): bread.jpg, milk.jpg, water.jpg, egg.jpg, cheese.jpg, rice.jpg, 
+/// FOOD_DRINKS (9): bread.jpg, milk.jpg, water.jpg, egg.jpg, cheese.jpg, rice.jpg,
 ///                  juice.jpg, cake.jpg, cookie.jpg
-/// ACTIONS (8): run.jpg, jump.jpg, eat.jpg, sleep.jpg, walk.jpg, sit.jpg, 
+/// ACTIONS (8): run.jpg, jump.jpg, eat.jpg, sleep.jpg, walk.jpg, sit.jpg,
 ///              stand.jpg, drink.jpg
-/// 
+///
 /// ========== NIVEL INTERMEDIO (80 imágenes) ==========
 /// ROUTINES (8): wake_up.jpg, brush_teeth.jpg, take_shower.jpg, get_dressed.jpg,
 ///               eat_breakfast.jpg, go_to_school.jpg, do_homework.jpg, go_to_bed.jpg
@@ -1736,7 +1847,7 @@ final List<LessonCategory> lessonCategories = [
 ///               english.jpg, geography.jpg
 /// SPORTS (8): soccer.jpg, basketball.jpg, swimming.jpg, painting.jpg, reading.jpg,
 ///             dancing.jpg, cycling.jpg, singing.jpg
-/// 
+///
 /// ========== NIVEL AVANZADO (64 imágenes) ==========
 /// VERBS (8): running.jpg, ate.jpg, playing.jpg, studied.jpg, swimming.jpg,
 ///            walked.jpg, reading_now.jpg, cooked.jpg
@@ -1754,7 +1865,7 @@ final List<LessonCategory> lessonCategories = [
 ///           january.jpg, today.jpg, tomorrow.jpg
 /// HEALTH (8): heart.jpg, stomach.jpg, brain.jpg, wash_hands.jpg, exercise.jpg,
 ///             healthy_food.jpg, drink_water.jpg, sleep_well.jpg
-/// 
+///
 /// Estructura de carpetas:
 /// assets/images/
 /// ├── colors/          (no usa imágenes, solo stimulusColor)

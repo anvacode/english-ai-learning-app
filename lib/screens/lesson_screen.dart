@@ -72,6 +72,8 @@ class _LessonScreenState extends State<LessonScreen> {
   void initState() {
     super.initState();
     totalCount = widget.lesson.items.length;
+    _randomizedOptions = [];
+    _correctAnswerValue = '';
     // Initialize audio service
     _audioService.initialize();
     // Defer controller initialization to after the frame to avoid assertion errors
@@ -731,16 +733,9 @@ class _LessonScreenState extends State<LessonScreen> {
                                 child: ConstrainedBox(
                                   constraints: BoxConstraints(
                                     // Más estrecho en web
-                                    maxWidth: context.isMobile
-                                        ? MediaQuery.of(context).size.width *
-                                              0.85
-                                        : (context.isTablet ? 400 : 350),
-                                    minHeight: context.isMobile
-                                        ? 52
-                                        : 44, // Más bajo en web
-                                    maxHeight: context.isMobile
-                                        ? 68
-                                        : 56, // Más compacto en web
+                                    maxWidth: 200,
+                                    minHeight: 50,
+                                    maxHeight: 60,
                                   ),
                                   child: ElevatedButton(
                                     onPressed:
@@ -760,7 +755,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                           : Colors.grey[200],
                                       disabledBackgroundColor: _answered
                                           ? (_selectedAnswerIndex == index
-                                                ? (_isCorrect!
+                                                ? (_isCorrect == true
                                                       ? Colors.green[300]
                                                       : Colors.red[300])
                                                 : Colors.grey[300])
@@ -877,7 +872,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                   ),
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: _isCorrect!
+                                    color: _isCorrect == true
                                         ? Colors.green[100]
                                         : Colors.red[100],
                                     borderRadius: BorderRadius.circular(12),
@@ -892,7 +887,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                                 currentItem.id,
                                               );
                                           return Text(
-                                            _isCorrect!
+                                            _isCorrect == true
                                                 ? '✓ Correcto'
                                                 : attempts >= 3
                                                 ? '✗ La respuesta correcta es: $_correctAnswerValue'
@@ -900,7 +895,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                             style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: _isCorrect!
+                                              color: _isCorrect == true
                                                   ? Colors.green[700]
                                                   : Colors.red[700],
                                             ),
@@ -920,7 +915,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                           minimumSize: const Size(200, 48),
                                         ),
                                         child: Text(
-                                          _isCorrect!
+                                          _isCorrect == true
                                               ? 'Siguiente'
                                               : 'Reintentar',
                                           style: const TextStyle(

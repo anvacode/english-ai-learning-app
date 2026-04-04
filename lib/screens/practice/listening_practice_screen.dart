@@ -8,6 +8,7 @@ import '../../logic/practice_service.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
 import '../../data/lessons_data.dart';
+import '../../utils/responsive.dart';
 
 /// Pantalla de práctica de listening:
 /// - Reproduce una palabra en inglés
@@ -15,42 +16,41 @@ import '../../data/lessons_data.dart';
 /// - El usuario selecciona la respuesta correcta
 class ListeningPracticeScreen extends StatefulWidget {
   final String lessonId;
-  
-  const ListeningPracticeScreen({
-    super.key,
-    required this.lessonId,
-  });
-  
+
+  const ListeningPracticeScreen({super.key, required this.lessonId});
+
   @override
-  State<ListeningPracticeScreen> createState() => _ListeningPracticeScreenState();
+  State<ListeningPracticeScreen> createState() =>
+      _ListeningPracticeScreenState();
 }
 
-class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with SingleTickerProviderStateMixin {
+class _ListeningPracticeScreenState extends State<ListeningPracticeScreen>
+    with SingleTickerProviderStateMixin {
   late List<LessonItem> _items;
   late int _currentIndex;
   late List<String> _currentOptions;
-  
+
   int? _selectedIndex;
   bool _answered = false;
   bool? _isCorrect;
-  
+
   int _correctCount = 0;
   int _totalCount = 0;
-  
+
   final AudioService _audioService = AudioService();
-  
+
   // Animation
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  
+
   bool _isPlaying = false;
-  
+
   @override
   void initState() {
     super.initState();
     _initializeLesson();
     _audioService.initialize();
-    
+
     // Setup animations
     _animationController = AnimationController(
       vsync: this,
@@ -59,97 +59,97 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     // Auto-play first word after a delay
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) _playCurrentWord();
     });
   }
-  
+
   void _initializeLesson() {
     // Find the lesson
     final lesson = lessonsList.firstWhere(
       (l) => l.id == widget.lessonId,
       orElse: () => lessonsList.first,
     );
-    
+
     _items = List.from(lesson.items);
     _items.shuffle(Random());
     _currentIndex = 0;
     _generateOptions();
   }
-  
+
   void _generateOptions() {
     if (_currentIndex >= _items.length) return;
-    
+
     final currentItem = _items[_currentIndex];
     final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
-    
+
     // Get all possible wrong answers from the same lesson
     final allOptions = _items
         .where((item) => item.id != currentItem.id)
         .map((item) => item.options[item.correctAnswerIndex])
         .toSet()
         .toList();
-    
+
     allOptions.shuffle(Random());
-    
+
     // Take 2-3 wrong answers
     final wrongAnswers = allOptions.take(2).toList();
-    
+
     // Combine with correct answer and shuffle
     _currentOptions = [correctAnswer, ...wrongAnswers];
     _currentOptions.shuffle(Random());
   }
-  
+
   Future<void> _playCurrentWord() async {
     if (_currentIndex >= _items.length || _isPlaying) return;
-    
+
     setState(() {
       _isPlaying = true;
     });
-    
+
     _animationController.forward().then((_) {
       _animationController.reverse();
     });
-    
+
     final currentItem = _items[_currentIndex];
     final wordToSpeak = currentItem.options[currentItem.correctAnswerIndex];
-    
+
     await _audioService.speak(wordToSpeak);
-    
+
     if (mounted) {
       setState(() {
         _isPlaying = false;
       });
     }
   }
-  
+
   Future<void> _selectOption(int index) async {
     if (_answered) return;
-    
+
     await _audioService.playClickSound();
-    
+
     setState(() {
       _selectedIndex = index;
     });
   }
-  
+
   Future<void> _checkAnswer() async {
     if (_selectedIndex == null || _answered) return;
-    
+
     final currentItem = _items[_currentIndex];
     final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
     final selectedAnswer = _currentOptions[_selectedIndex!];
     final isCorrect = selectedAnswer == correctAnswer;
-    
+
     // Play feedback sound
     if (isCorrect) {
       await _audioService.playCorrectSound();
     } else {
       await _audioService.playWrongSound();
     }
-    
+
     // Save result
     await ActivityResultService.saveActivityResult(
       ActivityResult(
@@ -159,7 +159,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
         timestamp: DateTime.now(),
       ),
     );
-    
+
     setState(() {
       _answered = true;
       _isCorrect = isCorrect;
@@ -167,7 +167,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
       if (isCorrect) _correctCount++;
     });
   }
-  
+
   Future<void> _nextQuestion() async {
     if (_currentIndex < _items.length - 1) {
       setState(() {
@@ -177,7 +177,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
         _isCorrect = null;
         _generateOptions();
       });
-      
+
       // Auto-play next word
       await Future.delayed(const Duration(milliseconds: 300));
       if (mounted) _playCurrentWord();
@@ -186,12 +186,12 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
       await _finishActivity();
     }
   }
-  
+
   Future<void> _finishActivity() async {
     // Award stars based on performance
     final accuracy = _correctCount / _totalCount;
     int stars = 0;
-    
+
     if (accuracy >= 0.9) {
       stars = 15;
     } else if (accuracy >= 0.7) {
@@ -199,7 +199,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
     } else if (accuracy >= 0.5) {
       stars = 5;
     }
-    
+
     // Update practice progress
     final activityId = '${widget.lessonId}_listening';
     await PracticeService.updateProgress(
@@ -209,7 +209,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
       starsEarned: stars,
       newScore: _correctCount,
     );
-    
+
     if (stars > 0) {
       await StarService.addStars(
         stars,
@@ -218,9 +218,9 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
         description: 'Práctica de Listening completada',
       );
     }
-    
+
     if (!mounted) return;
-    
+
     // Show results dialog
     await showDialog(
       context: context,
@@ -278,38 +278,39 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                 if (mounted) _playCurrentWord();
               });
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             child: const Text('Reintentar'),
           ),
         ],
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     if (_currentIndex >= _items.length) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Listening'),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        appBar: AppBar(title: const Text('Listening')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     final currentItem = _items[_currentIndex];
     final progress = (_currentIndex + 1) / _items.length;
-    
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonSize = screenWidth < 600
+        ? 80.0
+        : (screenWidth < 900 ? 100.0 : 120.0);
+    final iconSize = screenWidth < 600
+        ? 40.0
+        : (screenWidth < 900 ? 50.0 : 60.0);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('🎧 Listening Practice'),
@@ -337,7 +338,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             minHeight: 8,
           ),
-          
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -346,20 +347,17 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                   // Instruction
                   const Text(
                     'Escucha y selecciona la respuesta correcta',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Sound button (large, centered)
                   ScaleTransition(
                     scale: _scaleAnimation,
                     child: Container(
-                      width: 120,
-                      height: 120,
+                      width: buttonSize,
+                      height: buttonSize,
                       decoration: BoxDecoration(
                         color: Colors.blue,
                         shape: BoxShape.circle,
@@ -375,21 +373,23 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                         onPressed: _answered ? null : _playCurrentWord,
                         icon: Icon(
                           _isPlaying ? Icons.volume_up : Icons.headphones,
-                          size: 60,
+                          size: iconSize,
                           color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Feedback message
                   if (_answered) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: _isCorrect! ? Colors.green[100] : Colors.red[100],
+                        color: _isCorrect!
+                            ? Colors.green[100]
+                            : Colors.red[100],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -405,7 +405,9 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: _isCorrect! ? Colors.green[900] : Colors.red[900],
+                              color: _isCorrect!
+                                  ? Colors.green[900]
+                                  : Colors.red[900],
                             ),
                           ),
                         ],
@@ -413,96 +415,116 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                     ),
                     const SizedBox(height: 24),
                   ],
-                  
+
                   // Options (images or text) - responsivo
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final isMobile = MediaQuery.of(context).size.width < 768;
+                      final width = constraints.maxWidth;
+                      final isMobile = width < 600;
+                      final isTablet = width < 900;
+
+                      final crossAxisCount = isMobile ? 2 : (isTablet ? 3 : 4);
+                      final spacing = isMobile ? 8.0 : 12.0;
+                      final aspectRatio = isMobile
+                          ? 1.0
+                          : (isTablet ? 1.1 : 1.2);
+
                       return GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: isMobile ? 12 : 16,
-                          mainAxisSpacing: isMobile ? 12 : 16,
-                          childAspectRatio: isMobile ? 1.0 : 1.2, // Más ancho en web
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          childAspectRatio: aspectRatio,
                         ),
                         itemCount: _currentOptions.length,
                         itemBuilder: (context, index) {
-                      final option = _currentOptions[index];
-                      final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
-                      final isSelected = _selectedIndex == index;
-                      final isCorrectOption = option == correctAnswer;
-                      
-                      // Find the item for this option
-                      final optionItem = _items.firstWhere(
-                        (item) => item.options[item.correctAnswerIndex] == option,
-                        orElse: () => currentItem,
-                      );
-                      
-                      Color borderColor;
-                      if (_answered) {
-                        if (isCorrectOption) {
-                          borderColor = Colors.green;
-                        } else if (isSelected) {
-                          borderColor = Colors.red;
-                        } else {
-                          borderColor = Colors.grey[300]!;
-                        }
-                      } else {
-                        borderColor = isSelected ? Colors.blue : Colors.grey[300]!;
-                      }
-                      
+                          final option = _currentOptions[index];
+                          final correctAnswer = currentItem
+                              .options[currentItem.correctAnswerIndex];
+                          final isSelected = _selectedIndex == index;
+                          final isCorrectOption = option == correctAnswer;
+
+                          // Find the item for this option
+                          final optionItem = _items.firstWhere(
+                            (item) =>
+                                item.options[item.correctAnswerIndex] == option,
+                            orElse: () => currentItem,
+                          );
+
+                          Color borderColor;
+                          if (_answered) {
+                            if (isCorrectOption) {
+                              borderColor = Colors.green;
+                            } else if (isSelected) {
+                              borderColor = Colors.red;
+                            } else {
+                              borderColor = Colors.grey[300]!;
+                            }
+                          } else {
+                            borderColor = isSelected
+                                ? Colors.blue
+                                : Colors.grey[300]!;
+                          }
+
                           return GestureDetector(
-                            onTap: _answered ? null : () => _selectOption(index),
+                            onTap: _answered
+                                ? null
+                                : () => _selectOption(index),
                             child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: borderColor,
-                              width: isSelected || (_answered && isCorrectOption) ? 4 : 2,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: borderColor,
+                                  width:
+                                      isSelected ||
+                                          (_answered && isCorrectOption)
+                                      ? 4
+                                      : 2,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: LessonImage(
+                                        imagePath:
+                                            optionItem.stimulusImageAsset,
+                                        fallbackColor: optionItem.stimulusColor,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    child: Text(
+                                      option,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: LessonImage(
-                                    imagePath: optionItem.stimulusImageAsset,
-                                    fallbackColor: optionItem.stimulusColor,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                child: Text(
-                                  option,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                          );
                         },
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Action button
                   if (!_answered && _selectedIndex != null)
                     SizedBox(
@@ -518,7 +540,10 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                         ),
                         child: const Text(
                           'Verificar',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     )
@@ -535,8 +560,13 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> with 
                           ),
                         ),
                         child: Text(
-                          _currentIndex < _items.length - 1 ? 'Siguiente' : 'Ver Resultados',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          _currentIndex < _items.length - 1
+                              ? 'Siguiente'
+                              : 'Ver Resultados',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

@@ -141,17 +141,13 @@ class LocalStorageService {
     final db = await database;
     final data = jsonEncode(syncData.toJson());
 
-    await db.insert(
-      userSyncDataTable,
-      {
-        'id': syncData.userId,
-        'userId': syncData.userId,
-        'data': data,
-        'lastModified': DateTime.now().toIso8601String(),
-        'version': syncData.metadata.version,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(userSyncDataTable, {
+      'id': syncData.userId,
+      'userId': syncData.userId,
+      'data': data,
+      'lastModified': DateTime.now().toIso8601String(),
+      'version': syncData.metadata.version,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<UserSyncData?> getUserSyncData(String userId) async {
@@ -165,8 +161,13 @@ class LocalStorageService {
 
     if (maps.isEmpty) return null;
 
-    final data = jsonDecode(maps.first['data'] as String);
-    return UserSyncData.fromJson(data);
+    try {
+      final data = jsonDecode(maps.first['data'] as String);
+      return UserSyncData.fromJson(data);
+    } catch (e) {
+      print('Error parsing user sync data: $e');
+      return null;
+    }
   }
 
   Future<void> deleteUserSyncData(String userId) async {
@@ -182,24 +183,20 @@ class LocalStorageService {
   Future<void> saveSyncOperation(SyncOperation operation) async {
     final db = await database;
 
-    await db.insert(
-      syncOperationsTable,
-      {
-        'id': operation.id,
-        'userId': operation.userId,
-        'type': operation.type.name,
-        'collection': operation.collection,
-        'documentId': operation.documentId,
-        'data': jsonEncode(operation.data),
-        'metadata': jsonEncode(operation.metadata.toJson()),
-        'status': operation.status.name,
-        'retryCount': operation.retryCount,
-        'errorMessage': operation.errorMessage,
-        'createdAt': operation.metadata.timestamp.toIso8601String(),
-        'completedAt': operation.completedAt?.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(syncOperationsTable, {
+      'id': operation.id,
+      'userId': operation.userId,
+      'type': operation.type.name,
+      'collection': operation.collection,
+      'documentId': operation.documentId,
+      'data': jsonEncode(operation.data),
+      'metadata': jsonEncode(operation.metadata.toJson()),
+      'status': operation.status.name,
+      'retryCount': operation.retryCount,
+      'errorMessage': operation.errorMessage,
+      'createdAt': operation.metadata.timestamp.toIso8601String(),
+      'completedAt': operation.completedAt?.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<SyncOperation>> getPendingSyncOperations(String userId) async {
@@ -211,15 +208,21 @@ class LocalStorageService {
       orderBy: 'createdAt ASC',
     );
 
-    return maps.map((map) {
-      final data = Map<String, dynamic>.from(jsonDecode(map['data'] as String));
-      final metadata = Map<String, dynamic>.from(jsonDecode(map['metadata'] as String));
-      final operationData = {
-        ...data,
-        'metadata': metadata,
-      };
-      return SyncOperation.fromJson(operationData);
-    }).toList();
+    try {
+      return maps.map((map) {
+        final data = Map<String, dynamic>.from(
+          jsonDecode(map['data'] as String),
+        );
+        final metadata = Map<String, dynamic>.from(
+          jsonDecode(map['metadata'] as String),
+        );
+        final operationData = {...data, 'metadata': metadata};
+        return SyncOperation.fromJson(operationData);
+      }).toList();
+    } catch (e) {
+      print('Error parsing sync operations: $e');
+      return [];
+    }
   }
 
   Future<void> updateSyncOperationStatus(
@@ -254,16 +257,12 @@ class LocalStorageService {
     final db = await database;
     final data = jsonEncode(guestUser.toJson());
 
-    await db.insert(
-      guestUsersTable,
-      {
-        'guestId': guestUser.guestId,
-        'data': data,
-        'createdAt': guestUser.createdAt.toIso8601String(),
-        'lastActiveAt': guestUser.lastActiveAt.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(guestUsersTable, {
+      'guestId': guestUser.guestId,
+      'data': data,
+      'createdAt': guestUser.createdAt.toIso8601String(),
+      'lastActiveAt': guestUser.lastActiveAt.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<GuestUser?> getGuestUser(String guestId) async {
@@ -277,18 +276,28 @@ class LocalStorageService {
 
     if (maps.isEmpty) return null;
 
-    final data = jsonDecode(maps.first['data'] as String);
-    return GuestUser.fromJson(data);
+    try {
+      final data = jsonDecode(maps.first['data'] as String);
+      return GuestUser.fromJson(data);
+    } catch (e) {
+      print('Error parsing guest user: $e');
+      return null;
+    }
   }
 
   Future<List<GuestUser>> getAllGuestUsers() async {
     final db = await database;
     final maps = await db.query(guestUsersTable);
 
-    return maps.map((map) {
-      final data = jsonDecode(map['data'] as String);
-      return GuestUser.fromJson(data);
-    }).toList();
+    try {
+      return maps.map((map) {
+        final data = jsonDecode(map['data'] as String);
+        return GuestUser.fromJson(data);
+      }).toList();
+    } catch (e) {
+      print('Error parsing guest users: $e');
+      return [];
+    }
   }
 
   Future<void> deleteGuestUser(String guestId) async {
@@ -303,27 +312,23 @@ class LocalStorageService {
   // Sync Conflicts operations
   Future<void> saveSyncConflict(SyncConflict conflict) async {
     final db = await database;
-    await db.insert(
-      syncConflictsTable,
-      {
-        'conflictId': conflict.conflictId,
-        'userId': conflict.userId,
-        'collection': conflict.collection,
-        'documentId': conflict.documentId,
-        'localData': jsonEncode(conflict.localData),
-        'remoteData': jsonEncode(conflict.remoteData),
-        'localMetadata': jsonEncode(conflict.localMetadata.toJson()),
-        'remoteMetadata': jsonEncode(conflict.remoteMetadata.toJson()),
-        'strategy': conflict.strategy.name,
-        'detectedAt': conflict.detectedAt.toIso8601String(),
-        'resolved': conflict.resolved ? 1 : 0,
-        'resolvedData': conflict.resolvedData != null
-            ? jsonEncode(conflict.resolvedData)
-            : null,
-        'resolvedAt': conflict.resolvedAt?.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(syncConflictsTable, {
+      'conflictId': conflict.conflictId,
+      'userId': conflict.userId,
+      'collection': conflict.collection,
+      'documentId': conflict.documentId,
+      'localData': jsonEncode(conflict.localData),
+      'remoteData': jsonEncode(conflict.remoteData),
+      'localMetadata': jsonEncode(conflict.localMetadata.toJson()),
+      'remoteMetadata': jsonEncode(conflict.remoteMetadata.toJson()),
+      'strategy': conflict.strategy.name,
+      'detectedAt': conflict.detectedAt.toIso8601String(),
+      'resolved': conflict.resolved ? 1 : 0,
+      'resolvedData': conflict.resolvedData != null
+          ? jsonEncode(conflict.resolvedData)
+          : null,
+      'resolvedAt': conflict.resolvedAt?.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<SyncConflict>> getUnresolvedConflicts(String userId) async {
@@ -334,46 +339,50 @@ class LocalStorageService {
       whereArgs: [userId],
     );
 
-    return maps.map((map) {
-      final localData = jsonDecode(map['localData'] as String);
-      final remoteData = jsonDecode(map['remoteData'] as String);
-      final localMetadata = jsonDecode(map['localMetadata'] as String);
-      final remoteMetadata = jsonDecode(map['remoteMetadata'] as String);
+    try {
+      return maps.map((map) {
+        final localData = jsonDecode(map['localData'] as String);
+        final remoteData = jsonDecode(map['remoteData'] as String);
+        final localMetadata = jsonDecode(map['localMetadata'] as String);
+        final remoteMetadata = jsonDecode(map['remoteMetadata'] as String);
 
-      final conflictData = {
-        'conflictId': map['conflictId'],
-        'userId': map['userId'],
-        'collection': map['collection'],
-        'documentId': map['documentId'],
-        'localData': localData,
-        'remoteData': remoteData,
-        'localMetadata': localMetadata,
-        'remoteMetadata': remoteMetadata,
-        'strategy': map['strategy'],
-        'detectedAt': map['detectedAt'],
-        'resolved': map['resolved'] == 1,
-        'resolvedData': map['resolvedData'] != null
-            ? jsonDecode(map['resolvedData'] as String)
-            : null,
-        'resolvedAt': map['resolvedAt'],
-      };
-
-      return SyncConflict.fromJson(conflictData);
-    }).toList();
+        final conflictData = {
+          'conflictId': map['conflictId'],
+          'userId': map['userId'],
+          'collection': map['collection'],
+          'documentId': map['documentId'],
+          'localData': localData,
+          'remoteData': remoteData,
+          'localMetadata': localMetadata,
+          'remoteMetadata': remoteMetadata,
+          'strategy': map['strategy'],
+          'detectedAt': map['detectedAt'],
+          'resolved': map['resolved'] == 1,
+          'resolvedData': map['resolvedData'] != null
+              ? jsonDecode(map['resolvedData'] as String)
+              : null,
+          'resolvedAt': map['resolvedAt'],
+        };
+        return SyncConflict.fromJson(conflictData);
+      }).toList();
+    } catch (e) {
+      print('Error parsing sync conflicts: $e');
+      return [];
+    }
   }
 
   // Preferences operations
-  Future<void> savePreference(String key, String value, {String? userId}) async {
+  Future<void> savePreference(
+    String key,
+    String value, {
+    String? userId,
+  }) async {
     final db = await database;
-    await db.insert(
-      preferencesTable,
-      {
-        'key': userId != null ? '${userId}_$key' : key,
-        'value': value,
-        'userId': userId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(preferencesTable, {
+      'key': userId != null ? '${userId}_$key' : key,
+      'value': value,
+      'userId': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<String?> getPreference(String key, {String? userId}) async {
