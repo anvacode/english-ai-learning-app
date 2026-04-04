@@ -13,8 +13,7 @@ class DiagnosticResultScreen extends StatefulWidget {
 
 class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
     with TickerProviderStateMixin {
-  late AnimationController _mainController;
-  late AnimationController _checkController;
+  late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
@@ -22,76 +21,45 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
   void initState() {
     super.initState();
 
-    _mainController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _checkController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
     );
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(parent: _mainController, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _mainController, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
-    _mainController.forward();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _checkController.forward();
-    });
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    _mainController.dispose();
-    _checkController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  Color get _levelColor {
-    switch (widget.result.level) {
-      case 'beginner':
-        return Colors.green;
-      case 'intermediate':
-        return Colors.orange;
-      case 'advanced':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
-  }
+  bool get _isIntermediate => widget.result.level == 'intermediate';
 
-  String get _levelEmoji {
-    switch (widget.result.level) {
-      case 'beginner':
-        return '🌱';
-      case 'intermediate':
-        return '📚';
-      case 'advanced':
-        return '🏆';
-      default:
-        return '📖';
-    }
-  }
+  Color get _levelColor => _isIntermediate ? Colors.orange : Colors.green;
 
-  List<String> get _recommendedLessons {
-    switch (widget.result.level) {
-      case 'beginner':
-        return ['Colors', 'Fruits', 'Animals', 'Numbers'];
-      case 'intermediate':
-        return ['Daily Routines', 'Weather & Seasons', 'Occupations'];
-      case 'advanced':
-        return ['Verb Tenses', 'Prepositions', 'Adjectives & Opposites'];
-      default:
-        return [];
-    }
-  }
+  String get _levelEmoji => _isIntermediate ? '📚' : '🌱';
+
+  String get _levelName => _isIntermediate ? 'Intermediate' : 'Beginner';
+
+  String get _levelDescription => _isIntermediate
+      ? '¡Muy bien! Puedes continuar con lecciones más avanzadas.'
+      : '¡Perfecto para empezar! Aprenderás los fundamentos.';
+
+  List<String> get _recommendedLessons => _isIntermediate
+      ? ['Daily Routines', 'Weather', 'Food', 'Family']
+      : ['Colors', 'Animals', 'Numbers', 'Fruits'];
 
   void _navigateToHome() {
     Navigator.of(context).pushAndRemoveUntil(
@@ -106,9 +74,9 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_levelColor.withAlpha(30), _levelColor.withAlpha(10)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_levelColor.withAlpha(40), Colors.white],
           ),
         ),
         child: SafeArea(
@@ -123,7 +91,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                     const SizedBox(height: 20),
                     _buildResultCard(),
                     const SizedBox(height: 24),
-                    _buildScoreBreakdown(),
+                    _buildScoreCard(),
                     const SizedBox(height: 24),
                     _buildRecommendations(),
                     const SizedBox(height: 32),
@@ -148,7 +116,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: _levelColor.withAlpha(30),
+            color: _levelColor.withAlpha(40),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -156,47 +124,37 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
       ),
       child: Column(
         children: [
-          ScaleTransition(
-            scale: Tween<double>(begin: 0.0, end: 1.0).animate(
-              CurvedAnimation(
-                parent: _checkController,
-                curve: Curves.elasticOut,
-              ),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: _levelColor.withAlpha(30),
+              shape: BoxShape.circle,
             ),
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_levelColor, _levelColor.withAlpha(150)],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(_levelEmoji, style: const TextStyle(fontSize: 50)),
-              ),
+            child: Center(
+              child: Text(_levelEmoji, style: const TextStyle(fontSize: 60)),
             ),
           ),
           const SizedBox(height: 24),
           const Text(
-            '¡Prueba completada!',
+            '🎉 Great Job!',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+              color: Color(0xFF333333),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: _levelColor.withAlpha(20),
-              borderRadius: BorderRadius.circular(20),
+              color: _levelColor.withAlpha(25),
+              borderRadius: BorderRadius.circular(25),
             ),
             child: Text(
-              'Tu nivel: ${widget.result.levelDisplayName}',
+              _levelName,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: _levelColor,
               ),
@@ -204,12 +162,8 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            widget.result.levelDescription,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[600],
-              height: 1.5,
-            ),
+            _levelDescription,
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -217,7 +171,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
     );
   }
 
-  Widget _buildScoreBreakdown() {
+  Widget _buildScoreCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -227,101 +181,31 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Desglose de resultados',
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 12),
+          Text(
+            '${widget.result.score} / ${widget.result.totalQuestions}',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 36,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+              color: _levelColor,
             ),
           ),
-          const SizedBox(height: 20),
-          _buildScoreRow('Básico', widget.result.basicCorrect, 4, Colors.green),
-          const SizedBox(height: 12),
-          _buildScoreRow(
-            'Intermedio',
-            widget.result.intermediateCorrect,
-            4,
-            Colors.orange,
-          ),
-          const SizedBox(height: 12),
-          _buildScoreRow(
-            'Avanzado',
-            widget.result.advancedCorrect,
-            4,
-            Colors.red,
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Puntuación total',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-              Text(
-                '${widget.result.score}/${widget.result.totalQuestions}',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: _levelColor,
-                ),
-              ),
-            ],
+          const SizedBox(width: 12),
+          Text(
+            'correct',
+            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildScoreRow(String level, int correct, int total, Color color) {
-    final percentage = correct / total;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              level,
-              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-            ),
-            Text(
-              '$correct/$total',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: percentage,
-            backgroundColor: color.withAlpha(30),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
-          ),
-        ),
-      ],
     );
   }
 
@@ -335,8 +219,8 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -345,14 +229,14 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline, color: _levelColor, size: 24),
+              Icon(Icons.playlist_play, color: _levelColor, size: 24),
               const SizedBox(width: 10),
               const Text(
-                'Lecciones recomendadas',
+                'Recommended Lessons',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
+                  color: Color(0xFF333333),
                 ),
               ),
             ],
@@ -364,19 +248,18 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             children: _recommendedLessons.map((lesson) {
               return Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
+                  horizontal: 16,
+                  vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: _levelColor.withAlpha(15),
+                  color: _levelColor.withAlpha(20),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _levelColor.withAlpha(50)),
                 ),
                 child: Text(
                   lesson,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: _levelColor,
                   ),
                 ),
@@ -391,27 +274,26 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
   Widget _buildContinueButton() {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 60,
       child: ElevatedButton(
         onPressed: _navigateToHome,
         style: ElevatedButton.styleFrom(
           backgroundColor: _levelColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
-          elevation: 4,
-          shadowColor: _levelColor.withAlpha(100),
+          elevation: 6,
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Comenzar a aprender',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Let's Go!",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(width: 10),
-            Icon(Icons.arrow_forward),
+            SizedBox(width: 12),
+            Icon(Icons.arrow_forward, size: 28),
           ],
         ),
       ),

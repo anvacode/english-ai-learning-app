@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +19,24 @@ class StarService {
   
   // Notificador para actualización en tiempo real del contador de estrellas
   static final ValueNotifier<int> starCountNotifier = ValueNotifier<int>(0);
+
+  // Mutex para evitar race conditions en operaciones concurrentes
+  static Future<void>? _lock;
+
+  /// Ejecuta una función de forma exclusiva (mutex).
+  static Future<T> _withLock<T>(Future<T> Function() fn) async {
+    while (_lock != null) {
+      await _lock!;
+    }
+    final completer = Completer<void>();
+    _lock = completer.future;
+    try {
+      return await fn();
+    } finally {
+      _lock = null;
+      completer.complete();
+    }
+  }
 
   /// Obtiene el total de estrellas del usuario.
   /// 
@@ -72,55 +91,57 @@ class StarService {
     String? description,
     bool applyMultiplier = true,
   }) async {
-    if (amount <= 0) {
-      throw ArgumentError('Amount must be positive');
-    }
+    await _withLock(() async {
+      if (amount <= 0) {
+        throw ArgumentError('Amount must be positive');
+      }
 
-    // Aplicar multiplicador de power-ups si está activo
-    int finalAmount = amount;
-    if (applyMultiplier) {
-      // Import dinámico para evitar dependencia circular
-      final multiplier = await _getStarMultiplier();
-      finalAmount = (amount * multiplier).round();
-    }
+      // Aplicar multiplicador de power-ups si está activo
+      int finalAmount = amount;
+      if (applyMultiplier) {
+        // Import dinámico para evitar dependencia circular
+        final multiplier = await _getStarMultiplier();
+        finalAmount = (amount * multiplier).round();
+      }
 
-    final prefs = await SharedPreferences.getInstance();
-    final transactions = await getTransactionHistory();
-    
-    // Generar ID único para la transacción
-    final transactionId = const Uuid().v4();
-    
-    // Crear descripción por defecto si no se proporciona
-    String finalDescription = description ?? _getDefaultDescription(type, finalAmount, lessonId);
-    
-    // Agregar indicador de multiplicador si se aplicó
-    if (applyMultiplier && finalAmount > amount) {
-      finalDescription = '$finalDescription (x2 ⚡)';
-    }
-    
-    // Crear nueva transacción
-    final transaction = StarTransaction(
-      id: transactionId,
-      type: type,
-      amount: finalAmount,
-      description: finalDescription,
-      timestamp: DateTime.now(),
-      lessonId: lessonId,
-    );
-    
-    // Agregar a la lista
-    transactions.add(transaction);
-    
-    // Guardar transacciones
-    await _saveTransactions(transactions);
-    
-    // Actualizar total en cache
-    final currentTotal = await getTotalStars();
-    final newTotal = currentTotal + finalAmount;
-    await prefs.setInt(_totalStarsKey, newTotal);
-    
-    // Notificar cambio en tiempo real
-    starCountNotifier.value = newTotal;
+      final prefs = await SharedPreferences.getInstance();
+      final transactions = await getTransactionHistory();
+      
+      // Generar ID único para la transacción
+      final transactionId = const Uuid().v4();
+      
+      // Crear descripción por defecto si no se proporciona
+      String finalDescription = description ?? _getDefaultDescription(type, finalAmount, lessonId);
+      
+      // Agregar indicador de multiplicador si se aplicó
+      if (applyMultiplier && finalAmount > amount) {
+        finalDescription = '$finalDescription (x2 ⚡)';
+      }
+      
+      // Crear nueva transacción
+      final transaction = StarTransaction(
+        id: transactionId,
+        type: type,
+        amount: finalAmount,
+        description: finalDescription,
+        timestamp: DateTime.now(),
+        lessonId: lessonId,
+      );
+      
+      // Agregar a la lista
+      transactions.add(transaction);
+      
+      // Guardar transacciones
+      await _saveTransactions(transactions);
+      
+      // Actualizar total en cache
+      final currentTotal = await getTotalStars();
+      final newTotal = currentTotal + finalAmount;
+      await prefs.setInt(_totalStarsKey, newTotal);
+      
+      // Notificar cambio en tiempo real
+      starCountNotifier.value = newTotal;
+    });
   }
   
   /// Obtiene el multiplicador de estrellas actual (para power-ups).
@@ -149,43 +170,45 @@ class StarService {
   /// 
   /// Lanza una excepción si el usuario no tiene suficientes estrellas.
   static Future<void> spendStars(int amount, String itemName) async {
-    if (amount <= 0) {
-      throw ArgumentError('Amount must be positive');
-    }
+    await _withLock(() async {
+      if (amount <= 0) {
+        throw ArgumentError('Amount must be positive');
+      }
 
-    final totalStars = await getTotalStars();
-    if (totalStars < amount) {
-      throw StateError('Insufficient stars. Required: $amount, Available: $totalStars');
-    }
+      final totalStars = await getTotalStars();
+      if (totalStars < amount) {
+        throw StateError('Insufficient stars. Required: $amount, Available: $totalStars');
+      }
 
-    final prefs = await SharedPreferences.getInstance();
-    final transactions = await getTransactionHistory();
-    
-    // Generar ID único para la transacción
-    final transactionId = const Uuid().v4();
-    
-    // Crear transacción de gasto (amount negativo)
-    final transaction = StarTransaction(
-      id: transactionId,
-      type: 'shop_purchase',
-      amount: -amount, // Negativo para gastos
-      description: 'Compra: $itemName',
-      timestamp: DateTime.now(),
-      itemName: itemName,
-    );
-    
-    // Agregar a la lista
-    transactions.add(transaction);
-    
-    // Guardar transacciones
-    await _saveTransactions(transactions);
-    
-    // Actualizar total en cache
-    final newTotal = totalStars - amount;
-    await prefs.setInt(_totalStarsKey, newTotal);
-    
-    // Notificar cambio en tiempo real
-    starCountNotifier.value = newTotal;
+      final prefs = await SharedPreferences.getInstance();
+      final transactions = await getTransactionHistory();
+      
+      // Generar ID único para la transacción
+      final transactionId = const Uuid().v4();
+      
+      // Crear transacción de gasto (amount negativo)
+      final transaction = StarTransaction(
+        id: transactionId,
+        type: 'shop_purchase',
+        amount: -amount, // Negativo para gastos
+        description: 'Compra: $itemName',
+        timestamp: DateTime.now(),
+        itemName: itemName,
+      );
+      
+      // Agregar a la lista
+      transactions.add(transaction);
+      
+      // Guardar transacciones
+      await _saveTransactions(transactions);
+      
+      // Actualizar total en cache
+      final newTotal = totalStars - amount;
+      await prefs.setInt(_totalStarsKey, newTotal);
+      
+      // Notificar cambio en tiempo real
+      starCountNotifier.value = newTotal;
+    });
   }
 
   /// Obtiene el historial completo de transacciones.

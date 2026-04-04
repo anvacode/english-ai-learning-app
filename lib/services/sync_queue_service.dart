@@ -15,6 +15,7 @@ class SyncQueueService {
   final StreamController<QueueSyncStatus> _syncStatusController =
       StreamController<QueueSyncStatus>.broadcast();
 
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
   Timer? _syncTimer;
   bool _isOnline = true;
   bool _isProcessing = false;
@@ -27,7 +28,7 @@ class SyncQueueService {
 
   void _initialize() {
     // Monitor connectivity changes
-    _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       final wasOnline = _isOnline;
       _isOnline = result != ConnectivityResult.none;
 
@@ -305,6 +306,7 @@ class SyncQueueService {
   }
 
   void dispose() {
+    _connectivitySubscription?.cancel();
     _syncTimer?.cancel();
     _syncStatusController.close();
   }

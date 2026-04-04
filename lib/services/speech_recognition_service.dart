@@ -28,6 +28,8 @@ class SpeechRecognitionService {
   factory SpeechRecognitionService() => _instance;
   SpeechRecognitionService._internal();
 
+  static bool _disposed = false;
+
   final SpeechToText _speech = SpeechToText();
   bool _isInitialized = false;
   bool _isListening = false;
@@ -421,9 +423,16 @@ class SpeechRecognitionService {
 
   /// Libera recursos
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _wordsController.close();
     if (_isListening) {
       _speech.stop();
     }
+  }
+
+  /// Libera la instancia singleton (llamar al cerrar la app)
+  static void disposeInstance() {
+    _instance.dispose();
   }
 }

@@ -148,7 +148,7 @@ class _DiagnosticIntroScreenState extends State<DiagnosticIntroScreen>
       children: [
         _buildInfoItem(Icons.timer_outlined, '~3 min'),
         const SizedBox(width: 24),
-        _buildInfoItem(Icons.quiz_outlined, '12 preguntas'),
+        _buildInfoItem(Icons.quiz_outlined, '10 preguntas'),
         const SizedBox(width: 24),
         _buildInfoItem(Icons.bar_chart_outlined, '3 niveles'),
       ],

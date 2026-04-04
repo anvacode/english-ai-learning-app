@@ -108,18 +108,32 @@ class LocalStorageService {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Handle database upgrades here
-    // For now, we'll just recreate the database
-    for (final table in [
-      userSyncDataTable,
-      syncOperationsTable,
-      guestUsersTable,
-      syncConflictsTable,
-      preferencesTable,
-    ]) {
-      await db.execute('DROP TABLE IF EXISTS $table');
+    for (int version = oldVersion; version < newVersion; version++) {
+      await _migrate(db, version);
     }
-    await _onCreate(db, newVersion);
+  }
+
+  Future<void> _migrate(Database db, int fromVersion) async {
+    switch (fromVersion) {
+      case 1:
+        // Migración de v1 → v2: agregar nuevas columnas o tablas aquí
+        // Ejemplo:
+        // await db.execute('ALTER TABLE user_sync_data ADD COLUMN syncStatus TEXT DEFAULT "pending"');
+        // await db.execute('''
+        //   CREATE TABLE IF NOT EXISTS new_table (
+        //     id TEXT PRIMARY KEY,
+        //     data TEXT NOT NULL
+        //   )
+        // ''');
+        break;
+      default:
+        print(
+          '⚠️ No migration defined for v$fromVersion. '
+          'Preserving existing data. '
+          'Add migration logic in _migrate() before releasing.',
+        );
+        break;
+    }
   }
 
   // User Sync Data operations

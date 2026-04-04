@@ -12,7 +12,7 @@ class DiagnosticTestScreen extends StatefulWidget {
 }
 
 class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final List<DiagnosticQuestion> _questions = DiagnosticQuestionsData.questions;
   final List<int?> _answers = List.filled(
     DiagnosticQuestionsData.questions.length,
@@ -24,7 +24,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -32,17 +32,16 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.1, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
 
     _animationController.forward();
   }
@@ -77,16 +76,6 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
     }
   }
 
-  void _previousQuestion() {
-    if (_currentQuestionIndex > 0) {
-      setState(() {
-        _currentQuestionIndex--;
-      });
-      _animationController.reset();
-      _animationController.forward();
-    }
-  }
-
   Future<void> _submitTest() async {
     if (_isSubmitting) return;
 
@@ -106,29 +95,34 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final emojiSize = isMobile ? 80.0 : 120.0;
+    final optionSize = isMobile ? 60.0 : 80.0;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF4FC3F7), Color(0xFF2196F3)],
             ),
           ),
           child: SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
+                _buildHeader(isMobile),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _slideAnimation,
-                        child: _buildQuestionCard(),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: _buildQuestionCard(
+                        emojiSize,
+                        optionSize,
+                        isMobile,
                       ),
                     ),
                   ),
@@ -142,49 +136,37 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(30),
+                  color: Colors.white.withAlpha(50),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      _currentQuestion.levelIcon,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      _currentQuestion.levelName,
+                      '${_currentQuestionIndex + 1} / ${_questions.length}',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${_currentQuestionIndex + 1}/${_questions.length}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -194,9 +176,9 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: _progress,
-              backgroundColor: Colors.white.withAlpha(30),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              minHeight: 6,
+              backgroundColor: Colors.white.withAlpha(50),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+              minHeight: 8,
             ),
           ),
         ],
@@ -204,132 +186,97 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
     );
   }
 
-  Widget _buildQuestionCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
+  Widget _buildQuestionCard(
+    double emojiSize,
+    double optionSize,
+    bool isMobile,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Emoji principal grande
+          Text(
+            _currentQuestion.mainEmoji,
+            style: TextStyle(fontSize: emojiSize),
+          ),
+          const SizedBox(height: 24),
+          // Pregunta
           Container(
-            width: 50,
-            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: _currentQuestion.levelColor.withAlpha(20),
-              shape: BoxShape.circle,
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: Icon(
-              _currentQuestion.type == DiagnosticQuestionType.fillBlank
-                  ? Icons.edit_note
-                  : Icons.quiz,
-              color: _currentQuestion.levelColor,
-              size: 26,
+            child: Text(
+              _currentQuestion.question,
+              style: TextStyle(
+                fontSize: isMobile ? 22 : 28,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF333333),
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            _currentQuestion.type == DiagnosticQuestionType.fillBlank
-                ? 'Completa la oración:'
-                : 'Selecciona la respuesta correcta:',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          const SizedBox(height: 32),
+          // Opciones en grid 2x2
+          GridView.count(
+            shrinkWrap: true,
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.5,
+            physics: const NeverScrollableScrollPhysics(),
+            children: List.generate(_currentQuestion.options.length, (index) {
+              return _buildOptionButton(index, optionSize);
+            }),
           ),
-          const SizedBox(height: 12),
-          Text(
-            _currentQuestion.question,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-              height: 1.3,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          ...List.generate(_currentQuestion.options.length, (index) {
-            return _buildOptionButton(index);
-          }),
         ],
       ),
     );
   }
 
-  Widget _buildOptionButton(int index) {
+  Widget _buildOptionButton(int index, double size) {
     final isSelected = _answers[_currentQuestionIndex] == index;
     final option = _currentQuestion.options[index];
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: () => _selectAnswer(index),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF667eea).withAlpha(20)
-                : Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? const Color(0xFF667eea) : Colors.grey[200]!,
-              width: isSelected ? 2 : 1,
-            ),
+    return GestureDetector(
+      onTap: () => _selectAnswer(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF4CAF50) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+            width: 3,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF667eea)
-                      : Colors.grey[200],
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    String.fromCharCode(65 + index),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  option,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                    color: isSelected
-                        ? const Color(0xFF667eea)
-                        : Colors.grey[800],
-                  ),
-                ),
-              ),
-              if (isSelected)
-                const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF667eea),
-                  size: 20,
-                ),
-            ],
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF4CAF50).withAlpha(100)
+                  : Colors.black.withAlpha(15),
+              blurRadius: isSelected ? 15 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            option,
+            style: TextStyle(
+              fontSize: size * 0.5,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.grey.shade800,
+            ),
           ),
         ),
       ),
@@ -341,55 +288,39 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
     final isLastQuestion = _currentQuestionIndex == _questions.length - 1;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          if (_currentQuestionIndex > 0)
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _previousQuestion,
-                icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Anterior'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(20),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton.icon(
+          onPressed: hasAnswer && !_isSubmitting ? _nextQuestion : null,
+          icon: _isSubmitting
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Colors.white,
                   ),
+                )
+              : Icon(
+                  isLastQuestion ? Icons.check : Icons.arrow_forward,
+                  size: 28,
                 ),
-              ),
-            ),
-          if (_currentQuestionIndex > 0) const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: hasAnswer && !_isSubmitting ? _nextQuestion : null,
-              icon: _isSubmitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Icon(
-                      isLastQuestion ? Icons.check : Icons.arrow_forward,
-                      size: 18,
-                    ),
-              label: Text(isLastQuestion ? 'Finalizar' : 'Siguiente'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF667eea),
-                disabledBackgroundColor: Colors.white.withAlpha(100),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+          label: Text(
+            isLastQuestion ? 'Finish!' : 'Next',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-        ],
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey.shade300,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+          ),
+        ),
       ),
     );
   }

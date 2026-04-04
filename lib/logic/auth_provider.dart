@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,6 +12,7 @@ class AuthProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
   final SyncService _syncService = SyncService();
 
+  StreamSubscription<User?>? _authSubscription;
   AuthStatus _status = AuthStatus.uninitialized;
   User? _user;
   String? _guestId;
@@ -37,7 +40,7 @@ class AuthProvider extends ChangeNotifier {
     }
 
     // Listen to auth state changes
-    _firebaseService.authStateChanges.listen((User? user) async {
+    _authSubscription = _firebaseService.authStateChanges.listen((User? user) async {
       _user = user;
       if (user != null) {
         _status = AuthStatus.authenticated;
@@ -119,6 +122,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     try {
+      _syncService.stopAutoSync();
       await _firebaseService.signOut();
     } catch (e) {
       print('Error signing out: $e');
@@ -273,5 +277,11 @@ class AuthProvider extends ChangeNotifier {
       default:
         return 'Error: $errorCode. Contacta soporte si persiste.';
     }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }

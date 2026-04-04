@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firebase_service.dart';
 import '../logic/user_profile_service.dart';
@@ -12,6 +14,7 @@ class SyncService {
 
   final FirebaseService _firebaseService = FirebaseService();
   bool _isSyncing = false;
+  Timer? _autoSyncTimer;
 
   /// Sincronizar datos del usuario actual con Firebase
   Future<bool> syncUserData() async {
@@ -161,11 +164,16 @@ class SyncService {
     final user = _firebaseService.currentUser;
     if (user == null) return;
 
-    // Sincronizar cada 5 minutos
-    Future.delayed(const Duration(minutes: 5), () {
-      syncUserData().then((_) {
-        setupAutoSync(); // Reprogramar
-      });
+    stopAutoSync();
+
+    _autoSyncTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      syncUserData();
     });
+  }
+
+  /// Detener la sincronización automática
+  void stopAutoSync() {
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = null;
   }
 }

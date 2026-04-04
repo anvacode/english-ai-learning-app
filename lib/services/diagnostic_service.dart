@@ -41,53 +41,25 @@ class DiagnosticService {
   static DiagnosticResult calculateResult(List<int?> answers) {
     final questions = DiagnosticQuestionsData.questions;
 
-    int basicCorrect = 0;
-    int intermediateCorrect = 0;
-    int advancedCorrect = 0;
-    int totalCorrect = 0;
+    int correctAnswers = 0;
 
     for (int i = 0; i < questions.length; i++) {
       if (answers[i] != null && questions[i].isCorrect(answers[i]!)) {
-        totalCorrect++;
-        switch (questions[i].level) {
-          case DiagnosticLevel.beginner:
-            basicCorrect++;
-            break;
-          case DiagnosticLevel.intermediate:
-            intermediateCorrect++;
-            break;
-          case DiagnosticLevel.advanced:
-            advancedCorrect++;
-            break;
-        }
+        correctAnswers++;
       }
     }
 
-    String level = _determineLevel(
-      basicCorrect,
-      intermediateCorrect,
-      advancedCorrect,
-    );
+    String level = correctAnswers >= 5 ? 'intermediate' : 'beginner';
 
     return DiagnosticResult(
       level: level,
-      score: totalCorrect,
+      score: correctAnswers,
       totalQuestions: questions.length,
-      basicCorrect: basicCorrect,
-      intermediateCorrect: intermediateCorrect,
-      advancedCorrect: advancedCorrect,
+      basicCorrect: correctAnswers,
+      intermediateCorrect: 0,
+      advancedCorrect: 0,
       completedAt: DateTime.now(),
     );
-  }
-
-  static String _determineLevel(int basic, int intermediate, int advanced) {
-    if (basic >= 3 && intermediate >= 3 && advanced >= 2) {
-      return 'advanced';
-    } else if (basic >= 3 && intermediate >= 2) {
-      return 'intermediate';
-    } else {
-      return 'beginner';
-    }
   }
 
   static Future<void> resetDiagnostic() async {

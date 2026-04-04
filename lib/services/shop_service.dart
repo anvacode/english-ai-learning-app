@@ -154,10 +154,7 @@ class ShopService {
       );
     }
 
-    // Gastar estrellas
-    await StarService.spendStars(item.price, item.name);
-
-    // Guardar compra
+    // 1. Guardar compra PRIMERO (si la app crashea aquí, el usuario no pierde estrellas)
     final purchasedIds = await getPurchasedItemIds();
     purchasedIds.add(item.id);
 
@@ -166,8 +163,21 @@ class ShopService {
       _purchasedItemsKey,
       jsonEncode(purchasedIds.toList()),
     );
-    
-    // Activar automáticamente según el tipo de ítem
+
+    // 2. Gastar estrellas con rollback si falla
+    try {
+      await StarService.spendStars(item.price, item.name);
+    } catch (e) {
+      // Rollback: revertir la compra
+      purchasedIds.remove(item.id);
+      await prefs.setString(
+        _purchasedItemsKey,
+        jsonEncode(purchasedIds.toList()),
+      );
+      rethrow;
+    }
+
+    // 3. Activar automáticamente según el tipo de ítem
     await _activateItemOnPurchase(item, themeService: themeService);
   }
   

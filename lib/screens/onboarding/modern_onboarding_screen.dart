@@ -4,6 +4,7 @@ import '../../models/onboarding_page.dart';
 import '../../widgets/onboarding_page_widget.dart';
 import '../../utils/responsive.dart';
 import '../../dialogs/auth_prompt_dialog.dart';
+import '../../logic/first_time_service.dart';
 import '../home_screen.dart';
 
 /// Pantalla moderna de onboarding con diseño atractivo y animaciones.
@@ -66,41 +67,44 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
       _isAnimating = true;
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_completed', true);
-
-    if (mounted) {
-      final result = await AuthPromptDialog.show(
-        context,
-        isFromOnboarding: true,
-      );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_completed', true);
+      await FirstTimeService.setFirstTimeCompleted();
 
       if (!mounted) return;
 
-      if (result != true) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const HomeScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(1.0, 0.0);
-                  const end = Offset.zero;
-                  const curve = Curves.easeInOutCubic;
+      await AuthPromptDialog.show(context, isFromOnboarding: true);
 
-                  var tween = Tween(
-                    begin: begin,
-                    end: end,
-                  ).chain(CurveTween(curve: curve));
+      if (!mounted) return;
 
-                  return SlideTransition(
-                    position: animation.drive(tween),
-                    child: FadeTransition(opacity: animation, child: child),
-                  );
-                },
-            transitionDuration: const Duration(milliseconds: 600),
-          ),
-        );
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const HomeScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isAnimating = false;
+        });
       }
     }
   }

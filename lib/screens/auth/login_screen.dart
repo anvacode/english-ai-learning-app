@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/auth_provider.dart';
+import '../../services/diagnostic_service.dart';
 import '../../theme/app_icons.dart';
 import '../../utils/feedback_messages.dart';
+import '../home_screen.dart';
+import '../diagnostic/diagnostic_intro_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _isNavigating = false;
 
   @override
   void dispose() {
@@ -28,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isNavigating) return;
 
     setState(() => _isLoading = true);
 
@@ -37,13 +42,32 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
-      if (mounted) {
-        Navigator.of(context).pop();
-        final successMsg = FeedbackMessages.getAuthSuccessMessage(
-          'login_success',
-        );
-        context.showSuccessSnackbar(
-          '${successMsg['title']} ${successMsg['message']}',
+      if (mounted && !_isNavigating) {
+        _isNavigating = true;
+        final diagnosticCompleted =
+            await DiagnosticService.isDiagnosticCompleted();
+
+        if (!context.mounted) return;
+
+        if (diagnosticCompleted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const DiagnosticIntroScreen(),
+            ),
+            (route) => false,
+          );
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Sesión iniciada correctamente!'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
