@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/audio_service.dart';
 import '../services/theme_service.dart';
 import '../services/shop_service.dart';
 import '../models/shop_item.dart';
 import 'purchased_items_screen.dart';
+import 'profile/profile_screen.dart';
+import 'lesson_history_screen.dart';
+import 'help_screen.dart';
 
 /// Pantalla de configuración básica de la aplicación.
-/// 
+///
 /// Muestra opciones de configuración y preferencias del usuario.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,11 +27,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _pitch = 1.0;
   double _rate = 0.5;
   bool _isLoading = true;
+  bool _notificationsEnabled = true;
+  static const String _notificationsKey = 'notifications_enabled';
 
   @override
   void initState() {
     super.initState();
     _loadAudioSettings();
+    _loadNotificationSettings();
   }
 
   Future<void> _loadAudioSettings() async {
@@ -41,6 +48,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _loadNotificationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
+    });
+  }
+
   Future<void> _showThemeSelector(BuildContext context) async {
     final themeService = context.read<ThemeService>();
     final purchasedThemes = await ShopService.getPurchasedItems();
@@ -49,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .toList();
 
     if (!mounted) return;
-    
+
     await showModalBottomSheet(
       // ignore: use_build_context_synchronously
       context: context,
@@ -65,10 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const Text(
                 'Seleccionar Tema',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               // Tema por defecto
@@ -132,12 +143,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Text(icon, style: const TextStyle(fontSize: 28)),
       title: Text(name),
       trailing: isActive
-          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+          ? Icon(
+              Icons.check_circle,
+              color: Theme.of(context).colorScheme.primary,
+            )
           : null,
       onTap: onTap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       tileColor: isActive
           ? Theme.of(context).colorScheme.primaryContainer.withAlpha(76)
           : null,
@@ -148,18 +160,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Configuración'),
-          elevation: 0,
-        ),
+        appBar: AppBar(title: const Text('Configuración'), elevation: 0),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Configuración'), elevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -172,10 +178,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Perfil',
                 subtitle: 'Gestiona tu información personal',
                 onTap: () {
-                  // TODO: Implementar navegación a perfil detallado
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Próximamente: Perfil detallado'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
                     ),
                   );
                 },
@@ -185,10 +191,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Historial de lecciones',
                 subtitle: 'Revisa tu progreso',
                 onTap: () {
-                  // TODO: Implementar historial
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Próximamente: Historial de lecciones'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LessonHistoryScreen(),
                     ),
                   );
                 },
@@ -232,7 +238,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               // Pitch slider
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -280,7 +289,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               // Rate slider
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -375,9 +387,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Notificaciones',
                 subtitle: 'Gestiona las notificaciones',
                 trailing: Switch(
-                  value: true,
-                  onChanged: (value) {
-                    // TODO: Implementar guardado de preferencias
+                  value: _notificationsEnabled,
+                  onChanged: (value) async {
+                    setState(() {
+                      _notificationsEnabled = value;
+                    });
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool(_notificationsKey, value);
                   },
                 ),
               ),
@@ -408,11 +424,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Ayuda y soporte',
                 subtitle: 'Obtén ayuda sobre la aplicación',
                 onTap: () {
-                  // TODO: Implementar pantalla de ayuda
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Próximamente: Ayuda y soporte'),
-                    ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HelpScreen()),
                   );
                 },
               ),
@@ -433,7 +447,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: const [
                       Text('Aplicación de aprendizaje de inglés para niños.'),
                       SizedBox(height: 8),
-                      Text('Aprende inglés de forma divertida con lecciones interactivas.'),
+                      Text(
+                        'Aprende inglés de forma divertida con lecciones interactivas.',
+                      ),
                     ],
                   );
                 },
@@ -447,24 +463,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Implementar reset de datos
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Próximamente: Reset de datos'),
-                  ),
-                );
-              },
+              onPressed: () => _showResetConfirmation(context),
               icon: const Icon(Icons.refresh),
               label: const Text('Restablecer datos'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _showResetConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Restablecer datos?'),
+        content: const Text(
+          'Esta acción eliminará todo tu progreso, estrellas, compras y configuración. '
+          'No se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Restablecer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _resetAllData();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Datos restablecidos')));
+      }
+    }
+  }
+
+  Future<void> _resetAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    await _loadAudioSettings();
+    _loadNotificationSettings();
   }
 }
 
@@ -473,10 +520,7 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _SettingsSection({
-    required this.title,
-    required this.children,
-  });
+  const _SettingsSection({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -500,9 +544,7 @@ class _SettingsSection extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
-            children: children,
-          ),
+          child: Column(children: children),
         ),
       ],
     );
@@ -528,20 +570,13 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
+      trailing:
+          trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
       onTap: onTap,
-      shape: const Border(
-        bottom: BorderSide(
-          color: Colors.grey,
-          width: 0.5,
-        ),
-      ),
+      shape: const Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
     );
   }
 }
