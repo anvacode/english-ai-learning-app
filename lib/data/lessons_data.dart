@@ -16,7 +16,7 @@ Future<List<Lesson>> loadLessonsFromJson() async {
 
     return lessonsJson.map((lessonJson) => _parseLesson(lessonJson)).toList();
   } catch (e) {
-    print('⚠️ Error cargando lessons.json, usando datos locales: $e');
+    debugPrint('⚠️ Error cargando lessons.json, usando datos locales: $e');
     return lessonsList;
   }
 }

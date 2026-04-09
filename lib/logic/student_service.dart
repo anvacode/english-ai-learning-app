@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/student.dart';
@@ -25,7 +26,7 @@ class StudentService {
 
       return Student(id: studentId, level: 1, points: 0);
     } catch (e) {
-      print('Error initializing student: $e');
+      debugPrint('Error initializing student: $e');
       // Fallback: return student with temporary ID
       return Student(
         id: 'temp_${DateTime.now().millisecondsSinceEpoch}',

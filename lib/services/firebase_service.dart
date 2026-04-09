@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../firebase_options.dart';
@@ -47,9 +48,9 @@ class FirebaseService {
       );
 
       _initialized = true;
-      print('✅ Firebase initialized successfully');
+      debugPrint('✅ Firebase initialized successfully');
     } catch (e) {
-      print('❌ Error initializing Firebase: $e');
+      debugPrint('❌ Error initializing Firebase: $e');
       // Don't rethrow - allow app to continue in offline mode
       _initialized = false;
       throw Exception('Firebase initialization failed: $e');

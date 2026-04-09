@@ -34,7 +34,7 @@ class AuthProvider extends ChangeNotifier {
   void _initialize() {
     // Check if Firebase is initialized
     if (!_firebaseService.isInitialized) {
-      print(
+      debugPrint(
         '⚠️ Firebase not initialized. Auth will work in offline/guest mode only.',
       );
       _status = AuthStatus.unauthenticated;
@@ -55,7 +55,7 @@ class AuthProvider extends ChangeNotifier {
 
         // Si había una sesión de invitado, migrar los datos
         if (_guestId != null) {
-          print('🔄 Migrando datos de invitado...');
+          debugPrint('🔄 Migrando datos de invitado...');
           final migrationSuccess = await _syncService.migrateGuestData(
             _guestId!,
           );
@@ -96,10 +96,10 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      print('Error signing in: ${e.code}');
+      debugPrint('Error signing in: ${e.code}');
       throw _getSpanishErrorMessage(e.code);
     } catch (e) {
-      print('Error signing in: $e');
+      debugPrint('Error signing in: $e');
       if (e.toString().contains('no disponibles')) {
         rethrow;
       }
@@ -120,10 +120,10 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      print('Error creating user: ${e.code}');
+      debugPrint('Error creating user: ${e.code}');
       throw _getSpanishErrorMessage(e.code);
     } catch (e) {
-      print('Error creating user: $e');
+      debugPrint('Error creating user: $e');
       if (e.toString().contains('no disponibles')) {
         rethrow;
       }
@@ -136,7 +136,7 @@ class AuthProvider extends ChangeNotifier {
       _syncService.stopAutoSync();
       await _firebaseService.signOut();
     } catch (e) {
-      print('Error signing out: $e');
+      debugPrint('Error signing out: $e');
       rethrow;
     }
   }
@@ -148,7 +148,7 @@ class AuthProvider extends ChangeNotifier {
       }
       await _firebaseService.auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      print('Error sending password reset: $e');
+      debugPrint('Error sending password reset: $e');
       rethrow;
     }
   }
@@ -169,13 +169,13 @@ class AuthProvider extends ChangeNotifier {
         googleProvider.addScope('profile');
 
         // Usar signInWithPopup para web
-        print('🔵 Iniciando Google Sign-In con popup (web)...');
+        debugPrint('🔵 Iniciando Google Sign-In con popup (web)...');
         await _firebaseService.auth.signInWithPopup(googleProvider);
 
-        print('✅ Inicio de sesión con Google exitoso (web)');
+        debugPrint('✅ Inicio de sesión con Google exitoso (web)');
       } else {
         // Versión móvil: usar google_sign_in package
-        print('🔵 Iniciando Google Sign-In (móvil)...');
+        debugPrint('🔵 Iniciando Google Sign-In (móvil)...');
 
         final GoogleSignIn googleSignIn = GoogleSignIn(
           scopes: ['email', 'profile'],
@@ -186,7 +186,7 @@ class AuthProvider extends ChangeNotifier {
 
         if (googleUser == null) {
           // El usuario canceló el inicio de sesión
-          print('❌ Google Sign-In cancelado por el usuario');
+          debugPrint('❌ Google Sign-In cancelado por el usuario');
           throw 'Inicio de sesión cancelado';
         }
 
@@ -203,10 +203,10 @@ class AuthProvider extends ChangeNotifier {
         // Autenticarse con Firebase usando la credencial de Google
         await _firebaseService.auth.signInWithCredential(credential);
 
-        print('✅ Inicio de sesión con Google exitoso (móvil)');
+        debugPrint('✅ Inicio de sesión con Google exitoso (móvil)');
       }
     } on FirebaseAuthException catch (e) {
-      print('Error con Google Sign-In (Firebase): ${e.code}');
+      debugPrint('Error con Google Sign-In (Firebase): ${e.code}');
 
       // Errores específicos de popup (solo web)
       if (kIsWeb) {
@@ -220,7 +220,7 @@ class AuthProvider extends ChangeNotifier {
 
       throw _getSpanishErrorMessage(e.code);
     } catch (e) {
-      print('Error con Google Sign-In: $e');
+      debugPrint('Error con Google Sign-In: $e');
       if (e.toString().contains('no disponibles')) {
         rethrow;
       }

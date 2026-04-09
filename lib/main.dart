@@ -18,10 +18,10 @@ void main() async {
   // Initialize Firebase with error handling
   try {
     await FirebaseService().initialize();
-    print('✅ Firebase initialized successfully');
+    debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
-    print('⚠️ Firebase initialization failed: $e');
-    print('🔄 App will continue in offline mode');
+    debugPrint('⚠️ Firebase initialization failed: $e');
+    debugPrint('🔄 App will continue in offline mode');
   }
 
   // Register lifecycle observer for cleanup on exit

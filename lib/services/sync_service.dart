@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_service.dart';
 import '../logic/user_profile_service.dart';
@@ -23,7 +24,7 @@ class SyncService {
   /// Sincronizar datos del usuario actual con Firebase
   Future<bool> syncUserData() async {
     if (_isSyncing) {
-      print('⏳ Ya hay una sincronización en progreso');
+      debugPrint('⏳ Ya hay una sincronización en progreso');
       return false;
     }
 
@@ -32,11 +33,11 @@ class SyncService {
     try {
       final user = _firebaseService.currentUser;
       if (user == null) {
-        print('❌ No hay usuario autenticado para sincronizar');
+        debugPrint('❌ No hay usuario autenticado para sincronizar');
         return false;
       }
 
-      print('🔄 Iniciando sincronización para ${user.email}');
+      debugPrint('🔄 Iniciando sincronización para ${user.email}');
 
       // Cargar datos locales
       final profile = await UserProfileService.loadProfile();
@@ -66,10 +67,10 @@ class SyncService {
       await prefs.setInt(_lastSyncKey, DateTime.now().millisecondsSinceEpoch);
       await prefs.setInt(_lastSyncedStarsKey, stars);
 
-      print('✅ Sincronización completada exitosamente');
+      debugPrint('✅ Sincronización completada exitosamente');
       return true;
     } catch (e) {
-      print('❌ Error al sincronizar: $e');
+      debugPrint('❌ Error al sincronizar: $e');
       return false;
     } finally {
       _isSyncing = false;
@@ -81,11 +82,11 @@ class SyncService {
     try {
       final user = _firebaseService.currentUser;
       if (user == null) {
-        print('❌ No hay usuario autenticado');
+        debugPrint('❌ No hay usuario autenticado');
         return false;
       }
 
-      print('📥 Descargando datos de ${user.email}');
+      debugPrint('📥 Descargando datos de ${user.email}');
 
       final userDoc = await _firebaseService.firestore
           .collection('users')
@@ -93,7 +94,7 @@ class SyncService {
           .get();
 
       if (!userDoc.exists) {
-        print('ℹ️ No hay datos remotos, usando datos locales');
+        debugPrint('ℹ️ No hay datos remotos, usando datos locales');
         return false;
       }
 
@@ -129,15 +130,17 @@ class SyncService {
               description: 'Sincronización desde la nube',
               applyMultiplier: false,
             );
-            print('⭐ Estrellas actualizadas de $localStars a $remoteStars');
+            debugPrint(
+              '⭐ Estrellas actualizadas de $localStars a $remoteStars',
+            );
           }
         }
       }
 
-      print('✅ Datos descargados exitosamente');
+      debugPrint('✅ Datos descargados exitosamente');
       return true;
     } catch (e) {
-      print('❌ Error al descargar datos: $e');
+      debugPrint('❌ Error al descargar datos: $e');
       return false;
     }
   }
@@ -147,23 +150,23 @@ class SyncService {
     try {
       final user = _firebaseService.currentUser;
       if (user == null) {
-        print('❌ No hay usuario autenticado');
+        debugPrint('❌ No hay usuario autenticado');
         return false;
       }
 
-      print('🔄 Migrando datos de invitado a usuario registrado');
+      debugPrint('🔄 Migrando datos de invitado a usuario registrado');
 
       // Los datos ya están en el almacenamiento local
       // Solo necesitamos subirlos a Firebase
       final success = await syncUserData();
 
       if (success) {
-        print('✅ Migración completada exitosamente');
+        debugPrint('✅ Migración completada exitosamente');
       }
 
       return success;
     } catch (e) {
-      print('❌ Error al migrar datos: $e');
+      debugPrint('❌ Error al migrar datos: $e');
       return false;
     }
   }

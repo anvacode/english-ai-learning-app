@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/sync_operation.dart';
 import '../models/sync_metadata.dart';
@@ -141,7 +142,7 @@ class SyncQueueService {
         _syncStatusController.add(QueueSyncStatus.partialSuccess);
       }
     } catch (e) {
-      print('Error processing sync queue: $e');
+      debugPrint('Error processing sync queue: $e');
       _syncStatusController.add(QueueSyncStatus.error);
     } finally {
       _isProcessing = false;
@@ -180,7 +181,7 @@ class SyncQueueService {
         return false;
       }
     } catch (e) {
-      print('Error processing operation ${operation.id}: $e');
+      debugPrint('Error processing operation ${operation.id}: $e');
       await _localStorage.updateSyncOperationStatus(
         operation.id,
         SyncStatus.failed,
@@ -232,7 +233,7 @@ class SyncQueueService {
         }
       }
 
-      print('Firebase operation failed: $e');
+      debugPrint('Firebase operation failed: $e');
       return false;
     }
   }
@@ -271,7 +272,7 @@ class SyncQueueService {
 
       return null;
     } catch (e) {
-      print('Error checking for conflict: $e');
+      debugPrint('Error checking for conflict: $e');
       return null;
     }
   }

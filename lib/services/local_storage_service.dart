@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -127,7 +128,7 @@ class LocalStorageService {
         // ''');
         break;
       default:
-        print(
+        debugPrint(
           '⚠️ No migration defined for v$fromVersion. '
           'Preserving existing data. '
           'Add migration logic in _migrate() before releasing.',
@@ -165,7 +166,7 @@ class LocalStorageService {
       final data = jsonDecode(maps.first['data'] as String);
       return UserSyncData.fromJson(data);
     } catch (e) {
-      print('Error parsing user sync data: $e');
+      debugPrint('Error parsing user sync data: $e');
       return null;
     }
   }
@@ -220,7 +221,7 @@ class LocalStorageService {
         return SyncOperation.fromJson(operationData);
       }).toList();
     } catch (e) {
-      print('Error parsing sync operations: $e');
+      debugPrint('Error parsing sync operations: $e');
       return [];
     }
   }
@@ -280,7 +281,7 @@ class LocalStorageService {
       final data = jsonDecode(maps.first['data'] as String);
       return GuestUser.fromJson(data);
     } catch (e) {
-      print('Error parsing guest user: $e');
+      debugPrint('Error parsing guest user: $e');
       return null;
     }
   }
@@ -295,7 +296,7 @@ class LocalStorageService {
         return GuestUser.fromJson(data);
       }).toList();
     } catch (e) {
-      print('Error parsing guest users: $e');
+      debugPrint('Error parsing guest users: $e');
       return [];
     }
   }
@@ -366,7 +367,7 @@ class LocalStorageService {
         return SyncConflict.fromJson(conflictData);
       }).toList();
     } catch (e) {
-      print('Error parsing sync conflicts: $e');
+      debugPrint('Error parsing sync conflicts: $e');
       return [];
     }
   }
