@@ -8,7 +8,6 @@ import '../../logic/practice_service.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
 import '../../data/lessons_data.dart';
-import '../../utils/responsive.dart';
 
 /// Pantalla de práctica de listening:
 /// - Reproduce una palabra en inglés

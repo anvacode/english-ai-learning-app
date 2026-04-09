@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/diagnostic_question.dart';
 import '../models/diagnostic_result.dart';
 import '../data/diagnostic_questions_data.dart';
 

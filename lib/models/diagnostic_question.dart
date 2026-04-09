@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum DiagnosticQuestionType { vocab, color, number }
 
 enum DiagnosticLevel { beginner, intermediate }
