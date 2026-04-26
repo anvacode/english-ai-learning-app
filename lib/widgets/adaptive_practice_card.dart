@@ -3,39 +3,68 @@ import '../theme/icon_sizes.dart';
 import 'package:english_ai_app/widgets/adaptive_badge.dart';
 import '../models/practice_activity.dart';
 
-/// Widget de tarjeta para mostrar una actividad de práctica
-/// Versión adaptativa que mantiene consistencia visual en todos los dispositivos
-class PracticeCard extends StatelessWidget {
+/// Responsive grid layout for badges that adapts to screen size
+class ResponsiveBadgeGrid extends StatelessWidget {
+  final List<Widget> badges;
+  
+  const ResponsiveBadgeGrid({required this.badges, super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+        final mainAxisSpacing = 8.0;
+        final crossAxisSpacing = 8.0;
+        
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: mainAxisSpacing,
+          crossAxisSpacing: crossAxisSpacing,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: badges,
+        );
+      },
+    );
+  }
+}
+
+class AdaptivePracticeCard extends StatelessWidget {
   final PracticeActivity activity;
+  final bool isUnlocked;
   final VoidCallback onTap;
   
-  const PracticeCard({
-    super.key,
+  const AdaptivePracticeCard({
     required this.activity,
+    required this.isUnlocked,
     required this.onTap,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isUnlocked = activity.isUnlocked;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final iconSize = isMobile ? IconSizes.sm : IconSizes.md;
+    final padding = isMobile ? 8.0 : 12.0;
+    final cardElevation = isMobile ? 2.0 : 4.0;
 
     return Card(
-      elevation: isUnlocked ? 4 : 2,
+      elevation: cardElevation,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: isUnlocked ? Colors.white : Colors.grey[300],
       child: InkWell(
-        onTap: isUnlocked ? onTap : null,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(padding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icono y estado - Adaptados para consistencia
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -47,7 +76,7 @@ class PracticeCard extends StatelessWidget {
                       ),
                       child: Text(
                         activity.iconEmoji,
-                        style: TextStyle(fontSize: IconSizes.md),
+                        style: TextStyle(fontSize: iconSize),
                       ),
                     ),
                     const PracticeCardBadge(
@@ -57,8 +86,6 @@ class PracticeCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                // Título
                 Text(
                   activity.title,
                   style: const TextStyle(
@@ -69,10 +96,7 @@ class PracticeCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-
                 const SizedBox(height: 6),
-
-                // Descripción
                 Text(
                   activity.description,
                   style: const TextStyle(
@@ -82,26 +106,23 @@ class PracticeCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-
                 const SizedBox(height: 8),
-
-                // Progreso y estadísticas
-                if (isUnlocked) ...[
+                if (activity.isUnlocked) ...[
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: const [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle_outline,
                             size: 16,
                             color: Colors.grey,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             '0/0',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
@@ -111,13 +132,13 @@ class PracticeCard extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.star,
                             size: 16,
                             color: Colors.amber,
                           ),
-                          const SizedBox(width: 4),
-                          const Text(
+                          SizedBox(width: 4),
+                          Text(
                             '0',
                             style: TextStyle(
                               fontSize: 12,

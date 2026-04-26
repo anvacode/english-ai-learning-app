@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/practice_activity.dart';
 import '../../logic/practice_service.dart';
 import '../../logic/star_service.dart';
-import '../../widgets/practice_card.dart';
+import "../../widgets/adaptive_practice_card.dart";
 import '../../widgets/responsive_container.dart';
 import '../../utils/responsive.dart';
 import '../../theme/app_colors.dart';
@@ -25,7 +25,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   String? _selectedLessonFilter;
   bool _isLoading = true;
   List<PracticeActivity> _activities = [];
-  Map<String, PracticeProgress> _progressMap = {};
+  Map<String, dynamic> _progressMap = {};
   int _totalStars = 0;
 
   @override
@@ -273,9 +273,9 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
                               ) {
                                 final activity = _filteredActivities[index];
                                 final progress = _progressMap[activity.id];
-                                return PracticeCard(
+                                return AdaptivePracticeCard(
                                   activity: activity,
-                                  progress: progress,
+                                  isUnlocked: progress != null,
                                   onTap: () => _onActivityTap(activity),
                                 );
                               }, childCount: _filteredActivities.length),
@@ -304,9 +304,9 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
         .where((p) => p.isCompleted)
         .length;
     final totalCount = _activities.where((a) => a.isUnlocked).length;
-    final practiceStars = _progressMap.values.fold<int>(
+    final practiceStars = _progressMap.values.fold(
       0,
-      (sum, p) => sum + p.starsEarned,
+      (sum, p) => sum + (p.starsEarned as int),
     );
 
     return Container(
