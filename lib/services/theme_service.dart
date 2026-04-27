@@ -172,7 +172,7 @@ class ThemeService extends ChangeNotifier {
         filled: true,
         fillColor: isDark
             ? colorScheme.surfaceContainerHighest
-            : colorScheme.surfaceVariant,
+            : colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

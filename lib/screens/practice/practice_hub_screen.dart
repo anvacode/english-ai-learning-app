@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "../../models/practice_activity.dart";
 import '../../models/practice_activity.dart';
 import '../../logic/practice_service.dart';
 import '../../logic/star_service.dart';
@@ -25,7 +26,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   String? _selectedLessonFilter;
   bool _isLoading = true;
   List<PracticeActivity> _activities = [];
-  Map<String, dynamic> _progressMap = {};
+  Map<String, PracticeProgress> _progressMap = {};
   int _totalStars = 0;
 
   @override
