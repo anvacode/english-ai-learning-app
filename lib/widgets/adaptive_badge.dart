@@ -64,18 +64,25 @@ class PracticeCardBadge extends StatelessWidget {
       padding = const EdgeInsets.all(6.0);
     }
     
-    return Container(
-      width: badgeSize,
-      height: badgeSize,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: isUnlocked ? BadgeColors.unlockedLight : BadgeColors.lockedDefault,
-        shape: BoxShape.circle,
+    // Usar ConstrainedBox para forzar tamaño mínimo
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: badgeSize,
+        minHeight: badgeSize,
       ),
-      child: Icon(
-        iconData,
-        size: iconSize,
-        color: isUnlocked ? BadgeColors.unlockedText : BadgeColors.lockedText,
+      child: Container(
+        width: badgeSize,
+        height: badgeSize,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: isUnlocked ? BadgeColors.unlockedLight : BadgeColors.lockedDefault,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          iconData,
+          size: iconSize,
+          color: isUnlocked ? BadgeColors.unlockedText : BadgeColors.lockedText,
+        ),
       ),
     );
   }
