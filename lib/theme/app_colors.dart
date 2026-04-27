@@ -54,6 +54,7 @@ class AppColors {
   static const Color background = Color(0xFFF5F7FA); // Gris azulado muy claro
   static const Color surface = Colors.white; // Blanco puro
   static const Color surfaceVariant = Color(0xFFEDF2F7); // Gris muy claro
+  static const Color surfaceContainerHighest = Color(0xFFF5F5F5); // Muy claro, casi blanco
   static const Color cardBackground = Colors.white; // Fondo de tarjetas
 
   // ============================================

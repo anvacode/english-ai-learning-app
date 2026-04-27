@@ -435,7 +435,7 @@ class ThemeService extends ChangeNotifier {
     onErrorContainer: AppColors.textPrimary,
     surface: AppColors.surface,
     onSurface: AppColors.textPrimary,
-    surfaceContainerHighest: AppColors.surfaceVariant,
+    surfaceContainerHighest: AppColors.surfaceContainerHighest,
     onSurfaceVariant: AppColors.textSecondary,
     outline: AppColors.border,
     outlineVariant: AppColors.divider,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/icon_sizes.dart';
 import '../theme/color_palette.dart';
 import '../models/practice_activity.dart';
 
@@ -43,14 +42,16 @@ class PracticeCardBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      width: 48.0,
+      height: 48.0,
+      padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: isUnlocked ? BadgeColors.unlockedLight : BadgeColors.lockedDefault,
         shape: BoxShape.circle,
       ),
       child: Icon(
         iconData,
-        size: IconSizes.sm,
+        size: 24.0,
         color: isUnlocked ? BadgeColors.unlockedText : BadgeColors.lockedText,
       ),
     );
@@ -61,7 +62,7 @@ class AdaptivePracticeCard extends StatelessWidget {
   final PracticeActivity activity;
   final bool isUnlocked;
   final VoidCallback onTap;
-  
+
   const AdaptivePracticeCard({
     required this.activity,
     required this.isUnlocked,
@@ -73,9 +74,9 @@ class AdaptivePracticeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
-    final iconSize = isMobile ? IconSizes.sm : IconSizes.md;
-    final padding = isMobile ? 8.0 : 12.0;
-    final cardElevation = isMobile ? 2.0 : 4.0;
+    final iconSize = isMobile ? 120.0 : 160.0;
+    final padding = isMobile ? 16.0 : 24.0;
+    final cardElevation = isUnlocked ? 6.0 : 2.0;
 
     return Card(
       elevation: cardElevation,
@@ -92,25 +93,19 @@ class AdaptivePracticeCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        activity.iconEmoji,
-                        style: TextStyle(fontSize: iconSize),
-                      ),
-                    ),
-                    const PracticeCardBadge(
-                      isUnlocked: false,
-                      iconData: Icons.lock,
-                    ),
-                  ],
+                Container(
+                  width: iconSize,
+                  height: iconSize,
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    activity.iconEmoji,
+                    style: TextStyle(fontSize: isMobile ? 32.0 : 40.0),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -134,49 +129,13 @@ class AdaptivePracticeCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                if (activity.isUnlocked) ...[
+                if (isUnlocked) ...[
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_outline,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '0/0',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            '0',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  const AnimatedProgressIndicator(
+                    value: 1.0,
                   ),
+                  const SizedBox(height: 8),
+                  const PracticeStatsRow(),
                 ] else ...[
                   const PracticeCardBadge(
                     isUnlocked: false,
@@ -188,6 +147,78 @@ class AdaptivePracticeCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class AnimatedProgressIndicator extends StatelessWidget {
+  final double value;
+
+  const AnimatedProgressIndicator({required this.value, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0, end: value),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, currentValue, child) {
+        return LinearProgressIndicator(
+          value: currentValue,
+          backgroundColor: Colors.grey[300],
+          valueColor: const AlwaysStoppedAnimation<Color>(
+            BadgeColors.unlockedPrimary,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class PracticeStatsRow extends StatelessWidget {
+  const PracticeStatsRow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: const [
+        Row(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 16,
+              color: Colors.grey,
+            ),
+            SizedBox(width: 4),
+            Text(
+              '0/0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Icon(
+              Icons.star,
+              size: 16,
+              color: Colors.amber,
+            ),
+            SizedBox(width: 4),
+            Text(
+              '0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
