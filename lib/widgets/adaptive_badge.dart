@@ -42,7 +42,7 @@ class PracticeCardBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     
-    // Tamaños uniformes por breakpoint
+    // Tamaños uniformes por breakpoint - 40px para web mejorado
     late final double badgeSize;
     late final double iconSize;
     late final EdgeInsets padding;
@@ -58,7 +58,7 @@ class PracticeCardBadge extends StatelessWidget {
       iconSize = 20.0;
       padding = const EdgeInsets.all(6.0);
     } else {
-      // Web/Desktop: 40px para consistencia con tablet
+      // Web/Desktop: 40px con mejoras visuales
       badgeSize = 40.0;
       iconSize = 20.0;
       padding = const EdgeInsets.all(6.0);
@@ -77,6 +77,10 @@ class PracticeCardBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: isUnlocked ? BadgeColors.unlockedLight : BadgeColors.lockedDefault,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: isUnlocked ? BadgeColors.unlockedBorder : BadgeColors.lockedBorder,
+            width: 1.5,
+          ),
         ),
         child: Icon(
           iconData,

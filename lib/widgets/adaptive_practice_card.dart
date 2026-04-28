@@ -1,40 +1,14 @@
 import 'package:flutter/material.dart';
-import '../theme/icon_sizes.dart';
+import '../theme/color_palette.dart';
 import 'package:english_ai_app/widgets/adaptive_badge.dart';
 import '../models/practice_activity.dart';
 
-/// Responsive grid layout for badges that adapts to screen size
-class ResponsiveBadgeGrid extends StatelessWidget {
-  final List<Widget> badges;
-  
-  const ResponsiveBadgeGrid({required this.badges, super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-        final mainAxisSpacing = 8.0;
-        final crossAxisSpacing = 8.0;
-        
-        return GridView.count(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: mainAxisSpacing,
-          crossAxisSpacing: crossAxisSpacing,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: badges,
-        );
-      },
-    );
-  }
-}
-
+/// Tarjeta adaptativa para actividades de práctica con tamaño de iconos mejorado
 class AdaptivePracticeCard extends StatelessWidget {
   final PracticeActivity activity;
   final bool isUnlocked;
   final VoidCallback onTap;
-  
+
   const AdaptivePracticeCard({
     required this.activity,
     required this.isUnlocked,
@@ -45,10 +19,17 @@ class AdaptivePracticeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final iconSize = isMobile ? IconSizes.sm : IconSizes.md;
-    final padding = isMobile ? 8.0 : 12.0;
-    final cardElevation = isMobile ? 2.0 : 4.0;
+    
+    // Coeficiente responsive basado en ancho
+    final double widthFactor = screenWidth.clamp(320, 1920) / 375;
+    
+    // Tamaños escalables - AUMENTADOS para mejor visibilidad
+    final iconSize = (120.0 * widthFactor).clamp(80.0, 160.0);
+    final padding = (16.0 * widthFactor).clamp(12.0, 24.0);
+    final cardElevation = isUnlocked ? 6.0 : 2.0;
+    
+    // Tamaño de emoji aumentado: 32% en lugar de 25%
+    final emojiSize = (iconSize * 0.32).clamp(20.0, 64.0);
 
     return Card(
       elevation: cardElevation,
@@ -65,25 +46,41 @@ class AdaptivePracticeCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        activity.iconEmoji,
-                        style: TextStyle(fontSize: iconSize),
-                      ),
+                Container(
+                  width: iconSize,
+                  height: iconSize,
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: isUnlocked ? Colors.blue[50] : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isUnlocked ? Colors.blue[200]! : Colors.grey[300]!,
+                      width: 2.0,
                     ),
-                    const PracticeCardBadge(
-                      isUnlocked: false,
-                      iconData: Icons.lock,
+                    boxShadow: isUnlocked ? [
+                      BoxShadow(
+                        color: Colors.blue.withAlpha(20),
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      )
+                    ] : null,
+                  ),
+                  child: Text(
+                    activity.iconEmoji,
+                    style: TextStyle(
+                      fontSize: emojiSize,
+                      fontWeight: FontWeight.bold,
+                      color: isUnlocked ? Colors.blue[900] : Colors.grey[500],
+                      shadows: isUnlocked ? [
+                        Shadow(
+                          offset: Offset(1, 1),
+                          blurRadius: 2,
+                          color: Colors.blue.withAlpha(10),
+                        )
+                      ] : null,
                     ),
-                  ],
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -107,49 +104,13 @@ class AdaptivePracticeCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                if (activity.isUnlocked) ...[
+                if (isUnlocked) ...[
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '0/0',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '0',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  const AnimatedProgressIndicator(
+                    value: 1.0,
                   ),
+                  const SizedBox(height: 8),
+                  const PracticeStatsRow(),
                 ] else ...[
                   const PracticeCardBadge(
                     isUnlocked: false,
@@ -161,6 +122,78 @@ class AdaptivePracticeCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class AnimatedProgressIndicator extends StatelessWidget {
+  final double value;
+
+  const AnimatedProgressIndicator({required this.value, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0, end: value),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, currentValue, child) {
+        return LinearProgressIndicator(
+          value: currentValue,
+          backgroundColor: Colors.grey[300],
+          valueColor: const AlwaysStoppedAnimation<Color>(
+            BadgeColors.unlockedPrimary,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class PracticeStatsRow extends StatelessWidget {
+  const PracticeStatsRow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: const [
+        Row(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 16,
+              color: Colors.grey,
+            ),
+            SizedBox(width: 4),
+            Text(
+              '0/0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Icon(
+              Icons.star,
+              size: 16,
+              color: Colors.amber,
+            ),
+            SizedBox(width: 4),
+            Text(
+              '0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
