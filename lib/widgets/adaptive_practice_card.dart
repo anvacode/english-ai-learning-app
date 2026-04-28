@@ -3,7 +3,7 @@ import '../theme/color_palette.dart';
 import 'package:english_ai_app/widgets/adaptive_badge.dart';
 import '../models/practice_activity.dart';
 
-/// Tarjeta adaptativa para actividades de práctica con tamaño de iconos mejorado
+/// Tarjeta adaptativa para actividades de práctica con tamaño de iconos mejorado para web
 class AdaptivePracticeCard extends StatelessWidget {
   final PracticeActivity activity;
   final bool isUnlocked;
@@ -23,13 +23,13 @@ class AdaptivePracticeCard extends StatelessWidget {
     // Coeficiente responsive basado en ancho
     final double widthFactor = screenWidth.clamp(320, 1920) / 375;
     
-    // Tamaños escalables - AUMENTADOS para mejor visibilidad
+    // Tamaños escalables - AUMENTADOS para mejor visibilidad en web
     final iconSize = (120.0 * widthFactor).clamp(80.0, 160.0);
     final padding = (16.0 * widthFactor).clamp(12.0, 24.0);
     final cardElevation = isUnlocked ? 6.0 : 2.0;
     
-    // Tamaño de emoji aumentado: 32% en lugar de 25%
-    final emojiSize = (iconSize * 0.32).clamp(20.0, 64.0);
+    // Tamaño de emoji aumentado: 42% del contenedor (antes 25%)
+    final emojiSize = (iconSize * 0.42).clamp(28.0, 72.0);
 
     return Card(
       elevation: cardElevation,
@@ -46,40 +46,51 @@ class AdaptivePracticeCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: iconSize,
-                  height: iconSize,
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: isUnlocked ? Colors.blue[50] : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isUnlocked ? Colors.blue[200]! : Colors.grey[300]!,
-                      width: 2.0,
-                    ),
-                    boxShadow: isUnlocked ? [
-                      BoxShadow(
-                        color: Colors.blue.withAlpha(20),
-                        blurRadius: 6,
-                        offset: Offset(0, 3),
-                      )
-                    ] : null,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: 56.0,
+                    minHeight: 56.0,
+                    maxWidth: iconSize * 0.5,
+                    maxHeight: iconSize * 0.5,
                   ),
-                  child: Text(
-                    activity.iconEmoji,
-                    style: TextStyle(
-                      fontSize: emojiSize,
-                      fontWeight: FontWeight.bold,
-                      color: isUnlocked ? Colors.blue[900] : Colors.grey[500],
-                      shadows: isUnlocked ? [
-                        Shadow(
-                          offset: Offset(1, 1),
-                          blurRadius: 2,
-                          color: Colors.blue.withAlpha(10),
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: isUnlocked ? Colors.blue[50] : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(14.0),
+                      border: Border.all(
+                        color: isUnlocked ? Colors.blue[300]! : Colors.grey[300]!,
+                        width: 2.0,
+                      ),
+                      boxShadow: isUnlocked ? [
+                        BoxShadow(
+                          color: Colors.blue.withAlpha(20),
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
                         )
                       ] : null,
                     ),
-                    textAlign: TextAlign.center,
+                    alignment: Alignment.center,
+                    child: Text(
+                      activity.iconEmoji,
+                      style: TextStyle(
+                        fontSize: emojiSize,
+                        fontWeight: FontWeight.bold,
+                        color: isUnlocked ? Colors.blue[900] : Colors.grey[600],
+                        shadows: isUnlocked ? [
+                          Shadow(
+                            offset: Offset(1, 1),
+                            blurRadius: 3,
+                            color: Colors.blue.withAlpha(10),
+                          )
+                        ] : null,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
