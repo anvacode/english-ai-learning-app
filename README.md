@@ -39,7 +39,7 @@ Una aplicación educativa interactiva para que niños aprendan inglés de forma 
 | **Test Diagnóstico Visual** | 10 preguntas con emojis diseñadas para niños de 5-8 años |
 | **3 Niveles de Dificultad** | Principiante, Intermedio, Avanzado |
 | **Seguimiento de Progreso** | Lecciones no iniciadas, en progreso, dominadas |
-| **Maestría por Lección** | Requiere 100% de respuestas correctas para dominar |
+| **Maestría por Lección** | Requiere 80% de precisión y todos los items completados |
 
 ### 🎮 Gamificación Completa
 
@@ -102,7 +102,7 @@ Una aplicación educativa interactiva para que niños aprendan inglés de forma 
 |-------|-------------|
 | **Principiante** | Vocabulario básico, palabras simples |
 | **Intermedio** | Oraciones completas, gramática básica |
-| **Avanzado** | READING, escritura, expresiones complejas |
+| **Avanzado** | Reading, escritura, expresiones complejas |
 
 ---
 
