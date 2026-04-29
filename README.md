@@ -230,25 +230,6 @@ flutter analyze
 
 ---
 
-## 🔮 Roadmap - Próximas Innovaciones
-
-### Fase 1: Enhancements de Gamificación
-- [ ] Sistema de Avatares animados
-- [ ] Rachas con recompensas diarias
-- [ ] Tabla de clasificación (opcional)
-
-### Fase 2: Features Innovadores
-- [ ] **Spaced Repetition System (SRS)** - Algoritmo SM-2 para vocabulario
-- [ ] **Chatbot Conversacional** - Práctica de diálogo libre
-- [ ] **Historias Interactivas** - Narrativas con decisiones
-
-### Fase 3: Funcionalidades Sociales
-- [ ] **Dashboard de Padres** - Reportes de progreso
-- [ ] **Aprendizaje Multiplayer** - Modo colaborativo
-- [ ] **AR (Realidad Aumentada)** - Vocabulario con cámara
-
----
-
 ## 🤝 Contribuir
 
 1. Haz fork del repositorio
