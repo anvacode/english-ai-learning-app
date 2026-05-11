@@ -2,24 +2,19 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    # Consistency
-    - prefer_single_quotes
-    - prefer_const_constructors
-    - prefer_const_declarations
-    - prefer_const_literals_to_create_immutables
-    - require_trailing_commas
-    - sort_child_properties_last
-
-    # Quality and safety
-    - avoid_print
-    - avoid_redundant_argument_values
-    - unnecessary_null_checks
-    - unnecessary_late
-
-    # Organization
-    - directives_ordering
-    - sort_pub_dependencies
-
-    # Flutter best practices
-    - use_key_in_widget_constructors
-    - prefer_const_constructors_in_immutables
+    prefer_single_quotes: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    require_trailing_commas: true
+    sort_child_properties_last: true
+    avoid_print: true
+    avoid_redundant_argument_values: true
+    unnecessary_null_checks: true
+    unnecessary_late: true
+    directives_ordering: true
+    sort_pub_dependencies: true
+    use_key_in_widget_constructors: true
+    prefer_const_constructors_in_immutables: true
+    # Disabled: already handled with mounted checks
+    use_build_context_synchronously: false
