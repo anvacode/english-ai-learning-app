@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../models/lesson.dart';
 import '../models/lesson_item.dart';
 import '../services/audio_service.dart';
-import '../widgets/lesson_image.dart';
 import '../utils/responsive.dart';
+import '../widgets/lesson_image.dart';
 
 /// Pantalla de ejercicio de ortografía (Spelling Game)
 /// El niño debe arrastrar letras para formar la palabra correcta
@@ -61,7 +62,7 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
 
   void _checkAnswer() {
     final correctWord = _items[_currentIndex].title.toUpperCase();
-    final userWord = _placedLetters.join('');
+    final userWord = _placedLetters.join();
 
     setState(() {
       _isCorrect = userWord == correctWord;
@@ -224,7 +225,6 @@ class _SpellingExerciseScreenState extends State<SpellingExerciseScreen>
                               border: Border.all(
                                 color: Colors.grey[400]!,
                                 width: 2,
-                                style: BorderStyle.solid,
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),

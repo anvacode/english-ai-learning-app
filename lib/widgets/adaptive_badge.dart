@@ -12,8 +12,8 @@ class ResponsiveBadgeGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-        final mainAxisSpacing = 8.0;
-        final crossAxisSpacing = 8.0;
+        const mainAxisSpacing = 8.0;
+        const crossAxisSpacing = 8.0;
         
         return GridView.count(
           crossAxisCount: crossAxisCount,

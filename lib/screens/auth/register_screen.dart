@@ -379,7 +379,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     height: 24,
                                     width: 24,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
+                                      return const Icon(
                                         Icons.g_mobiledata,
                                         size: 24,
                                         color: Colors.red,

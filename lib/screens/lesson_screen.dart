@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/lesson.dart';
-import '../models/activity_result.dart';
-import '../models/matching_item.dart';
+
+import '../dialogs/lesson_completion_dialog.dart';
 import '../logic/activity_result_service.dart';
-import '../logic/lesson_progress_evaluator.dart';
-import '../logic/lesson_completion_service.dart';
 import '../logic/badge_service.dart';
+import '../logic/lesson_completion_service.dart';
 import '../logic/lesson_controller.dart';
+import '../logic/lesson_progress_evaluator.dart';
 import '../logic/star_service.dart';
+import '../models/activity_result.dart';
 import '../models/badge.dart' as achievement;
-import '../widgets/lesson_image.dart';
-import '../widgets/speaker_button.dart';
-import '../widgets/sparkles_overlay.dart';
-import '../widgets/translation_popup.dart';
+import '../models/lesson.dart';
+import '../models/matching_item.dart';
 import '../services/audio_service.dart';
 import '../services/effects_service.dart';
-import '../dialogs/lesson_completion_dialog.dart';
-import 'matching_exercise_screen.dart';
 import '../utils/responsive.dart';
+import '../widgets/lesson_image.dart';
+import '../widgets/sparkles_overlay.dart';
+import '../widgets/speaker_button.dart';
+import '../widgets/translation_popup.dart';
+import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
   final Lesson lesson;
@@ -107,8 +108,9 @@ class _LessonScreenState extends State<LessonScreen> {
       final results = await ActivityResultService.getActivityResults();
       final completedIds = <String>{};
       for (final r in results) {
-        if (r.lessonId == widget.lesson.id && r.isCorrect)
+        if (r.lessonId == widget.lesson.id && r.isCorrect) {
           completedIds.add(r.itemId);
+        }
       }
 
       for (var i = 0; i < widget.lesson.items.length; i++) {
@@ -539,12 +541,12 @@ class _LessonScreenState extends State<LessonScreen> {
     if (_exerciseCompleted) {
       return Scaffold(
         appBar: AppBar(title: const Text('Lección')),
-        body: SafeArea(
+        body: const SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   '✓ Correcto',
                   style: TextStyle(
                     fontSize: 24,
@@ -552,8 +554,8 @@ class _LessonScreenState extends State<LessonScreen> {
                     color: Colors.green,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   '🎉 Ejercicio completado',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -579,7 +581,6 @@ class _LessonScreenState extends State<LessonScreen> {
         children: [
           SafeArea(
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -650,8 +651,6 @@ class _LessonScreenState extends State<LessonScreen> {
                                 height: context.isMobile
                                     ? 200
                                     : (context.isTablet ? 180 : 150),
-                                fit: BoxFit
-                                    .contain, // Mostrar imagen completa sin recortar
                               ),
                             ),
                           ),
@@ -666,7 +665,6 @@ class _LessonScreenState extends State<LessonScreen> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
                               child: Text(
@@ -731,7 +729,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                   vertical: context.isMobile ? 6.0 : 4.0,
                                 ),
                                 child: ConstrainedBox(
-                                  constraints: BoxConstraints(
+                                  constraints: const BoxConstraints(
                                     // Más estrecho en web
                                     maxWidth: 200,
                                     minHeight: 50,
@@ -972,7 +970,7 @@ class _LessonScreenState extends State<LessonScreen> {
           if (_showSparkles && _sparklesCenter != null)
             SparklesOverlay(
               isPlaying: _showSparkles,
-              center: _sparklesCenter!,
+              center: _sparklesCenter,
               onComplete: () {
                 setState(() {
                   _showSparkles = false;

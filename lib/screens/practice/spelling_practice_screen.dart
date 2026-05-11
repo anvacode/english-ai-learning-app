@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+
+import '../../data/lessons_data.dart';
+import '../../logic/practice_service.dart';
+import '../../logic/star_service.dart';
 import '../../models/lesson.dart';
 import '../../models/lesson_item.dart';
 import '../../models/practice_activity.dart';
 import '../../services/audio_service.dart';
-import '../../widgets/lesson_image.dart';
-import '../../logic/practice_service.dart';
-import '../../logic/star_service.dart';
-import '../../data/lessons_data.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/lesson_image.dart';
 
 /// Pantalla de práctica de ortografía (Spelling Game)
 /// El niño debe arrastrar letras para formar la palabra correcta
@@ -75,7 +76,7 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
 
   Future<void> _checkAnswer() async {
     final correctWord = _items[_currentIndex].title.toUpperCase();
-    final userWord = _placedLetters.join('');
+    final userWord = _placedLetters.join();
 
     setState(() {
       _isCorrect = userWord == correctWord;
@@ -315,7 +316,6 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                               border: Border.all(
                                 color: Colors.grey[400]!,
                                 width: 2,
-                                style: BorderStyle.solid,
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),

@@ -1,8 +1,10 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../models/shop_item.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../logic/star_service.dart';
 import '../logic/user_profile_service.dart';
+import '../models/shop_item.dart';
 import 'theme_service.dart';
 
 /// Servicio para manejar la tienda de estrellas.

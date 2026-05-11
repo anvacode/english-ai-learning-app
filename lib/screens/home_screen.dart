@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'lessons_screen.dart';
-import 'profile/profile_screen.dart';
-import 'settings_screen.dart';
-import 'achievements_screen.dart';
-import 'shop_screen.dart';
-import 'practice/practice_hub_screen.dart';
-import 'diagnostic/diagnostic_intro_screen.dart';
-import '../widgets/star_display.dart';
-import '../utils/responsive.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_icons.dart';
-import '../logic/auth_provider.dart';
+
 import '../dialogs/auth_prompt_dialog.dart';
+import '../logic/auth_provider.dart';
 import '../services/auth_prompt_service.dart';
 import '../services/diagnostic_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
+import '../utils/responsive.dart';
+import '../widgets/star_display.dart';
+import 'achievements_screen.dart';
+import 'diagnostic/diagnostic_intro_screen.dart';
+import 'lessons_screen.dart';
+import 'practice/practice_hub_screen.dart';
+import 'profile/profile_screen.dart';
+import 'settings_screen.dart';
+import 'shop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -162,9 +163,7 @@ class _HomeGridView extends StatelessWidget {
         slivers: [
           SliverAppBar(
             expandedHeight: context.isMobile ? 80 : 120,
-            floating: false,
             pinned: context.isMobile ? false : true,
-            snap: false,
             elevation: context.isMobile ? 0 : 4,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
@@ -189,10 +188,8 @@ class _HomeGridView extends StatelessWidget {
                         color: Colors.white.withAlpha(30),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: StarDisplay(
-                        iconSize: 20,
-                        fontSize: 16,
-                        showBackground: false,
+                      child: const StarDisplay(
+                        
                       ),
                     ),
                   const SizedBox(width: 8),
@@ -247,10 +244,9 @@ class _HomeGridView extends StatelessWidget {
                             color: Colors.white.withAlpha(30),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: StarDisplay(
+                          child: const StarDisplay(
                             iconSize: 24,
                             fontSize: 18,
-                            showBackground: false,
                           ),
                         ),
                       ),

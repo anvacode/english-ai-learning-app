@@ -221,7 +221,7 @@ class _PronunciationPracticeScreenState
               LinearProgressIndicator(
                 value: (_currentIndex + 1) / _practiceWords.length,
                 backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
               const SizedBox(height: 32),
 
@@ -272,7 +272,7 @@ class _PronunciationPracticeScreenState
               // Palabra objetivo
               Text(
                 targetWord,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,

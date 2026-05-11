@@ -25,15 +25,14 @@ class ExampleAppBarWithStars extends StatelessWidget implements PreferredSizeWid
     return AppBar(
       title: const Text('Mi Aplicación'),
       centerTitle: true,
-      actions: [
+      actions: const [
         // Versión compacta para AppBar
         Padding(
-          padding: const EdgeInsets.only(right: 16.0),
+          padding: EdgeInsets.only(right: 16.0),
           child: Center(
             child: StarCounter(
               iconSize: 20,
               fontSize: 16,
-              showBackground: true,
               refreshInterval: 3, // Actualizar cada 3 segundos
             ),
           ),
@@ -79,8 +78,6 @@ class ExampleProfileScreen extends StatelessWidget {
             const StarCounter(
               iconSize: 32,
               fontSize: 28,
-              showBackground: true,
-              animateChanges: true,
             ),
             const SizedBox(height: 8),
             
@@ -110,14 +107,13 @@ class ExampleShopScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tienda'),
-        actions: [
+        actions: const [
           // Mostrar estrellas disponibles con botón de recarga
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 8.0),
             child: Center(
               child: StarCounterWithRefresh(
                 iconSize: 22,
-                fontSize: 18,
               ),
             ),
           ),
@@ -255,7 +251,6 @@ class ExampleRewardDialog extends StatelessWidget {
                     iconSize: 28,
                     fontSize: 24,
                     showBackground: false,
-                    animateChanges: true,
                   ),
                 ],
               ),
@@ -346,9 +341,7 @@ class ExampleStarBanner extends StatelessWidget {
             ),
           ),
           const StarCounter(
-            iconSize: 24,
             fontSize: 20,
-            showBackground: true,
             iconColor: Colors.white,
             textColor: Colors.white,
           ),
@@ -402,7 +395,6 @@ class _ExampleScreenWithNotificationsState
               child: StarCounter(
                 iconSize: 20,
                 fontSize: 16,
-                showBackground: true,
                 onStarsUpdated: _onStarsUpdated,
               ),
             ),
@@ -464,16 +456,13 @@ class ExampleLessonsScreenWithStars extends StatelessWidget {
         title: const Text('Lecciones de Inglés'),
         centerTitle: true,
         elevation: 2,
-        actions: [
+        actions: const [
           // StarCounter en AppBar
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: EdgeInsets.only(right: 16.0),
             child: Center(
               child: StarCounter(
                 iconSize: 22,
-                fontSize: 18,
-                showBackground: true,
-                refreshInterval: 2,
               ),
             ),
           ),

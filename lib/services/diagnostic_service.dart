@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/diagnostic_result.dart';
+
 import '../data/diagnostic_questions_data.dart';
+import '../models/diagnostic_result.dart';
 
 class DiagnosticService {
   static const String _diagnosticCompletedKey = 'diagnostic_completed';
@@ -38,7 +40,7 @@ class DiagnosticService {
   }
 
   static DiagnosticResult calculateResult(List<int?> answers) {
-    final questions = DiagnosticQuestionsData.questions;
+    const questions = DiagnosticQuestionsData.questions;
 
     int correctAnswers = 0;
 

@@ -255,7 +255,7 @@ class _LessonFeedbackScreenState extends State<LessonFeedbackScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.blue[50],
-        border: Border(
+        border: const Border(
           left: BorderSide(
             color: Colors.blue,
             width: 4,

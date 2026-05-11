@@ -1,12 +1,14 @@
 import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import '../models/sync_operation.dart';
-import '../models/sync_metadata.dart';
+
 import '../models/sync_conflict.dart';
-import 'local_storage_service.dart';
+import '../models/sync_metadata.dart';
+import '../models/sync_operation.dart';
 import 'firebase_service.dart';
+import 'local_storage_service.dart';
 
 class SyncQueueService {
   static final SyncQueueService _instance = SyncQueueService._internal();

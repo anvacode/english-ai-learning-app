@@ -19,7 +19,6 @@ class UserProfile {
     return UserProfile(
       nickname: 'Estudiante',
       avatarId: 0,
-      englishLevel: null,
       createdAt: DateTime.now(),
     );
   }

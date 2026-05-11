@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../logic/user_profile_service.dart';
 import '../models/shop_item.dart';
-import '../services/shop_service.dart';
-import '../services/theme_service.dart';
 import '../services/effects_service.dart';
 import '../services/powerup_service.dart';
-import '../logic/user_profile_service.dart';
+import '../services/shop_service.dart';
+import '../services/theme_service.dart';
 import '../widgets/avatar_widget.dart';
 
 /// Pantalla para ver y gestionar los ítems comprados.

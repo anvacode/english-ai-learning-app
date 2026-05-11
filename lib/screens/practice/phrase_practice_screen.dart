@@ -1,8 +1,10 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../data/pronunciation_phrases_data.dart';
-import '../../services/speech_recognition_service.dart';
 import '../../services/audio_service.dart';
+import '../../services/speech_recognition_service.dart';
 import '../../theme/app_colors.dart';
 
 class PhrasePracticeScreen extends StatefulWidget {
@@ -106,7 +108,6 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
 
     final result = await _speechService.listenAndEvaluatePhrase(
       currentPhrase.phrase,
-      timeout: const Duration(seconds: 8),
     );
 
     if (mounted) {

@@ -111,8 +111,6 @@ class AppColors {
   );
 
   static const LinearGradient rainbowGradient = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
     colors: [
       rainbowRed,
       rainbowOrange,
@@ -143,7 +141,6 @@ class AppColors {
       color: primary.withAlpha(10),
       blurRadius: 10,
       offset: const Offset(0, 4),
-      spreadRadius: 0,
     ),
   ];
 

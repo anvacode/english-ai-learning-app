@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../data/lessons_data.dart';
-import '../logic/lesson_progress_evaluator.dart';
 import '../logic/badge_service.dart';
+import '../logic/lesson_progress_evaluator.dart';
 import '../logic/mastery_evaluator.dart';
 import '../models/badge.dart' as achievement;
 

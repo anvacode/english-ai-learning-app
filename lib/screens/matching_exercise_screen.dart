@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
 import 'dart:math' show Random;
-import '../models/matching_item.dart';
-import '../models/activity_result.dart';
+
+import 'package:flutter/material.dart';
+
 import '../logic/activity_result_service.dart';
+import '../models/activity_result.dart';
+import '../models/matching_item.dart';
+import '../services/audio_service.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/speaker_button.dart';
-import '../services/audio_service.dart';
 
 class MatchingExerciseScreen extends StatefulWidget {
   final String lessonId;
@@ -236,7 +238,6 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
                           children: widget.items
                               .map((item) => _buildImageButton(item))
                               .toList(),
@@ -248,7 +249,6 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
                           children: _shuffledWords
                               .map((word) => _buildWordButton(word))
                               .toList(),
@@ -354,7 +354,6 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     imagePath: item.imagePath,
                     width: double.infinity,
                     height: double.infinity,
-                    fit: BoxFit.contain, // Mostrar imagen completa sin recortar
                   ),
                 ),
               ),
@@ -396,7 +395,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               .correctWord ==
           word,
     );
-    final buttonHeight = 50.0;
+    const buttonHeight = 50.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),

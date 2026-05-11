@@ -127,7 +127,6 @@ class _StarDisplayState extends State<StarDisplay> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Colors.amber[200]!,
-            width: 1,
           ),
         ),
         child: content,

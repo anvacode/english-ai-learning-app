@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../logic/auth_provider.dart';
 import '../../services/diagnostic_service.dart';
 import '../../theme/app_icons.dart';
 import '../../utils/feedback_messages.dart';
-import '../home_screen.dart';
 import '../diagnostic/diagnostic_intro_screen.dart';
+import '../home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -223,9 +224,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               labelStyle: TextStyle(
                                 color: Colors.grey.shade600,
                               ),
-                              prefixIcon: Icon(
+                              prefixIcon: const Icon(
                                 AppIcons.email,
-                                color: const Color(0xFF667eea),
+                                color: Color(0xFF667eea),
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
@@ -260,9 +261,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               labelStyle: TextStyle(
                                 color: Colors.grey.shade600,
                               ),
-                              prefixIcon: Icon(
+                              prefixIcon: const Icon(
                                 AppIcons.lock,
-                                color: const Color(0xFF667eea),
+                                color: Color(0xFF667eea),
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(

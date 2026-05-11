@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../logic/star_service.dart';
 import '../models/shop_item.dart';
 import '../services/shop_service.dart';
 import '../services/theme_service.dart';
-import '../logic/star_service.dart';
-import '../widgets/star_display.dart';
-import '../widgets/error_dialog.dart';
-import '../utils/responsive.dart';
-import '../widgets/responsive_container.dart';
 import '../theme/text_styles.dart';
+import '../utils/responsive.dart';
+import '../widgets/error_dialog.dart';
+import '../widgets/responsive_container.dart';
+import '../widgets/star_display.dart';
 
 /// Pantalla de la tienda de estrellas.
 /// 
@@ -314,14 +315,13 @@ class _ShopItemCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: isPurchased
-            ? BorderSide(color: Colors.green, width: 2)
+            ? const BorderSide(color: Colors.green, width: 2)
             : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Ícono del ítem - optimizado para móvil
               Container(
@@ -418,7 +418,6 @@ class _ShopItemCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: typeColor.withAlpha(76),
-                              width: 1,
                             ),
                           ),
                           child: Row(

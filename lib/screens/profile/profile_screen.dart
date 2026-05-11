@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import '../../logic/user_profile_service.dart';
+
+import '../../data/lessons_data.dart';
+import '../../dialogs/edit_nickname_dialog.dart';
 import '../../logic/badge_service.dart';
 import '../../logic/mastery_evaluator.dart';
 import '../../logic/star_service.dart';
-import '../../data/lessons_data.dart';
-import '../../models/user_profile.dart';
+import '../../logic/user_profile_service.dart';
 import '../../models/badge.dart' as achievement;
-import '../../widgets/avatar_widget.dart';
-import '../../widgets/star_display.dart';
-import '../../widgets/auth_status_widget.dart';
-import '../../dialogs/edit_nickname_dialog.dart';
-import '../../utils/responsive.dart';
-import '../../widgets/responsive_container.dart';
+import '../../models/user_profile.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/auth_status_widget.dart';
+import '../../widgets/avatar_widget.dart';
+import '../../widgets/responsive_container.dart';
+import '../../widgets/star_display.dart';
 import 'avatar_selection_screen.dart';
 
 /// Pantalla de perfil del usuario.

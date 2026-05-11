@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../logic/first_time_service.dart';
-import '../logic/student_service.dart';
-import '../logic/star_service.dart';
-import '../services/auth_prompt_service.dart';
+
 import '../dialogs/daily_login_reward_dialog.dart';
-import 'onboarding/modern_onboarding_screen.dart';
+import '../logic/first_time_service.dart';
+import '../logic/star_service.dart';
+import '../logic/student_service.dart';
+import '../services/auth_prompt_service.dart';
 import 'home_screen.dart';
+import 'onboarding/modern_onboarding_screen.dart';
 
 /// Pantalla de splash que se muestra al iniciar la aplicación.
 ///

@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import '../theme/color_palette.dart';
 import 'package:english_ai_app/widgets/adaptive_badge.dart';
+import 'package:flutter/material.dart';
+
 import '../models/practice_activity.dart';
+import '../theme/color_palette.dart';
 
 /// Tarjeta adaptativa para actividades de práctica con tamaño de iconos mejorado para web
 class AdaptivePracticeCard extends StatelessWidget {
@@ -68,7 +69,7 @@ class AdaptivePracticeCard extends StatelessWidget {
                         BoxShadow(
                           color: Colors.blue.withAlpha(20),
                           blurRadius: 6,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         )
                       ] : null,
                     ),
@@ -81,7 +82,7 @@ class AdaptivePracticeCard extends StatelessWidget {
                         color: isUnlocked ? Colors.blue[900] : Colors.grey[600],
                         shadows: isUnlocked ? [
                           Shadow(
-                            offset: Offset(1, 1),
+                            offset: const Offset(1, 1),
                             blurRadius: 3,
                             color: Colors.blue.withAlpha(10),
                           )
@@ -165,9 +166,9 @@ class PracticeStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
+      children: [
         Row(
           children: [
             Icon(

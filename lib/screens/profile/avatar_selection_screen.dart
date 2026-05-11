@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../widgets/avatar_widget.dart';
-import '../../services/shop_service.dart';
+
 import '../../models/shop_item.dart';
+import '../../services/shop_service.dart';
+import '../../widgets/avatar_widget.dart';
 
 /// Pantalla para seleccionar un avatar.
 /// 
@@ -91,7 +92,6 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                         crossAxisCount: 4,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 1.0,
                       ),
                       itemCount: 8,
                       itemBuilder: (context, index) {
@@ -123,13 +123,11 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     const SizedBox(height: 12),
                     
                     Expanded(
-                      flex: 1,
                       child: GridView.builder(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 1.0,
                         ),
                         itemCount: _purchasedAvatars.length,
                         itemBuilder: (context, index) {

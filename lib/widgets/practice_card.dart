@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import '../theme/icon_sizes.dart';
 import 'package:english_ai_app/widgets/adaptive_badge.dart';
+import 'package:flutter/material.dart';
+
 import '../models/practice_activity.dart';
+import '../theme/icon_sizes.dart';
 
 /// Widget de tarjeta para mostrar una actividad de práctica
 /// Versión adaptativa que mantiene consistencia visual en todos los dispositivos
@@ -47,7 +48,7 @@ class PracticeCard extends StatelessWidget {
                       ),
                       child: Text(
                         activity.iconEmoji,
-                        style: TextStyle(fontSize: IconSizes.md),
+                        style: const TextStyle(fontSize: IconSizes.md),
                       ),
                     ),
                     const PracticeCardBadge(
@@ -88,20 +89,20 @@ class PracticeCard extends StatelessWidget {
                 // Progreso y estadísticas
                 if (isUnlocked) ...[
                   const SizedBox(height: 8),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle_outline,
                             size: 16,
                             color: Colors.grey,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             '0/0',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
@@ -111,13 +112,13 @@ class PracticeCard extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.star,
                             size: 16,
                             color: Colors.amber,
                           ),
-                          const SizedBox(width: 4),
-                          const Text(
+                          SizedBox(width: 4),
+                          Text(
                             '0',
                             style: TextStyle(
                               fontSize: 12,

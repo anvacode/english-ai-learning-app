@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import "../../models/practice_activity.dart";
-import '../../models/practice_activity.dart';
+
 import '../../logic/practice_service.dart';
 import '../../logic/star_service.dart';
-import "../../widgets/adaptive_practice_card.dart";
-import '../../widgets/responsive_container.dart';
-import '../../utils/responsive.dart';
+import '../../models/practice_activity.dart';
 import '../../theme/app_colors.dart';
-import 'spelling_practice_screen.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/adaptive_practice_card.dart';
+import '../../widgets/responsive_container.dart';
 import 'listening_practice_screen.dart';
-import 'speed_match_screen.dart';
 import 'memory_game_screen.dart';
-import 'pronunciation_practice_screen.dart';
 import 'phrase_practice_screen.dart';
+import 'pronunciation_practice_screen.dart';
+import 'speed_match_screen.dart';
+import 'spelling_practice_screen.dart';
 
 /// Pantalla principal del hub de prácticas
 class PracticeHubScreen extends StatefulWidget {
@@ -307,7 +307,7 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
     final totalCount = _activities.where((a) => a.isUnlocked).length;
     final practiceStars = _progressMap.values.fold(
       0,
-      (sum, p) => sum + (p.starsEarned as int),
+      (sum, p) => sum + (p.starsEarned),
     );
 
     return Container(

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+
+import '../data/lessons_data.dart';
+import '../dialogs/lesson_completion_dialog.dart';
+import '../logic/activity_result_service.dart';
+import '../logic/badge_service.dart';
+import '../logic/lesson_completion_service.dart';
+import '../logic/star_service.dart';
+import '../models/badge.dart' as achievement;
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/matching_item.dart';
-import '../dialogs/lesson_completion_dialog.dart';
-import '../logic/star_service.dart';
-import '../logic/lesson_completion_service.dart';
-import '../logic/badge_service.dart';
-import '../logic/activity_result_service.dart';
-import '../models/badge.dart' as achievement;
-import '../data/lessons_data.dart';
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
 // Spelling movido a práctica - ya no se usa en el flujo de lecciones

@@ -28,7 +28,6 @@ class ErrorDialog extends StatelessWidget {
   }) {
     return showDialog(
       context: context,
-      barrierDismissible: true,
       builder: (context) => ErrorDialog(
         title: title,
         message: message,

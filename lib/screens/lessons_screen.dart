@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../data/lessons_data.dart';
-import '../logic/mastery_evaluator.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_controller.dart';
+import '../logic/mastery_evaluator.dart';
+import '../models/badge.dart' as achievement;
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
-import '../models/badge.dart' as achievement;
-import '../widgets/star_display.dart';
+import '../services/diagnostic_service.dart';
+import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/responsive_container.dart';
-import '../theme/text_styles.dart';
-import '../services/diagnostic_service.dart';
-import 'lesson_screen.dart';
+import '../widgets/star_display.dart';
 import 'lesson_flow_screen.dart';
+import 'lesson_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
   const LessonsScreen({super.key});

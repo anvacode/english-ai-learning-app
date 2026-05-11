@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' show Random;
-import '../../models/lesson_item.dart';
-import '../../models/activity_result.dart';
+
+import 'package:flutter/material.dart';
+
+import '../../data/lessons_data.dart';
 import '../../logic/activity_result_service.dart';
-import '../../logic/star_service.dart';
 import '../../logic/practice_service.dart';
+import '../../logic/star_service.dart';
+import '../../models/activity_result.dart';
+import '../../models/lesson_item.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/lesson_image.dart';
-import '../../data/lessons_data.dart';
 
 /// Pantalla de Speed Match:
 /// - Juego de matching contra el tiempo
@@ -339,7 +341,6 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 1,
                         ),
                     itemCount: _items.length,
                     itemBuilder: (context, index) {
@@ -377,7 +378,6 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                                     fallbackColor: item.stimulusColor,
                                     width: double.infinity,
                                     height: double.infinity,
-                                    fit: BoxFit.contain,
                                   ),
                                 ),
                         ),

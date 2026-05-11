@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../logic/auth_provider.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/diagnostic/diagnostic_intro_screen.dart';
-import '../logic/auth_provider.dart';
 import '../services/auth_prompt_service.dart';
 import '../services/diagnostic_service.dart';
 
@@ -22,7 +23,6 @@ class AuthPromptDialog extends StatefulWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      barrierDismissible: true,
       builder: (context) =>
           AuthPromptDialog(isFromOnboarding: isFromOnboarding),
     );

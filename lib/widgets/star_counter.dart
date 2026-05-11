@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+
 import '../logic/star_service.dart';
 
 /// Widget StarCounter mejorado para mostrar estrellas del usuario.
@@ -398,7 +400,6 @@ class _StarCounterWithRefreshState extends State<StarCounterWithRefresh> {
           key: _counterKey,
           iconSize: widget.iconSize,
           fontSize: widget.fontSize,
-          showBackground: true,
           refreshInterval: 0, // Desactivar auto-refresh
         ),
         const SizedBox(width: 8),

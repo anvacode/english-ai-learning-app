@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/diagnostic_question.dart';
+
 import '../../data/diagnostic_questions_data.dart';
+import '../../models/diagnostic_question.dart';
 import '../../services/diagnostic_service.dart';
 import 'diagnostic_result_screen.dart';
 
@@ -371,7 +372,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
         child: ElevatedButton.icon(
           onPressed: hasAnswer && !_isSubmitting ? _nextQuestion : null,
           icon: _isSubmitting
-              ? SizedBox(
+              ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(

@@ -50,11 +50,11 @@ class AchievementsScreen extends StatelessWidget {
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Column(
+                    child: const Column(
                       children: [
-                        const Text('🎯', style: TextStyle(fontSize: 64)),
-                        const SizedBox(height: 16),
-                        const Text(
+                        Text('🎯', style: TextStyle(fontSize: 64)),
+                        SizedBox(height: 16),
+                        Text(
                           'Domina lecciones para desbloquear badges',
                           style: TextStyle(
                             fontSize: 16,

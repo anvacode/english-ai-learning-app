@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
+import '../data/lessons_data.dart';
 import '../logic/activity_result_service.dart';
 import '../models/activity_result.dart';
 import '../models/lesson.dart';
-import '../data/lessons_data.dart';
 import '../theme/app_colors.dart';
 
 class LessonHistoryScreen extends StatefulWidget {

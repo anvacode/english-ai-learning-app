@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
 import '../services/effects_service.dart';
-import '../widgets/confetti_overlay.dart';
 import '../utils/safe_math.dart';
+import '../widgets/confetti_overlay.dart';
 
 /// Diálogo de feedback al completar una lección.
 /// 

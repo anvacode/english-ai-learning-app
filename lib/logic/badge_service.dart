@@ -1,6 +1,6 @@
+import 'package:english_ai_app/logic/lesson_completion_service.dart';
 import 'package:english_ai_app/models/badge.dart';
 import 'package:english_ai_app/models/lesson.dart';
-import 'package:english_ai_app/logic/lesson_completion_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Badge definitions for each lesson.

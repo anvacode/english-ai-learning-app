@@ -1,8 +1,10 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/practice_activity.dart';
-import '../models/lesson.dart';
+
 import '../data/lessons_data.dart';
+import '../models/lesson.dart';
+import '../models/practice_activity.dart';
 
 /// Servicio para gestionar actividades de práctica y su progreso
 class PracticeService {
@@ -38,7 +40,6 @@ class PracticeService {
       description: 'Forma palabras arrastrando letras',
       iconEmoji: '🔤',
       totalExercises: itemCount,
-      requiredStars: 0,
       requiredLessons: [lessonId],
     ));
 
@@ -51,7 +52,6 @@ class PracticeService {
       description: 'Escucha y selecciona la imagen correcta',
       iconEmoji: '🎧',
       totalExercises: itemCount,
-      requiredStars: 0,
       requiredLessons: [lessonId],
     ));
 
@@ -77,7 +77,6 @@ class PracticeService {
       description: 'Encuentra los pares en el juego de memoria',
       iconEmoji: '🖼️',
       totalExercises: itemCount ~/ 2, // La mitad porque son pares
-      requiredStars: 0,
       requiredLessons: [], // Se verifica aparte (3 lecciones completadas)
     ));
 
@@ -92,7 +91,6 @@ class PracticeService {
         description: 'Ordena las palabras para formar oraciones',
         iconEmoji: '🔀',
         totalExercises: itemCount,
-        requiredStars: 0,
         requiredLessons: [lessonId],
       ));
 
@@ -105,7 +103,6 @@ class PracticeService {
         description: 'Completa los espacios en las oraciones',
         iconEmoji: '📝',
         totalExercises: itemCount,
-        requiredStars: 0,
         requiredLessons: [lessonId],
       ));
 
@@ -118,7 +115,6 @@ class PracticeService {
         description: 'Evalúa si las afirmaciones son verdaderas',
         iconEmoji: '✓✗',
         totalExercises: itemCount,
-        requiredStars: 0,
         requiredLessons: [lessonId],
       ));
     }

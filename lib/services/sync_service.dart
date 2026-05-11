@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/firebase_service.dart';
-import '../logic/user_profile_service.dart';
+
 import '../logic/star_service.dart';
+import '../logic/user_profile_service.dart';
 import '../models/user_profile.dart';
+import '../services/firebase_service.dart';
 
 /// Servicio de sincronización entre almacenamiento local y Firebase
 class SyncService {

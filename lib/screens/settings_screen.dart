@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/audio_service.dart';
-import '../services/theme_service.dart';
-import '../services/shop_service.dart';
+
 import '../models/shop_item.dart';
-import 'purchased_items_screen.dart';
-import 'profile/profile_screen.dart';
-import 'lesson_history_screen.dart';
+import '../services/audio_service.dart';
+import '../services/shop_service.dart';
+import '../services/theme_service.dart';
 import 'help_screen.dart';
+import 'lesson_history_screen.dart';
+import 'profile/profile_screen.dart';
+import 'purchased_items_screen.dart';
 
 /// Pantalla de configuración básica de la aplicación.
 ///
@@ -324,8 +325,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     Slider(
                       value: _rate,
-                      min: 0.0,
-                      max: 1.0,
                       divisions: 10,
                       label: _rate.toStringAsFixed(1),
                       onChanged: (value) async {
