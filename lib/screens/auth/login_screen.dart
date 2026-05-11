@@ -62,8 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             (route) => false,
           );
+          return;
         }
 
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Sesión iniciada correctamente!'),

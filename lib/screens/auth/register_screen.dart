@@ -61,8 +61,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             (route) => false,
           );
+          return;
         }
 
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Cuenta creada exitosamente!'),
@@ -112,8 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             (route) => false,
           );
+          return;
         }
 
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Registro con Google exitoso!'),
