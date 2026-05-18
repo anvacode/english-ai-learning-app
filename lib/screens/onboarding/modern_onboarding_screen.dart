@@ -4,9 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../dialogs/auth_prompt_dialog.dart';
 import '../../logic/first_time_service.dart';
 import '../../models/onboarding_page.dart';
+import '../../services/tutorial_service.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/onboarding_page_widget.dart';
-import '../tutorial/tutorial_screen.dart';
+import '../home_screen.dart';
 
 /// Pantalla moderna de onboarding con diseño atractivo y animaciones.
 ///
@@ -73,17 +74,21 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
       await prefs.setBool('onboarding_completed', true);
       await FirstTimeService.setFirstTimeCompleted();
 
+      // Solicitar que el tour interactivo aparezca al llegar al HomeScreen
+      await TutorialService.requestInteractiveTutorial();
+
       if (!mounted) return;
 
       await AuthPromptDialog.show(context, isFromOnboarding: true);
 
       if (!mounted) return;
 
-      // Después del auth prompt, mostrar el tutorial interactivo
+      // Después del auth prompt, ir directamente a HomeScreen
+      // El tour interactivo aparecerá automáticamente gracias al flag
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const TutorialScreen(),
+              const HomeScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;

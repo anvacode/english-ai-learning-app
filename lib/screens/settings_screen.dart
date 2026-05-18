@@ -420,19 +420,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Ayuda',
             children: [
               _SettingsTile(
-                icon: Icons.school,
-                title: 'Tutorial',
-                subtitle: 'Aprende a usar la app',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TutorialScreen(),
-                    ),
-                  );
-                },
-              ),
-              _SettingsTile(
                 icon: Icons.help_outline,
                 title: 'Ayuda y soporte',
                 subtitle: 'Obtén ayuda sobre la aplicación',
@@ -440,6 +427,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const HelpScreen()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.menu_book_rounded,
+                title: 'Ver tutorial',
+                subtitle: 'Aprende a usar la app paso a paso',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TutorialScreen(showPlayButton: false),
+                    ),
                   );
                 },
               ),

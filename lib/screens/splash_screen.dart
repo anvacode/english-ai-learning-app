@@ -7,10 +7,9 @@ import '../logic/auth_provider.dart';
 import '../logic/first_time_service.dart';
 import '../logic/star_service.dart';
 import '../logic/student_service.dart';
-import '../logic/tutorial_service.dart';
+import '../services/tutorial_service.dart';
 import 'home_screen.dart';
 import 'onboarding/modern_onboarding_screen.dart';
-import 'tutorial/tutorial_screen.dart';
 
 /// Pantalla de splash que se muestra al iniciar la aplicación.
 ///
@@ -57,15 +56,13 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = await FirstTimeService.isFirstTime();
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-    final tutorialCompleted = await TutorialService.isTutorialCompleted();
 
     // Flujo de navegación:
     // 1. Primera vez o onboarding no completado → Onboarding
-    // 2. Onboarding completado pero tutorial no → Tutorial
-    // 3. Todo completado → Home (con recompensa diaria si aplica)
+    // 2. Onboarding completado → Home
 
-    // Si ya completó todo, procesar recompensa diaria
-    if (!isFirstTime && onboardingCompleted && tutorialCompleted) {
+    // Si ya completó el onboarding, procesar recompensa diaria
+    if (!isFirstTime && onboardingCompleted) {
       final authProvider = context.read<AuthProvider>();
 
       // Solo usuarios autenticados (email/Google) reciben recompensa diaria
@@ -85,6 +82,11 @@ class _SplashScreenState extends State<SplashScreen>
       }
     }
 
+    // Verificar si se debe mostrar el tour interactivo
+    final showInteractiveTutorial = !isFirstTime &&
+        onboardingCompleted &&
+        !(await TutorialService.wasInteractiveTutorialShown());
+
     // Esperar tiempo mínimo para mostrar splash
     await Future.delayed(const Duration(seconds: 2));
 
@@ -92,10 +94,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Determinar pantalla destino
     Widget destination;
-    if (!isFirstTime && onboardingCompleted && tutorialCompleted) {
-      destination = const HomeScreen();
-    } else if (!isFirstTime && onboardingCompleted && !tutorialCompleted) {
-      destination = const TutorialScreen();
+    if (!isFirstTime && onboardingCompleted) {
+      destination = HomeScreen(showTutorial: showInteractiveTutorial);
     } else {
       destination = const ModernOnboardingScreen();
     }

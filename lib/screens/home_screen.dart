@@ -5,6 +5,7 @@ import '../dialogs/auth_prompt_dialog.dart';
 import '../logic/auth_provider.dart';
 import '../services/auth_prompt_service.dart';
 import '../services/diagnostic_service.dart';
+import '../services/tutorial_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
 import 'diagnostic/diagnostic_intro_screen.dart';
@@ -12,9 +13,16 @@ import 'home/home_grid_view.dart';
 import 'lessons_screen.dart';
 import 'practice/practice_hub_screen.dart';
 import 'settings_screen.dart';
+import 'tutorial/interactive_tutorial.dart';
+import 'tutorial/tutorial_keys.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showTutorial;
+
+  const HomeScreen({
+    super.key,
+    this.showTutorial = false,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _authPromptChecked = false;
   bool _diagnosticChecked = false;
   bool _isNavigating = false;
+  bool _showInteractiveTutorial = false;
 
   final List<Widget> _screens = [
     const HomeGridView(),
@@ -36,9 +45,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _checkTutorialRequest();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAuthAndDiagnostic();
     });
+  }
+
+  Future<void> _checkTutorialRequest() async {
+    final requested = await TutorialService.wasInteractiveTutorialRequested();
+    if (requested && mounted) {
+      await TutorialService.clearInteractiveTutorialRequest();
+      setState(() {
+        _showInteractiveTutorial = true;
+      });
+    }
   }
 
   Future<void> _checkAuthAndDiagnostic() async {
@@ -79,9 +99,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Widget screen = Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
+        key: TutorialKeys.bottomNav,
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -145,5 +166,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+
+    // Mostramos el tour interactivo si fue solicitado (primera vez o desde tutorial).
+    if ((widget.showTutorial || _showInteractiveTutorial) && _currentIndex == 0) {
+      screen = InteractiveTutorial(
+        child: screen,
+        onComplete: () {},
+      );
+    }
+
+    return screen;
   }
 }

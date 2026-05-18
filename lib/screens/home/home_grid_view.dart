@@ -7,6 +7,7 @@ import '../achievements_screen.dart';
 import '../lessons_screen.dart';
 import '../profile/profile_screen.dart';
 import '../shop_screen.dart';
+import '../tutorial/tutorial_keys.dart';
 
 class HomeGridView extends StatelessWidget {
   const HomeGridView({super.key});
@@ -35,6 +36,7 @@ class HomeGridView extends StatelessWidget {
                   const Spacer(),
                   if (context.isMobile)
                     Container(
+                      key: TutorialKeys.starCounter,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 6,
@@ -89,6 +91,7 @@ class HomeGridView extends StatelessWidget {
                       padding: const EdgeInsets.only(right: 16),
                       child: Center(
                         child: Container(
+                          key: TutorialKeys.starCounter,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
@@ -120,6 +123,7 @@ class HomeGridView extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildMenuCard(
                   context,
+                  cardKey: TutorialKeys.lessonsCard,
                   emoji: '📚',
                   title: 'Lecciones',
                   subtitle: 'Aprende inglés',
@@ -135,6 +139,7 @@ class HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
+                  cardKey: TutorialKeys.profileCard,
                   emoji: '👤',
                   title: 'Perfil',
                   subtitle: 'Tu progreso',
@@ -150,6 +155,7 @@ class HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
+                  cardKey: TutorialKeys.achievementsCard,
                   emoji: '🏆',
                   title: 'Logros',
                   subtitle: 'Tus medallas',
@@ -167,6 +173,7 @@ class HomeGridView extends StatelessWidget {
                 ),
                 _buildMenuCard(
                   context,
+                  cardKey: TutorialKeys.shopCard,
                   emoji: '🏪',
                   title: 'Tienda',
                   subtitle: 'Compra items',
@@ -190,6 +197,7 @@ class HomeGridView extends StatelessWidget {
 
   Widget _buildMenuCard(
     BuildContext context, {
+    Key? cardKey,
     required String emoji,
     required String title,
     required String subtitle,
@@ -197,6 +205,7 @@ class HomeGridView extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      key: cardKey,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
