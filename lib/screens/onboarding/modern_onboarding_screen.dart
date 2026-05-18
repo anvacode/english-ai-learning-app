@@ -6,7 +6,7 @@ import '../../logic/first_time_service.dart';
 import '../../models/onboarding_page.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/onboarding_page_widget.dart';
-import '../home_screen.dart';
+import '../tutorial/tutorial_screen.dart';
 
 /// Pantalla moderna de onboarding con diseño atractivo y animaciones.
 ///
@@ -79,10 +79,11 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
 
       if (!mounted) return;
 
+      // Después del auth prompt, mostrar el tutorial interactivo
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
+              const TutorialScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;

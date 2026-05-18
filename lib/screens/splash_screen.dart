@@ -7,9 +7,10 @@ import '../logic/auth_provider.dart';
 import '../logic/first_time_service.dart';
 import '../logic/star_service.dart';
 import '../logic/student_service.dart';
-import '../services/auth_prompt_service.dart';
+import '../logic/tutorial_service.dart';
 import 'home_screen.dart';
 import 'onboarding/modern_onboarding_screen.dart';
+import 'tutorial/tutorial_screen.dart';
 
 /// Pantalla de splash que se muestra al iniciar la aplicación.
 ///
@@ -50,31 +51,29 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeAndNavigate() async {
-    await AuthPromptService.incrementOpenCount();
-
     await StudentService.initializeStudent();
 
-    // Verificar si es la primera vez o si el onboarding no se completó
+    // Verificar estados
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = await FirstTimeService.isFirstTime();
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+    final tutorialCompleted = await TutorialService.isTutorialCompleted();
 
-    // Si no es la primera vez y completó el onboarding, procesar login diario
-    if (!isFirstTime && onboardingCompleted) {
+    // Flujo de navegación:
+    // 1. Primera vez o onboarding no completado → Onboarding
+    // 2. Onboarding completado pero tutorial no → Tutorial
+    // 3. Todo completado → Home (con recompensa diaria si aplica)
+
+    // Si ya completó todo, procesar recompensa diaria
+    if (!isFirstTime && onboardingCompleted && tutorialCompleted) {
       final authProvider = context.read<AuthProvider>();
 
       // Solo usuarios autenticados (email/Google) reciben recompensa diaria
       if (authProvider.isAuthenticated) {
-        // Procesar login diario (otorga recompensas y actualiza racha)
         final starsEarned = await StarService.processDailyLogin();
-
-        // Obtener racha después del login
         final streakAfter = await StarService.getLoginStreak();
-
-        // Calcular bono de racha (si la racha es > 1)
         final streakBonus = streakAfter > 1 ? (streakAfter - 1) * 5 : 0;
 
-        // Si se ganaron estrellas, mostrar diálogo de recompensas
         if (starsEarned > 0 && mounted) {
           await DailyLoginRewardDialog.show(
             context,
@@ -89,15 +88,20 @@ class _SplashScreenState extends State<SplashScreen>
     // Esperar tiempo mínimo para mostrar splash
     await Future.delayed(const Duration(seconds: 2));
 
-    // Navegar a la pantalla correspondiente
     if (!mounted) return;
 
+    // Determinar pantalla destino
+    Widget destination;
+    if (!isFirstTime && onboardingCompleted && tutorialCompleted) {
+      destination = const HomeScreen();
+    } else if (!isFirstTime && onboardingCompleted && !tutorialCompleted) {
+      destination = const TutorialScreen();
+    } else {
+      destination = const ModernOnboardingScreen();
+    }
+
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => (!isFirstTime && onboardingCompleted)
-            ? const HomeScreen()
-            : const ModernOnboardingScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => destination),
     );
   }
 

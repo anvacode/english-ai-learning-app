@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/shop_item.dart';
+import '../screens/lesson_history_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/purchased_items_screen.dart';
 import '../services/audio_service.dart';
 import '../services/shop_service.dart';
 import '../services/theme_service.dart';
 import 'help_screen.dart';
-import 'lesson_history_screen.dart';
-import 'profile/profile_screen.dart';
-import 'purchased_items_screen.dart';
+import 'tutorial/tutorial_screen.dart';
 
 /// Pantalla de configuración básica de la aplicación.
 ///
@@ -418,6 +419,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SettingsSection(
             title: 'Ayuda',
             children: [
+              _SettingsTile(
+                icon: Icons.school,
+                title: 'Tutorial',
+                subtitle: 'Aprende a usar la app',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TutorialScreen(),
+                    ),
+                  );
+                },
+              ),
               _SettingsTile(
                 icon: Icons.help_outline,
                 title: 'Ayuda y soporte',
