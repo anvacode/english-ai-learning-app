@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../dialogs/daily_login_reward_dialog.dart';
+import '../logic/auth_provider.dart';
 import '../logic/first_time_service.dart';
 import '../logic/star_service.dart';
 import '../logic/student_service.dart';
@@ -59,23 +61,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Si no es la primera vez y completó el onboarding, procesar login diario
     if (!isFirstTime && onboardingCompleted) {
-      // Procesar login diario (otorga recompensas y actualiza racha)
-      final starsEarned = await StarService.processDailyLogin();
+      final authProvider = context.read<AuthProvider>();
 
-      // Obtener racha después del login
-      final streakAfter = await StarService.getLoginStreak();
+      // Solo usuarios autenticados (email/Google) reciben recompensa diaria
+      if (authProvider.isAuthenticated) {
+        // Procesar login diario (otorga recompensas y actualiza racha)
+        final starsEarned = await StarService.processDailyLogin();
 
-      // Calcular bono de racha (si la racha es > 1)
-      final streakBonus = streakAfter > 1 ? (streakAfter - 1) * 5 : 0;
+        // Obtener racha después del login
+        final streakAfter = await StarService.getLoginStreak();
 
-      // Si se ganaron estrellas, mostrar diálogo de recompensas
-      if (starsEarned > 0 && mounted) {
-        await DailyLoginRewardDialog.show(
-          context,
-          starsEarned: starsEarned,
-          loginStreak: streakAfter,
-          streakBonus: streakBonus,
-        );
+        // Calcular bono de racha (si la racha es > 1)
+        final streakBonus = streakAfter > 1 ? (streakAfter - 1) * 5 : 0;
+
+        // Si se ganaron estrellas, mostrar diálogo de recompensas
+        if (starsEarned > 0 && mounted) {
+          await DailyLoginRewardDialog.show(
+            context,
+            starsEarned: starsEarned,
+            loginStreak: streakAfter,
+            streakBonus: streakBonus,
+          );
+        }
       }
     }
 
