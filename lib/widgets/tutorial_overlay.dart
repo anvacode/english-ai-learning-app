@@ -358,7 +358,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       top = safeTop + topReserved + 40;
     }
 
-    final tooltipWidget = SlideTransition(
+    final tooltipContent = SlideTransition(
       position: _slideAnimation,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -429,6 +429,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       ),
     );
 
+    // Envolver en Center + ConstrainedBox para que en desktop/web
+    // la burbuja no ocupe todo el ancho, sino que se vea angosta y centrada
+    final tooltipWidget = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: tooltipContent,
+      ),
+    );
+
     if (top != null) {
       return Positioned(
         top: top,
@@ -444,7 +453,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         child: tooltipWidget,
       );
     }
-    return Center(child: tooltipWidget);
+    return tooltipWidget;
   }
 
   /// Curva de rebote personalizada para el emoji.

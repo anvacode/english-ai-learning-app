@@ -171,7 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if ((widget.showTutorial || _showInteractiveTutorial) && _currentIndex == 0) {
       screen = InteractiveTutorial(
         child: screen,
-        onComplete: () {},
+        onComplete: () {
+          setState(() {
+            _showInteractiveTutorial = false;
+          });
+        },
       );
     }
 
