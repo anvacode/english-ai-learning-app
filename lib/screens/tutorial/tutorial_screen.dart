@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../logic/auth_provider.dart';
 import '../../logic/tutorial_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/coach_mark_overlay.dart';
+import '../../widgets/tutorial_confetti.dart';
+import '../home/home_grid_view.dart';
 import '../home_screen.dart';
+import '../lessons_screen.dart';
+import '../practice/practice_hub_screen.dart';
 
-/// Tutorial interactivo que se muestra después de crear cuenta.
+/// Tutorial interactivo con coach marks sobre la app real.
 ///
-/// Diseñado para niños pequeños con:
-/// - Textos grandes y simples
-/// - Animaciones divertidas (rebote, escalado)
-/// - Botones grandes y coloridos
-/// - Flechas animadas señalando elementos
-/// - 5 páginas explicativas
+/// Diseñado para niños pequeños con interacción táctil:
+/// - Overlay oscuro que resalta elementos importantes
+/// - El niño debe TOCAR el elemento para avanzar
+/// - Celebraciones con confetti en cada paso
+/// - 5 pasos interactivos sobre pantallas reales
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
 
@@ -21,43 +27,96 @@ class TutorialScreen extends StatefulWidget {
 
 class _TutorialScreenState extends State<TutorialScreen>
     with TickerProviderStateMixin {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
+  int _currentStep = 0;
   bool _isCompleting = false;
+  bool _showCelebration = false;
+  bool _showFinalConfetti = false;
 
-  late AnimationController _bounceController;
-  late Animation<double> _bounceAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  final List<_TutorialStep> _steps = [
+    _TutorialStep(
+      instruction: '¡Toca una lección para empezar!',
+      screenIndex: 0,
+      highlightType: HighlightType.gridCards,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca la primera lección!',
+      screenIndex: 1,
+      highlightType: HighlightType.firstLesson,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca el altavoz para escuchar!',
+      screenIndex: 1,
+      highlightType: HighlightType.audioButton,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca las estrellas para recogerlas!',
+      screenIndex: 0,
+      highlightType: HighlightType.stars,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca aquí para practicar!',
+      screenIndex: 2,
+      highlightType: HighlightType.practiceTab,
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
 
-    _bounceController = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
 
-    _bounceAnimation = Tween<double>(
-      begin: 0.0,
-      end: 15.0,
+    _pulseAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.2,
     ).animate(CurvedAnimation(
-      parent: _bounceController,
+      parent: _pulseController,
       curve: Curves.easeInOut,
     ));
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _bounceController.dispose();
+    _pulseController.dispose();
     super.dispose();
+  }
+
+  void _handleStepComplete() {
+    setState(() {
+      _showCelebration = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+
+      if (_currentStep < _steps.length - 1) {
+        setState(() {
+          _currentStep++;
+          _showCelebration = false;
+        });
+      } else {
+        _completeTutorial();
+      }
+    });
   }
 
   Future<void> _completeTutorial() async {
     if (_isCompleting) return;
-    setState(() => _isCompleting = true);
+    setState(() {
+      _isCompleting = true;
+      _showCelebration = false;
+      _showFinalConfetti = true;
+    });
 
     await TutorialService.setTutorialCompleted();
+
+    await Future.delayed(const Duration(milliseconds: 2500));
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -75,400 +134,86 @@ class _TutorialScreenState extends State<TutorialScreen>
 
   @override
   Widget build(BuildContext context) {
+    final currentStep = _steps[_currentStep];
+
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (page) => setState(() => _currentPage = page),
+      body: Stack(
         children: [
-          _buildPage1(),
-          _buildPage2(),
-          _buildPage3(),
-          _buildPage4(),
-          _buildPage5(),
-        ],
-      ),
-    );
-  }
+          // Pantalla real de la app
+          _buildCurrentScreen(currentStep.screenIndex),
 
-  /// Página 1: Bienvenida + Pantalla de inicio
-  Widget _buildPage1() {
-    return _TutorialPage(
-      gradientColors: [AppColors.primary, AppColors.primaryLight],
-      icon: Icons.home,
-      iconColor: Colors.white,
-      title: '¡Hola! 👋',
-      description: 'Esta es tu pantalla de inicio.\nAquí verás todas tus lecciones.',
-      currentPage: _currentPage,
-      totalPages: 5,
-      onNext: () => _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-      showSkip: false,
-      child: AnimatedBuilder(
-        animation: _bounceAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(230),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(20),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildMockHomeGrid(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildArrowPointer(),
-                      const SizedBox(width: 12),
-                      Text(
-                        '¡Toca aquí para empezar!',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          // Overlay con coach mark
+          CoachMarkOverlay(
+            highlightRect: _getHighlightRect(context, currentStep.highlightType),
+            instruction: currentStep.instruction,
+            onTap: _handleStepComplete,
+            isCircular: currentStep.highlightType == HighlightType.stars,
+          ),
+
+          // Celebración mini
+          if (_showCelebration)
+            Center(child: MiniCelebration(onComplete: () {})),
+
+          // Confetti final
+          if (_showFinalConfetti)
+            TutorialConfetti(
+              duration: const Duration(seconds: 3),
+              onComplete: () {},
             ),
-          );
-        },
-      ),
-    );
-  }
 
-  /// Página 2: Cómo elegir lecciones
-  Widget _buildPage2() {
-    return _TutorialPage(
-      gradientColors: [AppColors.success, AppColors.successLight],
-      icon: Icons.menu_book,
-      iconColor: Colors.white,
-      title: 'Elige una lección 📚',
-      description: 'Toca cualquier lección para empezar a aprender.',
-      currentPage: _currentPage,
-      totalPages: 5,
-      onNext: () => _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-      child: AnimatedBuilder(
-        animation: _bounceAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(230),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(20),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildMockLessonList(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildArrowPointer(),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Toca una lección',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.successDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Página 3: Escuchar y repetir
-  Widget _buildPage3() {
-    return _TutorialPage(
-      gradientColors: [AppColors.orangeSun, AppColors.warningLight],
-      icon: Icons.mic,
-      iconColor: Colors.white,
-      title: 'Escucha y repite 🎤',
-      description: 'Toca el altavoz para escuchar.\nToca el micrófono para practicar.',
-      currentPage: _currentPage,
-      totalPages: 5,
-      onNext: () => _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-      child: AnimatedBuilder(
-        animation: _bounceAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(230),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(20),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildAudioButton(),
-                      const SizedBox(width: 40),
-                      _buildMicButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildArrowPointer(),
-                      const SizedBox(width: 12),
-                      Text(
-                        '¡Practica tu pronunciación!',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondaryDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Página 4: Ganar estrellas
-  Widget _buildPage4() {
-    return _TutorialPage(
-      gradientColors: [AppColors.starGold, AppColors.warning],
-      icon: Icons.star,
-      iconColor: Colors.white,
-      title: 'Gana estrellas ⭐',
-      description: 'Completa lecciones para ganar estrellas.\n¡Colecciona todas las que puedas!',
-      currentPage: _currentPage,
-      totalPages: 5,
-      onNext: () => _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-      child: AnimatedBuilder(
-        animation: _bounceAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(230),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(20),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      return TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        duration: Duration(milliseconds: 300 + (index * 100)),
-                        builder: (context, value, child) {
-                          return Transform.scale(
-                            scale: value,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              child: Icon(
-                                Icons.star,
-                                size: 40,
-                                color: AppColors.starGold,
-                              ),
+          // Indicador de progreso
+          Positioned(
+            top: 40,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_steps.length, (index) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: index == _currentStep ? 32 : 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: index <= _currentStep
+                        ? AppColors.starGold
+                        : Colors.white.withAlpha(100),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: index == _currentStep
+                        ? [
+                            BoxShadow(
+                              color: AppColors.starGold.withAlpha(100),
+                              blurRadius: 8,
+                              spreadRadius: 2,
                             ),
-                          );
-                        },
-                      );
-                    }),
+                          ]
+                        : null,
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildArrowPointer(),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          '¡Completa lecciones para ganar!',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.warningDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                );
+              }),
             ),
-          );
-        },
-      ),
-    );
-  }
+          ),
 
-  /// Página 5: Practica cuando quieras
-  Widget _buildPage5() {
-    return _TutorialPage(
-      gradientColors: [AppColors.pinkFun, AppColors.secondaryLight],
-      icon: Icons.play_circle,
-      iconColor: Colors.white,
-      title: '¡A practicar! 🎮',
-      description: 'En la sección Práctica puedes repasar\nlo que aprendiste.',
-      currentPage: _currentPage,
-      totalPages: 5,
-      onNext: () => _completeTutorial(),
-      isLastPage: true,
-      child: AnimatedBuilder(
-        animation: _bounceAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(230),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(20),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+          // Botón de saltar
+          Positioned(
+            top: 40,
+            right: 16,
+            child: TextButton(
+              onPressed: _completeTutorial,
+              child: Text(
+                'Saltar',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withAlpha(100),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.gamepad,
-                    size: 60,
-                    color: AppColors.pinkFun,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildArrowPointer(),
-                      const SizedBox(width: 12),
-                      Text(
-                        '¡Diviértete practicando!',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.pinkFun,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildMockHomeGrid() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.2,
-      children: [
-        _buildMockCard('Frutas', Icons.apple, AppColors.success),
-        _buildMockCard('Animales', Icons.pets, AppColors.orangeSun),
-        _buildMockCard('Números', Icons.looks_one, AppColors.primary),
-        _buildMockCard('Familia', Icons.family_restroom, AppColors.pinkFun),
-      ],
-    );
-  }
-
-  Widget _buildMockCard(String label, IconData icon, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withAlpha(40),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withAlpha(100), width: 2),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 32, color: color),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: color,
             ),
           ),
         ],
@@ -476,322 +221,82 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  Widget _buildMockLessonList() {
-    return Column(
-      children: [
-        _buildMockLessonItem('Lección 1', 'Frutas', AppColors.success, true),
-        const SizedBox(height: 8),
-        _buildMockLessonItem('Lección 2', 'Animales', AppColors.orangeSun, false),
-        const SizedBox(height: 8),
-        _buildMockLessonItem('Lección 3', 'Números', AppColors.primary, false),
-      ],
-    );
+  Widget _buildCurrentScreen(int screenIndex) {
+    switch (screenIndex) {
+      case 0:
+        return const HomeGridView();
+      case 1:
+        return const LessonsScreen();
+      case 2:
+        return const PracticeHubScreen();
+      default:
+        return const HomeGridView();
+    }
   }
 
-  Widget _buildMockLessonItem(
-    String lesson,
-    String topic,
-    Color color,
-    bool completed,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: completed ? color.withAlpha(60) : color.withAlpha(30),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(100), width: 2),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            completed ? Icons.check_circle : Icons.circle_outlined,
-            color: color,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  lesson,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                Text(
-                  topic,
-                  style: TextStyle(fontSize: 12, color: color.withAlpha(180)),
-                ),
-              ],
-            ),
-          ),
-          if (completed)
-            Icon(Icons.star, size: 20, color: AppColors.starGold),
-        ],
-      ),
-    );
-  }
+  Rect _getHighlightRect(BuildContext context, HighlightType type) {
+    final size = MediaQuery.of(context).size;
 
-  Widget _buildAudioButton() {
-    return Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(80),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.volume_up,
-            size: 36,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Escuchar',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryDark,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMicButton() {
-    return Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: AppColors.secondary,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.secondary.withAlpha(80),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.mic,
-            size: 36,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Hablar',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.secondaryDark,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildArrowPointer() {
-    return AnimatedBuilder(
-      animation: _bounceController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(_bounceAnimation.value * 0.5, 0),
-          child: Icon(
-            Icons.touch_app,
-            size: 28,
-            color: Colors.white,
-          ),
+    switch (type) {
+      case HighlightType.gridCards:
+        // Resaltar el centro del grid de lecciones
+        return Rect.fromCenter(
+          center: Offset(size.width / 2, size.height / 2 - 40),
+          width: size.width * 0.7,
+          height: size.height * 0.35,
         );
-      },
-    );
+
+      case HighlightType.firstLesson:
+        // Resaltar la primera lección en la lista
+        return Rect.fromCenter(
+          center: Offset(size.width / 2, size.height * 0.35),
+          width: size.width * 0.85,
+          height: 70,
+        );
+
+      case HighlightType.audioButton:
+        // Resaltar área donde estaría el botón de audio
+        return Rect.fromCenter(
+          center: Offset(size.width * 0.35, size.height * 0.45),
+          width: 80,
+          height: 80,
+        );
+
+      case HighlightType.stars:
+        // Resaltar el contador de estrellas (esquina superior)
+        return Rect.fromCenter(
+          center: Offset(size.width * 0.85, 50),
+          width: 100,
+          height: 50,
+        );
+
+      case HighlightType.practiceTab:
+        // Resaltar el tab de Práctica en el bottom nav
+        return Rect.fromCenter(
+          center: Offset(size.width * 0.62, size.height - 50),
+          width: 100,
+          height: 70,
+        );
+    }
   }
 }
 
-/// Widget base para cada página del tutorial
-class _TutorialPage extends StatelessWidget {
-  final List<Color> gradientColors;
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String description;
-  final Widget child;
-  final int currentPage;
-  final int totalPages;
-  final VoidCallback onNext;
-  final bool showSkip;
-  final bool isLastPage;
+enum HighlightType {
+  gridCards,
+  firstLesson,
+  audioButton,
+  stars,
+  practiceTab,
+}
 
-  const _TutorialPage({
-    required this.gradientColors,
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.description,
-    required this.child,
-    required this.currentPage,
-    required this.totalPages,
-    required this.onNext,
-    this.showSkip = true,
-    this.isLastPage = false,
+class _TutorialStep {
+  final String instruction;
+  final int screenIndex;
+  final HighlightType highlightType;
+
+  _TutorialStep({
+    required this.instruction,
+    required this.screenIndex,
+    required this.highlightType,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Header con icono y título
-            Padding(
-              padding: const EdgeInsets.only(top: 20, bottom: 10),
-              child: Column(
-                children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.elasticOut,
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: value,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(60),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            icon,
-                            size: 40,
-                            color: iconColor,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-
-            // Contenido interactivo
-            Expanded(child: child),
-
-            // Indicadores de página y botones
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Page indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(totalPages, (index) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: currentPage == index ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: currentPage == index
-                              ? Colors.white
-                              : Colors.white.withAlpha(100),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Botones
-                  Row(
-                    children: [
-                      if (showSkip)
-                        Expanded(
-                          child: TextButton(
-                            onPressed: onNext,
-                            child: Text(
-                              isLastPage ? '¡Empezar!' : 'Saltar',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          onPressed: onNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: gradientColors[0],
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 4,
-                          ),
-                          child: Text(
-                            isLastPage ? '¡Listo!' : 'Siguiente',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
