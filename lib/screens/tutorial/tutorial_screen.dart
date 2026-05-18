@@ -348,13 +348,15 @@ class _TutorialScreenState extends State<TutorialScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildArrowPointer(),
-                      const SizedBox(width: 12),
-                      Text(
-                        '¡Completa lecciones para ganar!',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.warningDark,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '¡Completa lecciones para ganar!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.warningDark,
+                          ),
                         ),
                       ),
                     ],
