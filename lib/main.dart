@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeService>(
         builder: (context, themeService, child) {
           return MaterialApp(
-            title: 'English AI App',
+            title: 'ELA',
             theme: ThemeService.getThemeData(themeService.activeThemeId),
             home: const SplashScreen(),
           );
