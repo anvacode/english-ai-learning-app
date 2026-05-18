@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../logic/auth_provider.dart';
 import '../../logic/tutorial_service.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/coach_mark_overlay.dart';
 import '../../widgets/tutorial_confetti.dart';
-import '../home/home_grid_view.dart';
+import '../../widgets/tutorial_mascot.dart';
+import '../../widgets/tutorial_progress_bar.dart';
 import '../home_screen.dart';
-import '../lessons_screen.dart';
-import '../practice/practice_hub_screen.dart';
+import 'mocks/tutorial_home_mock.dart';
+import 'mocks/tutorial_lesson_detail_mock.dart';
+import 'mocks/tutorial_lessons_mock.dart';
 
-/// Tutorial interactivo con coach marks sobre la app real.
+/// Tutorial interactivo con coach marks sobre pantallas mock.
 ///
-/// Diseñado para niños pequeños con interacción táctil:
-/// - Overlay oscuro que resalta elementos importantes
-/// - El niño debe TOCAR el elemento para avanzar
-/// - Celebraciones con confetti en cada paso
-/// - 5 pasos interactivos sobre pantallas reales
+/// Diseñado para niños pequeños con:
+/// - Pantallas mock que se ven como la app real
+/// - Búho guía con bocadillo de diálogo
+/// - Overlay oscuro con highlight pulsante
+/// - El niño debe TOCAR para avanzar
+/// - Celebraciones con confetti
+/// - 7 pasos interactivos
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
 
@@ -31,64 +32,86 @@ class _TutorialScreenState extends State<TutorialScreen>
   bool _isCompleting = false;
   bool _showCelebration = false;
   bool _showFinalConfetti = false;
-
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+  bool _mascotJump = false;
 
   final List<_TutorialStep> _steps = [
     _TutorialStep(
-      instruction: '¡Toca una lección para empezar!',
-      screenIndex: 0,
-      highlightType: HighlightType.gridCards,
+      instruction: '¡Toca aquí para ver tus lecciones!',
+      screenType: ScreenType.home,
+      highlightType: HighlightType.lessonsCard,
+      isCircular: false,
+      requiresSpecificTap: false,
     ),
     _TutorialStep(
-      instruction: '¡Toca la primera lección!',
-      screenIndex: 1,
+      instruction: '¡Toca una lección para empezar!',
+      screenType: ScreenType.lessons,
       highlightType: HighlightType.firstLesson,
+      isCircular: false,
+      requiresSpecificTap: false,
     ),
     _TutorialStep(
       instruction: '¡Toca el altavoz para escuchar!',
-      screenIndex: 1,
+      screenType: ScreenType.lessonDetail,
       highlightType: HighlightType.audioButton,
+      isCircular: true,
+      requiresSpecificTap: true,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca la respuesta correcta!',
+      screenType: ScreenType.lessonDetail,
+      highlightType: HighlightType.answerOptions,
+      isCircular: false,
+      requiresSpecificTap: true,
     ),
     _TutorialStep(
       instruction: '¡Toca las estrellas para recogerlas!',
-      screenIndex: 0,
+      screenType: ScreenType.home,
       highlightType: HighlightType.stars,
+      isCircular: true,
+      requiresSpecificTap: true,
+    ),
+    _TutorialStep(
+      instruction: '¡Toca aquí para ir a la tienda!',
+      screenType: ScreenType.home,
+      highlightType: HighlightType.shopCard,
+      isCircular: false,
+      requiresSpecificTap: false,
     ),
     _TutorialStep(
       instruction: '¡Toca aquí para practicar!',
-      screenIndex: 2,
+      screenType: ScreenType.home,
       highlightType: HighlightType.practiceTab,
+      isCircular: false,
+      requiresSpecificTap: false,
     ),
   ];
 
   @override
-  void initState() {
-    super.initState();
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  @override
   void dispose() {
-    _pulseController.dispose();
     super.dispose();
   }
 
-  void _handleStepComplete() {
+  void _handleTapOutsideHighlight(Offset tapPosition) {
+    final step = _steps[_currentStep];
+
+    // Para pasos que requieren tap específico, no hacer nada
+    // (el tap pasa al botón interactivo)
+    if (step.requiresSpecificTap) {
+      return;
+    }
+
+    // Verificar si el tap está fuera del highlight
+    final highlight = _getHighlightRect(context, step);
+    final expanded = highlight.inflate(step.isCircular ? 12 : 16);
+
+    if (!expanded.contains(tapPosition)) {
+      _advanceStep();
+    }
+  }
+
+  void _advanceStep() {
     setState(() {
+      _mascotJump = true;
       _showCelebration = true;
     });
 
@@ -99,6 +122,7 @@ class _TutorialScreenState extends State<TutorialScreen>
         setState(() {
           _currentStep++;
           _showCelebration = false;
+          _mascotJump = false;
         });
       } else {
         _completeTutorial();
@@ -116,7 +140,7 @@ class _TutorialScreenState extends State<TutorialScreen>
 
     await TutorialService.setTutorialCompleted();
 
-    await Future.delayed(const Duration(milliseconds: 2500));
+    await Future.delayed(const Duration(milliseconds: 3000));
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -139,15 +163,37 @@ class _TutorialScreenState extends State<TutorialScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Pantalla real de la app
-          _buildCurrentScreen(currentStep.screenIndex),
+          // Pantalla mock
+          _buildCurrentScreen(currentStep),
 
-          // Overlay con coach mark
-          CoachMarkOverlay(
-            highlightRect: _getHighlightRect(context, currentStep.highlightType),
+          // Overlay visual (solo dibuja, NO captura gestos)
+          CoachMarkVisual(
+            highlightRect: _getHighlightRect(context, currentStep),
+            isCircular: currentStep.isCircular,
+            showPulse: true,
+          ),
+
+          // Capturador de taps FUERA del highlight
+          // Para pasos que NO requieren tap específico, avanza al tocar fuera
+          if (!currentStep.requiresSpecificTap)
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTapDown: (details) {
+                _handleTapOutsideHighlight(details.localPosition);
+              },
+              child: const SizedBox.expand(),
+            ),
+
+          // Barra de progreso con estrellas
+          TutorialProgressBar(
+            currentStep: _currentStep,
+            totalSteps: _steps.length,
+          ),
+
+          // Búho guía
+          TutorialMascot(
             instruction: currentStep.instruction,
-            onTap: _handleStepComplete,
-            isCircular: currentStep.highlightType == HighlightType.stars,
+            animateJump: _mascotJump,
           ),
 
           // Celebración mini
@@ -160,39 +206,6 @@ class _TutorialScreenState extends State<TutorialScreen>
               duration: const Duration(seconds: 3),
               onComplete: () {},
             ),
-
-          // Indicador de progreso
-          Positioned(
-            top: 40,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_steps.length, (index) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: index == _currentStep ? 32 : 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: index <= _currentStep
-                        ? AppColors.starGold
-                        : Colors.white.withAlpha(100),
-                    borderRadius: BorderRadius.circular(5),
-                    boxShadow: index == _currentStep
-                        ? [
-                            BoxShadow(
-                              color: AppColors.starGold.withAlpha(100),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : null,
-                  ),
-                );
-              }),
-            ),
-          ),
 
           // Botón de saltar
           Positioned(
@@ -208,7 +221,7 @@ class _TutorialScreenState extends State<TutorialScreen>
                   color: Colors.white,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withAlpha(100),
+                      color: Colors.black.withAlpha(150),
                       blurRadius: 4,
                     ),
                   ],
@@ -221,82 +234,112 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  Widget _buildCurrentScreen(int screenIndex) {
-    switch (screenIndex) {
-      case 0:
-        return const HomeGridView();
-      case 1:
-        return const LessonsScreen();
-      case 2:
-        return const PracticeHubScreen();
-      default:
-        return const HomeGridView();
+  Widget _buildCurrentScreen(_TutorialStep step) {
+    // Usar ValueKey para forzar recreación limpia al cambiar de paso
+    // Esto previene errores de AnimationController entre pantallas
+    switch (step.screenType) {
+      case ScreenType.home:
+        return TutorialHomeMock(key: ValueKey('home_$_currentStep'));
+      case ScreenType.lessons:
+        return TutorialLessonsMock(key: ValueKey('lessons_$_currentStep'));
+      case ScreenType.lessonDetail:
+        return TutorialLessonDetailMock(
+          key: ValueKey('lesson_detail_$_currentStep'),
+          showInteraction: true,
+          onAudioTap: step.highlightType == HighlightType.audioButton
+              ? _advanceStep
+              : null,
+          onAnswerTap: step.highlightType == HighlightType.answerOptions
+              ? _advanceStep
+              : null,
+          onStarsTap: step.highlightType == HighlightType.stars
+              ? _advanceStep
+              : null,
+        );
     }
   }
 
-  Rect _getHighlightRect(BuildContext context, HighlightType type) {
+  Rect _getHighlightRect(BuildContext context, _TutorialStep step) {
     final size = MediaQuery.of(context).size;
+    final type = step.highlightType;
 
     switch (type) {
-      case HighlightType.gridCards:
-        // Resaltar el centro del grid de lecciones
+      case HighlightType.lessonsCard:
         return Rect.fromCenter(
-          center: Offset(size.width / 2, size.height / 2 - 40),
-          width: size.width * 0.7,
-          height: size.height * 0.35,
+          center: Offset(size.width * 0.26, size.height * 0.29),
+          width: size.width * 0.43,
+          height: size.height * 0.27,
         );
 
       case HighlightType.firstLesson:
-        // Resaltar la primera lección en la lista
         return Rect.fromCenter(
-          center: Offset(size.width / 2, size.height * 0.35),
+          center: Offset(size.width * 0.50, size.height * 0.30),
           width: size.width * 0.85,
-          height: 70,
+          height: size.height * 0.10,
         );
 
       case HighlightType.audioButton:
-        // Resaltar área donde estaría el botón de audio
         return Rect.fromCenter(
-          center: Offset(size.width * 0.35, size.height * 0.45),
-          width: 80,
-          height: 80,
+          center: Offset(size.width * 0.35, size.height * 0.52),
+          width: 90,
+          height: 90,
+        );
+
+      case HighlightType.answerOptions:
+        return Rect.fromCenter(
+          center: Offset(size.width * 0.50, size.height * 0.72),
+          width: size.width * 0.85,
+          height: size.height * 0.25,
         );
 
       case HighlightType.stars:
-        // Resaltar el contador de estrellas (esquina superior)
         return Rect.fromCenter(
-          center: Offset(size.width * 0.85, 50),
-          width: 100,
-          height: 50,
+          center: Offset(size.width * 0.88, 50),
+          width: 80,
+          height: 40,
+        );
+
+      case HighlightType.shopCard:
+        return Rect.fromCenter(
+          center: Offset(size.width * 0.74, size.height * 0.58),
+          width: size.width * 0.43,
+          height: size.height * 0.27,
         );
 
       case HighlightType.practiceTab:
-        // Resaltar el tab de Práctica en el bottom nav
         return Rect.fromCenter(
-          center: Offset(size.width * 0.62, size.height - 50),
-          width: 100,
-          height: 70,
+          center: Offset(size.width * 0.62, size.height - 35),
+          width: 90,
+          height: 55,
         );
     }
   }
 }
 
+enum ScreenType { home, lessons, lessonDetail }
+
 enum HighlightType {
-  gridCards,
+  lessonsCard,
   firstLesson,
   audioButton,
+  answerOptions,
   stars,
+  shopCard,
   practiceTab,
 }
 
 class _TutorialStep {
   final String instruction;
-  final int screenIndex;
+  final ScreenType screenType;
   final HighlightType highlightType;
+  final bool isCircular;
+  final bool requiresSpecificTap;
 
   _TutorialStep({
     required this.instruction,
-    required this.screenIndex,
+    required this.screenType,
     required this.highlightType,
+    this.isCircular = false,
+    this.requiresSpecificTap = false,
   });
 }

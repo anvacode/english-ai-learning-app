@@ -1,102 +1,47 @@
 import 'package:flutter/material.dart';
 
-/// Overlay que oscurece la pantalla y resalta un área específica.
+/// Overlay visual que oscurece la pantalla y resalta un área específica.
 ///
-/// Diseñado para tutoriales interactivos donde el usuario debe
-/// tocar un elemento específico para avanzar.
-class CoachMarkOverlay extends StatelessWidget {
+/// Este widget SOLO dibuja el oscurecimiento visual. NO captura gestos.
+/// Los gestos se manejan por separado en el padre para permitir que los
+/// taps dentro del highlight lleguen a los botones interactivos.
+class CoachMarkVisual extends StatelessWidget {
   final Rect highlightRect;
-  final String instruction;
-  final VoidCallback onTap;
   final bool isCircular;
   final Color overlayColor;
   final double highlightPadding;
+  final bool showPulse;
 
-  const CoachMarkOverlay({
+  const CoachMarkVisual({
     super.key,
     required this.highlightRect,
-    required this.instruction,
-    required this.onTap,
     this.isCircular = true,
     this.overlayColor = const Color(0xCC000000),
     this.highlightPadding = 12,
+    this.showPulse = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: CustomPaint(
-        painter: _CoachMarkPainter(
-          highlightRect: highlightRect.inflate(highlightPadding),
-          overlayColor: overlayColor,
-          isCircular: isCircular,
-        ),
-        child: Stack(
-          children: [
-            // Flecha animada señalando el elemento
-            _buildAnimatedArrow(),
-            // Texto de instrucción
-            _buildInstruction(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedArrow() {
-    return Positioned(
-      left: highlightRect.center.dx - 20,
-      top: highlightRect.bottom + highlightPadding + 8,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.elasticOut,
-        builder: (context, value, child) {
-          return Transform.scale(
-            scale: value,
-            child: Icon(
-              Icons.touch_app,
-              size: 40,
-              color: Colors.white,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildInstruction(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 100,
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(30),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
+    return Stack(
+      children: [
+        // Fondo oscuro con cutout
+        CustomPaint(
+          painter: _CoachMarkPainter(
+            highlightRect: highlightRect.inflate(highlightPadding),
+            overlayColor: overlayColor,
+            isCircular: isCircular,
           ),
-          child: Text(
-            instruction,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
-            textAlign: TextAlign.center,
-          ),
+          child: const SizedBox.expand(),
         ),
-      ),
+
+        // Anillo pulsante alrededor del highlight
+        if (showPulse)
+          _PulseRing(
+            highlightRect: highlightRect.inflate(highlightPadding),
+            isCircular: isCircular,
+          ),
+      ],
     );
   }
 }
@@ -158,5 +103,98 @@ class _CoachMarkPainter extends CustomPainter {
     return oldDelegate.highlightRect != highlightRect ||
         oldDelegate.overlayColor != overlayColor ||
         oldDelegate.isCircular != isCircular;
+  }
+}
+
+class _PulseRing extends StatefulWidget {
+  final Rect highlightRect;
+  final bool isCircular;
+
+  const _PulseRing({
+    required this.highlightRect,
+    required this.isCircular,
+  });
+
+  @override
+  State<_PulseRing> createState() => _PulseRingState();
+}
+
+class _PulseRingState extends State<_PulseRing>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _PulseRingPainter(
+            highlightRect: widget.highlightRect,
+            isCircular: widget.isCircular,
+            progress: _animation.value,
+          ),
+          child: const SizedBox.expand(),
+        );
+      },
+    );
+  }
+}
+
+class _PulseRingPainter extends CustomPainter {
+  final Rect highlightRect;
+  final bool isCircular;
+  final double progress;
+
+  _PulseRingPainter({
+    required this.highlightRect,
+    required this.isCircular,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withAlpha((100 * (1 - progress)).toInt())
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3 * (1 - progress);
+
+    if (isCircular) {
+      final radius = (highlightRect.width / 2) + (progress * 20);
+      final center = highlightRect.center;
+      canvas.drawCircle(center, radius, paint);
+    } else {
+      final rrect = RRect.fromRectAndRadius(
+        highlightRect.inflate(progress * 20),
+        const Radius.circular(16),
+      );
+      canvas.drawRRect(rrect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PulseRingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
