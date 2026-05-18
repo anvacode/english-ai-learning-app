@@ -91,24 +91,6 @@ class _TutorialScreenState extends State<TutorialScreen>
     super.dispose();
   }
 
-  void _handleTapOutsideHighlight(Offset tapPosition) {
-    final step = _steps[_currentStep];
-
-    // Para pasos que requieren tap específico, no hacer nada
-    // (el tap pasa al botón interactivo)
-    if (step.requiresSpecificTap) {
-      return;
-    }
-
-    // Verificar si el tap está fuera del highlight
-    final highlight = _getHighlightRect(context, step);
-    final expanded = highlight.inflate(step.isCircular ? 12 : 16);
-
-    if (!expanded.contains(tapPosition)) {
-      _advanceStep();
-    }
-  }
-
   void _advanceStep() {
     setState(() {
       _mascotJump = true;
@@ -173,14 +155,12 @@ class _TutorialScreenState extends State<TutorialScreen>
             showPulse: true,
           ),
 
-          // Capturador de taps FUERA del highlight
-          // Para pasos que NO requieren tap específico, avanza al tocar fuera
+          // Capturador de taps para pasos que NO requieren interacción específica
+          // Cualquier toque en la pantalla avanza al siguiente paso
           if (!currentStep.requiresSpecificTap)
             GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapDown: (details) {
-                _handleTapOutsideHighlight(details.localPosition);
-              },
+              behavior: HitTestBehavior.opaque,
+              onTap: _advanceStep,
               child: const SizedBox.expand(),
             ),
 
