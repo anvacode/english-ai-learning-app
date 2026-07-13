@@ -233,44 +233,37 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
       ),
       body: Column(
         children: [
-          // Barra de progreso
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[300],
             valueColor: AlwaysStoppedAnimation<Color>(Color(widget.activity.color)),
-            minHeight: 6,
+            minHeight: Responsive.scale(context, 5, 6, 8),
           ),
-
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
-
-                  // Instrucción
-                  const Text(
+                  SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                  Text(
                     '¡Arrastra las letras para formar la palabra!',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: Responsive.scale(context, 18, 20, 22),
                       fontWeight: FontWeight.bold,
                       color: Colors.deepPurple,
                     ),
                     textAlign: TextAlign.center,
                   ),
-
-                  SizedBox(height: context.isMobile ? 30 : 20),
-
-                  // Imagen - responsiva
+                  SizedBox(height: Responsive.scale(context, 20, 30, 32)),
                   ScaleTransition(
                     scale: _scaleAnimation,
                     child: currentItem.stimulusColor != null
                         ? Container(
-                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
-                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            width: Responsive.scale(context, 180, 200, 220),
+                            height: Responsive.scale(context, 180, 200, 220),
                             decoration: BoxDecoration(
                               color: currentItem.stimulusColor,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withAlpha(26),
@@ -283,19 +276,19 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                         : LessonImage(
                             imagePath: currentItem.stimulusImageAsset,
                             fallbackColor: Colors.grey[300],
-                            width: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
-                            height: context.isMobile ? 200 : (context.isTablet ? 180 : 150),
+                            width: Responsive.scale(context, 180, 200, 220),
+                            height: Responsive.scale(context, 180, 200, 220),
                           ),
                   ),
-
-                  SizedBox(height: context.isMobile ? 30 : 20),
-
-                  // Área de respuesta (letras colocadas)
+                  SizedBox(height: Responsive.scale(context, 20, 30, 32)),
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.scale(context, 16, 20, 24),
+                      horizontal: Responsive.scale(context, 12, 16, 20),
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                       border: Border.all(
                         color: _showFeedback
                             ? (_isCorrect ? Colors.green : Colors.red)
@@ -304,25 +297,25 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                       ),
                     ),
                     child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: Responsive.scale(context, 6, 8, 10),
+                      runSpacing: Responsive.scale(context, 6, 8, 10),
                       alignment: WrapAlignment.center,
                       children: [
                         if (_placedLetters.isEmpty)
                           Container(
-                            width: 60,
-                            height: 60,
+                            width: Responsive.scale(context, 52, 60, 68),
+                            height: Responsive.scale(context, 52, 60, 68),
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: Colors.grey[400]!,
                                 width: 2,
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
                             ),
                             child: Icon(
                               Icons.touch_app,
                               color: Colors.grey[400],
-                              size: 30,
+                              size: Responsive.scale(context, 24, 30, 36),
                             ),
                           )
                         else
@@ -336,23 +329,21 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                       ],
                     ),
                   ),
-
-                  // Feedback visual
                   if (_showFeedback) ...[
-                    const SizedBox(height: 20),
+                    SizedBox(height: Responsive.scale(context, 16, 20, 24)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           _isCorrect ? Icons.check_circle : Icons.cancel,
                           color: _isCorrect ? Colors.green : Colors.red,
-                          size: 40,
+                          size: Responsive.scale(context, 32, 40, 48),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: Responsive.scale(context, 8, 10, 12)),
                         Text(
                           _isCorrect ? '¡Correcto!' : 'Intenta de nuevo',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: Responsive.scale(context, 20, 24, 28),
                             fontWeight: FontWeight.bold,
                             color: _isCorrect ? Colors.green : Colors.red,
                           ),
@@ -360,37 +351,28 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                       ],
                     ),
                   ],
-
-                  const SizedBox(height: 30),
-
-                  // Letras disponibles
-                  const Text(
+                  SizedBox(height: Responsive.scale(context, 24, 30, 32)),
+                  Text(
                     'Letras disponibles:',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: Responsive.scale(context, 14, 16, 18),
                       fontWeight: FontWeight.w600,
                       color: Colors.grey,
                     ),
                   ),
-
-                  const SizedBox(height: 16),
-
+                  SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                   Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
+                    spacing: Responsive.scale(context, 10, 12, 14),
+                    runSpacing: Responsive.scale(context, 10, 12, 14),
                     alignment: WrapAlignment.center,
                     children: _availableLetters
                         .map((letter) => _buildAvailableLetter(letter))
                         .toList(),
                   ),
-
-                  const SizedBox(height: 30),
-
-                  // Botones de acción
+                  SizedBox(height: Responsive.scale(context, 24, 30, 32)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Botón Reset
                       ElevatedButton.icon(
                         onPressed: _placedLetters.isEmpty ? null : _resetWord,
                         icon: const Icon(Icons.refresh),
@@ -398,14 +380,12 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.scale(context, 16, 20, 24),
+                            vertical: Responsive.scale(context, 10, 12, 14),
                           ),
                         ),
                       ),
-
-                      // Botón Verificar
                       ElevatedButton.icon(
                         onPressed: _placedLetters.length ==
                                 currentItem.title.length
@@ -416,16 +396,15 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.scale(context, 16, 20, 24),
+                            vertical: Responsive.scale(context, 10, 12, 14),
                           ),
                         ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 24)),
                 ],
               ),
             ),
@@ -439,15 +418,15 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
     return GestureDetector(
       onTap: () => _onLetterTapped(letter),
       child: Container(
-        width: 60,
-        height: 60,
+        width: Responsive.scale(context, 52, 60, 68),
+        height: Responsive.scale(context, 52, 60, 68),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.blue[400]!, Colors.blue[600]!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
           boxShadow: [
             BoxShadow(
               color: Colors.blue.withAlpha(76),
@@ -459,8 +438,8 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
         child: Center(
           child: Text(
             letter,
-            style: const TextStyle(
-              fontSize: 32,
+            style: TextStyle(
+              fontSize: Responsive.scale(context, 28, 32, 36),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -474,15 +453,15 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
     return GestureDetector(
       onTap: () => _onPlacedLetterTapped(index),
       child: Container(
-        width: 60,
-        height: 60,
+        width: Responsive.scale(context, 52, 60, 68),
+        height: Responsive.scale(context, 52, 60, 68),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.green[400]!, Colors.green[600]!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
           boxShadow: [
             BoxShadow(
               color: Colors.green.withAlpha(76),
@@ -494,8 +473,8 @@ class _SpellingPracticeScreenState extends State<SpellingPracticeScreen>
         child: Center(
           child: Text(
             letter,
-            style: const TextStyle(
-              fontSize: 32,
+            style: TextStyle(
+              fontSize: Responsive.scale(context, 28, 32, 36),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),

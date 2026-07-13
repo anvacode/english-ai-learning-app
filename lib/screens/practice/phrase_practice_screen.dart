@@ -6,6 +6,7 @@ import '../../data/pronunciation_phrases_data.dart';
 import '../../services/audio_service.dart';
 import '../../services/speech_recognition_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/responsive.dart';
 
 class PhrasePracticeScreen extends StatefulWidget {
   const PhrasePracticeScreen({super.key});
@@ -315,10 +316,10 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
   Widget _buildPhraseCard(PronunciationPhrase phrase) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(Responsive.scale(context, 20, 28, 32)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 28, 32)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(20),
@@ -330,10 +331,13 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
       child: Column(
         children: [
           if (phrase.emoji != null)
-            Text(phrase.emoji!, style: const TextStyle(fontSize: 60)),
-          const SizedBox(height: 20),
+            Text(phrase.emoji!, style: TextStyle(fontSize: Responsive.scale(context, 48, 60, 72))),
+          SizedBox(height: Responsive.scale(context, 16, 20, 24)),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.scale(context, 12, 16, 20),
+              vertical: Responsive.scale(context, 6, 8, 10),
+            ),
             decoration: BoxDecoration(
               color: phrase.levelColor.withAlpha(20),
               borderRadius: BorderRadius.circular(12),
@@ -343,49 +347,48 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
               style: TextStyle(
                 color: phrase.levelColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: Responsive.scale(context, 11, 12, 13),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: Responsive.scale(context, 16, 20, 24)),
           Text(
             'Di esta frase:',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(color: Colors.grey[600], fontSize: Responsive.scale(context, 13, 14, 15)),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.scale(context, 10, 12, 14)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                '"${phrase.phrase}"',
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
+              Flexible(
+                child: Text(
+                  '"${phrase.phrase}"',
+                  style: TextStyle(
+                    fontSize: Responsive.scale(context, 22, 26, 30),
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF2D3748),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: Responsive.scale(context, 8, 12, 14)),
               IconButton(
                 onPressed: () => _speakPhrase(phrase.phrase),
-                icon: const Icon(
-                  Icons.volume_up_rounded,
-                  color: AppColors.primary,
-                ),
+                icon: const Icon(Icons.volume_up_rounded, color: AppColors.primary),
                 tooltip: 'Escuchar frase',
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: Responsive.scale(context, 12, 16, 20)),
           Text(
             phrase.translation,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: Responsive.scale(context, 16, 18, 20),
               color: Colors.grey[600],
               fontStyle: FontStyle.italic,
             ),
           ),
           if (_hasResult && _lastResult != null) ...[
-            const SizedBox(height: 24),
+            SizedBox(height: Responsive.scale(context, 16, 24, 28)),
             _buildResultSection(),
           ],
         ],
@@ -397,16 +400,12 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
     final result = _lastResult!;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
       decoration: BoxDecoration(
-        color: result.isCorrect
-            ? Colors.green.withAlpha(20)
-            : Colors.orange.withAlpha(20),
-        borderRadius: BorderRadius.circular(16),
+        color: result.isCorrect ? Colors.green.withAlpha(20) : Colors.orange.withAlpha(20),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
         border: Border.all(
-          color: result.isCorrect
-              ? Colors.green.withAlpha(50)
-              : Colors.orange.withAlpha(50),
+          color: result.isCorrect ? Colors.green.withAlpha(50) : Colors.orange.withAlpha(50),
         ),
       ),
       child: Column(
@@ -417,24 +416,24 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
               return Icon(
                 index < result.starRating ? Icons.star : Icons.star_border,
                 color: Colors.amber,
-                size: 32,
+                size: Responsive.scale(context, 28, 32, 36),
               );
             }),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.scale(context, 10, 12, 14)),
           Text(
             result.message,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: Responsive.scale(context, 14, 16, 18),
               fontWeight: FontWeight.w600,
               color: result.isCorrect ? Colors.green[700] : Colors.orange[700],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: Responsive.scale(context, 6, 8, 10)),
           Text(
             'Tú dijiste: "${result.recognizedText}"',
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: TextStyle(fontSize: Responsive.scale(context, 12, 13, 14), color: Colors.grey[600]),
           ),
         ],
       ),
@@ -443,15 +442,15 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
 
   Widget _buildBottomSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
       child: Column(
         children: [
           Text(
             _statusMessage,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: TextStyle(color: Colors.white, fontSize: Responsive.scale(context, 13, 14, 15)),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: Responsive.scale(context, 12, 16, 20)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -459,19 +458,16 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
                 OutlinedButton.icon(
                   onPressed: _restartPractice,
                   icon: const Icon(Icons.refresh, color: Colors.white),
-                  label: const Text(
-                    'Repetir',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  label: const Text('Repetir', style: TextStyle(color: Colors.white)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.scale(context, 16, 20, 24),
+                      vertical: Responsive.scale(context, 10, 12, 14),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: Responsive.scale(context, 12, 16, 20)),
               ],
               AnimatedBuilder(
                 animation: _pulseAnimation,
@@ -484,8 +480,8 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
                 child: GestureDetector(
                   onTap: _isListening || _hasResult ? null : _startListening,
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: Responsive.scale(context, 72, 80, 88),
+                    height: Responsive.scale(context, 72, 80, 88),
                     decoration: BoxDecoration(
                       color: _isListening
                           ? Colors.red
@@ -502,27 +498,25 @@ class _PhrasePracticeScreenState extends State<PhrasePracticeScreen>
                     child: Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
                       color: _isListening ? Colors.white : AppColors.primary,
-                      size: 40,
+                      size: Responsive.scale(context, 32, 40, 44),
                     ),
                   ),
                 ),
               ),
               if (_hasResult) ...[
-                const SizedBox(width: 16),
+                SizedBox(width: Responsive.scale(context, 12, 16, 20)),
                 ElevatedButton.icon(
                   onPressed: _nextPhrase,
                   icon: const Icon(Icons.arrow_forward),
                   label: Text(
-                    _currentIndex < _phrases.length - 1
-                        ? 'Siguiente'
-                        : 'Finalizar',
+                    _currentIndex < _phrases.length - 1 ? 'Siguiente' : 'Finalizar',
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.scale(context, 16, 20, 24),
+                      vertical: Responsive.scale(context, 10, 12, 14),
                     ),
                   ),
                 ),

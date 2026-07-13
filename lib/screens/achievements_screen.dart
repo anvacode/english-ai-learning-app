@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../data/lessons_data.dart';
 import '../logic/badge_service.dart';
 import '../models/badge.dart' as achievement;
+import '../theme/text_styles.dart';
+import '../utils/responsive.dart';
 
 /// Pantalla que muestra todos los badges/insignias del usuario.
 ///
@@ -15,19 +17,15 @@ class AchievementsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Logros'), elevation: 0),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               '🏆 Badges Desbloqueados',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
+              style: context.headline3.copyWith(color: Colors.deepPurple),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
             FutureBuilder<List<achievement.Badge>>(
               future: BadgeService.getBadges(lessonsList),
               builder: (context, snapshot) {
@@ -45,22 +43,18 @@ class AchievementsScreen extends StatelessWidget {
 
                 if (unlockedBadges.isEmpty) {
                   return Container(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 28)),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
-                        Text('🎯', style: TextStyle(fontSize: 64)),
-                        SizedBox(height: 16),
+                        Text('🎯', style: TextStyle(fontSize: Responsive.scale(context, 48, 64, 72))),
+                        SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                         Text(
                           'Domina lecciones para desbloquear badges',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: context.bodyText.copyWith(color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -69,8 +63,8 @@ class AchievementsScreen extends StatelessWidget {
                 }
 
                 return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
+                  spacing: Responsive.scale(context, 12, 16, 20),
+                  runSpacing: Responsive.scale(context, 12, 16, 20),
                   children: unlockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: true),
@@ -79,16 +73,12 @@ class AchievementsScreen extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 32),
-            const Text(
+            SizedBox(height: Responsive.scale(context, 24, 32, 36)),
+            Text(
               '📋 Próximos Badges',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
+              style: context.headline3.copyWith(color: Colors.deepPurple),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
             FutureBuilder<List<achievement.Badge>>(
               future: BadgeService.getBadges(lessonsList),
               builder: (context, snapshot) {
@@ -101,19 +91,19 @@ class AchievementsScreen extends StatelessWidget {
 
                 if (lockedBadges.isEmpty) {
                   return Container(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 28)),
                     decoration: BoxDecoration(
                       color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
-                        Text('🎉', style: TextStyle(fontSize: 64)),
-                        SizedBox(height: 16),
+                        Text('🎉', style: TextStyle(fontSize: Responsive.scale(context, 48, 64, 72))),
+                        SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                         Text(
                           '¡Felicidades! Desbloqueaste todos los badges',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: Responsive.scale(context, 14, 16, 18),
                             fontWeight: FontWeight.w600,
                             color: Colors.green,
                           ),
@@ -125,8 +115,8 @@ class AchievementsScreen extends StatelessWidget {
                 }
 
                 return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
+                  spacing: Responsive.scale(context, 12, 16, 20),
+                  runSpacing: Responsive.scale(context, 12, 16, 20),
                   children: lockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: false),
@@ -151,18 +141,15 @@ class _BadgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final isTablet = screenWidth < 900;
-    final badgeWidth = isMobile ? 80.0 : (isTablet ? 100.0 : 120.0);
-    final iconSize = isMobile ? 36.0 : (isTablet ? 44.0 : 48.0);
+    final badgeWidth = Responsive.scale(context, 80.0, 100.0, 120.0);
+    final iconSize = Responsive.scale(context, 36.0, 44.0, 48.0);
 
     return Container(
       width: badgeWidth,
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(Responsive.scale(context, 8, 12, 14)),
       decoration: BoxDecoration(
         color: isUnlocked ? Colors.amber[100] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
         border: Border.all(
           color: isUnlocked ? Colors.amber[400]! : Colors.grey[400]!,
           width: 2,
@@ -178,11 +165,11 @@ class _BadgeCard extends StatelessWidget {
               color: isUnlocked ? null : Colors.grey[400],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: Responsive.scale(context, 6, 8, 10)),
           Text(
             badge.title,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: Responsive.scale(context, 12, 14, 15),
               fontWeight: FontWeight.bold,
               color: isUnlocked ? Colors.amber[900] : Colors.grey[600],
             ),
@@ -191,11 +178,11 @@ class _BadgeCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           if (!isUnlocked) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: Responsive.scale(context, 3, 4, 5)),
             Text(
               'Bloqueado',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: Responsive.scale(context, 10, 11, 12),
                 color: Colors.grey[500],
                 fontStyle: FontStyle.italic,
               ),

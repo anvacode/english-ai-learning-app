@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/diagnostic_questions_data.dart';
 import '../../models/diagnostic_question.dart';
 import '../../services/diagnostic_service.dart';
+import '../../utils/responsive.dart';
 import 'diagnostic_result_screen.dart';
 
 class DiagnosticTestScreen extends StatefulWidget {
@@ -94,55 +95,16 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
     }
   }
 
-  double _getEmojiSize(double width) {
-    if (width < 400) return 50;
-    if (width < 600) return 60;
-    if (width < 900) return 70;
-    if (width < 1200) return 60;
-    return 50;
-  }
-
-  double _getOptionSize(double width) {
-    if (width < 400) return 45;
-    if (width < 600) return 50;
-    if (width < 900) return 60;
-    return 50;
-  }
-
-  double _getFontSize(double width, {bool isLarge = false}) {
-    if (width < 400) return isLarge ? 16 : 18;
-    if (width < 600) return isLarge ? 18 : 22;
-    if (width < 900) return isLarge ? 20 : 26;
-    if (width < 1200) return isLarge ? 18 : 24;
-    return isLarge ? 16 : 22;
-  }
-
-  double _getSpacing(double width) {
-    if (width < 600) return 12;
-    if (width < 900) return 20;
-    return 16;
-  }
-
-  int _getGridColumns(double width) {
-    if (width < 600) return 2;
-    if (width < 900) return 2;
-    if (width < 1200) return 4;
-    return 4;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-
-    final emojiSize = _getEmojiSize(width);
-    final optionSize = _getOptionSize(width);
-    final fontSize = _getFontSize(width);
-    final largeFontSize = _getFontSize(width, isLarge: true);
-    final spacing = _getSpacing(width);
-    final gridColumns = _getGridColumns(width);
-
-    final isCompact = width < 600;
+    final height = Responsive.screenHeight(context);
+    final emojiSize = Responsive.scale(context, 50.0, 60.0, 70.0);
+    final optionSize = Responsive.scale(context, 45.0, 50.0, 60.0);
+    final fontSize = Responsive.scale(context, 18.0, 22.0, 26.0);
+    final largeFontSize = Responsive.scale(context, 16.0, 18.0, 20.0);
+    final spacing = Responsive.scale(context, 12.0, 16.0, 20.0);
+    final gridColumns = Responsive.gridColumns(context, mobile: 2, tablet: 2, desktop: 4, wide: 4);
+    final isCompact = context.isMobile;
 
     return PopScope(
       canPop: false,
@@ -188,7 +150,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
 
   Widget _buildHeader(bool isCompact, double fontSize, double spacing) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: spacing, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: spacing, vertical: Responsive.scale(context, 10, 12, 14)),
       child: Column(
         children: [
           Row(
@@ -197,7 +159,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: isCompact ? 12 : 16,
-                  vertical: 8,
+                  vertical: Responsive.scale(context, 6, 8, 10),
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(50),
@@ -206,8 +168,8 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.star, color: Colors.amber, size: Responsive.scale(context, 18, 20, 22)),
+                    SizedBox(width: Responsive.scale(context, 6, 8, 10)),
                     Text(
                       '${_currentQuestionIndex + 1} / ${_questions.length}',
                       style: TextStyle(
@@ -228,7 +190,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
               value: _progress,
               backgroundColor: Colors.white.withAlpha(50),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-              minHeight: 8,
+              minHeight: Responsive.scale(context, 6, 8, 10),
             ),
           ),
         ],
@@ -263,14 +225,14 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
               SizedBox(height: spacing * 1.5),
               Container(
                 width: double.infinity,
-                constraints: const BoxConstraints(maxWidth: 500),
+                constraints: BoxConstraints(maxWidth: Responsive.scale(context, 400, 500, 600)),
                 padding: EdgeInsets.symmetric(
                   horizontal: spacing * 1.5,
                   vertical: spacing,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 24, 28)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withAlpha(25),
@@ -368,21 +330,21 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
       padding: EdgeInsets.all(spacing),
       child: SizedBox(
         width: double.infinity,
-        height: isCompact ? 50 : 60,
+        height: Responsive.buttonHeight(context),
         child: ElevatedButton.icon(
           onPressed: hasAnswer && !_isSubmitting ? _nextQuestion : null,
           icon: _isSubmitting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
+              ? SizedBox(
+                  width: Responsive.scale(context, 18, 20, 22),
+                  height: Responsive.scale(context, 18, 20, 22),
+                  child: const CircularProgressIndicator(
                     strokeWidth: 2,
                     color: Colors.white,
                   ),
                 )
               : Icon(
                   isLastQuestion ? Icons.check : Icons.arrow_forward,
-                  size: isCompact ? 24 : 28,
+                  size: Responsive.scale(context, 22, 24, 28),
                 ),
           label: Text(
             isLastQuestion ? 'Finish!' : 'Next',
@@ -393,7 +355,7 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
             foregroundColor: Colors.white,
             disabledBackgroundColor: Colors.grey.shade300,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
             ),
             elevation: 6,
           ),

@@ -6,6 +6,8 @@ import '../logic/activity_result_service.dart';
 import '../models/activity_result.dart';
 import '../models/matching_item.dart';
 import '../services/audio_service.dart';
+import '../theme/text_styles.dart';
+import '../utils/responsive.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/speaker_button.dart';
 
@@ -182,29 +184,24 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hPadding = Responsive.scale(context, 10, 12, 16);
+    final vPadding = Responsive.scale(context, 8, 12, 14);
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: SafeArea(
         child: Column(
           children: [
-            // Progress indicator - más compacto
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                12,
-                12,
-                12,
-                8,
-              ), // Reduced padding
+              padding: EdgeInsets.fromLTRB(hPadding, vPadding, hPadding, vPadding * 0.6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Emparejar palabras con imágenes',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 15,
-                    ), // Smaller text
+                    style: context.bodyText2.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 6), // Reduced spacing
+                  SizedBox(height: Responsive.scale(context, 4, 6, 8)),
                   LinearProgressIndicator(
                     value:
                         widget.progressOffset +
@@ -212,29 +209,21 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                             widget.progressScale,
                     backgroundColor: Colors.grey[300],
                     color: Colors.deepPurple,
-                    minHeight: 6, // Thinner bar
+                    minHeight: Responsive.scale(context, 5, 6, 8),
                   ),
-                  const SizedBox(height: 3), // Reduced spacing
+                  SizedBox(height: Responsive.scale(context, 2, 3, 4)),
                   Text(
                     '${_matchedIds.length} / ${widget.items.length} parejas',
-                    style: TextStyle(
-                      fontSize: 11, // Smaller text
-                      color: Colors.grey[600],
-                    ),
+                    style: context.caption,
                   ),
                 ],
               ),
             ),
-
-            // Images and words layout
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                ), // Reduced padding
+                padding: EdgeInsets.symmetric(horizontal: hPadding),
                 child: Row(
                   children: [
-                    // Images column
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
@@ -244,8 +233,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12), // Reduced spacing
-                    // Words column (shuffled)
+                    SizedBox(width: Responsive.scale(context, 8, 12, 16)),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
@@ -259,27 +247,18 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                 ),
               ),
             ),
-
-            // Feedback and action button - más compacto
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                12,
-                8,
-                12,
-                12,
-              ), // Reduced padding
+              padding: EdgeInsets.fromLTRB(hPadding, vPadding * 0.6, hPadding, vPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_feedbackMessage != null)
                     Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 8.0,
-                      ), // Reduced padding
+                      padding: EdgeInsets.only(bottom: Responsive.scale(context, 6, 8, 10)),
                       child: Text(
                         _feedbackMessage!,
                         style: TextStyle(
-                          fontSize: 14, // Smaller text
+                          fontSize: Responsive.scale(context, 13, 14, 15),
                           fontWeight: FontWeight.bold,
                           color: _lastCorrect!
                               ? Colors.green[700]
@@ -289,7 +268,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                     ),
                   SizedBox(
                     width: double.infinity,
-                    height: 44, // Reduced height
+                    height: Responsive.buttonHeight(context) * 0.85,
                     child: ElevatedButton(
                       onPressed:
                           (_selectedImageId != null && _selectedWord != null)
@@ -299,9 +278,9 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                         backgroundColor: Colors.deepPurple,
                         disabledBackgroundColor: Colors.grey[300],
                       ),
-                      child: const Text(
+                      child: Text(
                         'Emparejar',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: context.buttonText,
                       ),
                     ),
                   ),
@@ -317,22 +296,20 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
   Widget _buildImageButton(MatchingItem item) {
     final isMatched = _matchedIds.contains(item.id);
     final isSelected = _selectedImageId == item.id;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0), // Reduced padding
+      padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 4, 5, 6)),
       child: GestureDetector(
         onTap: isMatched ? null : () => _selectImage(item.id),
         child: Container(
           width: double.infinity,
-          height: isMobile ? 90 : 85, // Más bajo en web
+          height: Responsive.scale(context, 85, 90, 95),
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? Colors.deepPurple : Colors.grey[300]!,
               width: isSelected ? 3 : 1,
             ),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(Responsive.borderRadius(context) - 4),
             color: isMatched ? Colors.green[50] : Colors.white,
             boxShadow: isSelected
                 ? [
@@ -345,11 +322,10 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
           ),
           child: Stack(
             children: [
-              // Image con fondo para contenedor
               Container(
                 color: Colors.grey[50],
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context) - 5),
                   child: LessonImage(
                     imagePath: item.imagePath,
                     width: double.infinity,
@@ -357,22 +333,21 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
                   ),
                 ),
               ),
-              // Matched checkmark - más compacto
               if (isMatched)
                 Center(
                   child: Container(
-                    width: 40, // Reduced size
-                    height: 40, // Reduced size
+                    width: Responsive.scale(context, 36, 40, 44),
+                    height: Responsive.scale(context, 36, 40, 44),
                     decoration: BoxDecoration(
                       color: Colors.green,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(Responsive.scale(context, 18, 20, 22)),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         '✓',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 26, // Smaller text
+                          fontSize: Responsive.scale(context, 22, 26, 30),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -395,13 +370,12 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               .correctWord ==
           word,
     );
-    const buttonHeight = 50.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 4, 5, 6)),
       child: SizedBox(
         width: double.infinity,
-        height: buttonHeight, // Más bajo en web
+        height: Responsive.scale(context, 44, 50, 54),
         child: ElevatedButton(
           onPressed: isUsedInMatch ? null : () => _selectWord(word),
           style: ElevatedButton.styleFrom(
@@ -414,7 +388,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               Text(
                 word,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: Responsive.scale(context, 14, 16, 18),
                   fontWeight: FontWeight.w600,
                   color: isSelected ? Colors.white : Colors.black,
                 ),
@@ -422,8 +396,8 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
               if (!isUsedInMatch)
                 SpeakerButton(
                   text: word,
-                  iconSize: 18,
-                  buttonSize: 32,
+                  iconSize: Responsive.scale(context, 16, 18, 20),
+                  buttonSize: Responsive.scale(context, 28, 32, 36),
                   iconColor: isSelected ? Colors.white : Colors.deepPurple,
                 ),
             ],
