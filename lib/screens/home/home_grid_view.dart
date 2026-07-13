@@ -30,7 +30,7 @@ class HomeGridView extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: context.isMobile ? 20 : 24,
+                      fontSize: Responsive.scale(context, 20, 22, 24),
                     ),
                   ),
                   const Spacer(),
@@ -102,7 +102,7 @@ class HomeGridView extends StatelessWidget {
                           ),
                           child: const StarDisplay(
                             iconSize: 24,
-                            fontSize: 18,
+                            fontSize: Responsive.scale(context, 16, 18, 20),
                           ),
                         ),
                       ),
@@ -238,7 +238,7 @@ class HomeGridView extends StatelessWidget {
                       ),
                       child: Text(
                         emoji,
-                        style: TextStyle(fontSize: context.isMobile ? 56 : 72),
+                        style: TextStyle(fontSize: Responsive.scale(context, 48, 56, 64)),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -247,7 +247,7 @@ class HomeGridView extends StatelessWidget {
                       title,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: context.isMobile ? 18 : 20,
+                        fontSize: Responsive.scale(context, 18, 20, 22),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -256,7 +256,7 @@ class HomeGridView extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         color: Colors.white.withAlpha(80),
-                        fontSize: context.isMobile ? 13 : 14,
+                        fontSize: Responsive.scale(context, 13, 14, 15),
                         fontWeight: FontWeight.w500,
                       ),
                     ),

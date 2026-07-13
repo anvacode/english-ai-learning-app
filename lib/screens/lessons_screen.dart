@@ -157,8 +157,8 @@ class _LessonsScreenState extends State<LessonsScreen> {
             padding: EdgeInsets.only(right: context.horizontalPadding),
             child: Center(
               child: StarDisplay(
-                iconSize: context.isMobile ? 24 : 28,
-                fontSize: context.isMobile ? 18 : 20,
+                iconSize: Responsive.scale(context, 24, 28, 32),
+                fontSize: Responsive.scale(context, 18, 20, 22),
                 showBackground: true,
               ),
             ),
@@ -202,11 +202,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
                               'No lessons available',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
+                              style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
                             ),
                           );
                         } else if (!isLevelUnlocked && !isBeginnerLevel) {
@@ -219,11 +215,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                             ),
                             child: Text(
                               'Completa el nivel anterior para desbloquear',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
+                              style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
                             ),
                           );
                         } else {
@@ -303,9 +295,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                                     child: Text(
                                       '${level.title}$lockIcon',
                                       style: TextStyle(
-                                        fontSize: context.isMobile
-                                            ? 18
-                                            : (context.isTablet ? 20 : 22),
+                                        fontSize: Responsive.scale(context, 18, 20, 22),
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(
                                           context,
@@ -382,15 +372,11 @@ class _LessonsScreenState extends State<LessonsScreen> {
                   children: [
                     Text(
                       'Recomendado para ti',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _getLevelColor(),
-                      ),
+                      style: context.bodyText.copyWith(fontWeight: FontWeight.bold, color: _getLevelColor()),
                     ),
                     Text(
                       'Basado en tu nivel ${_getLevelDisplayName()}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: context.bodyText2,
                     ),
                   ],
                 ),
@@ -434,14 +420,10 @@ class _LessonsScreenState extends State<LessonsScreen> {
                         color: _getLevelColor(),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        lesson.title,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: _getLevelColor(),
+                        Text(
+                          lesson.title,
+                          style: context.bodyText2.copyWith(color: _getLevelColor()),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -500,17 +482,16 @@ class LessonListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
+      margin: EdgeInsets.only(bottom: Responsive.scale(context, 10, 12, 14)),
       child: InkWell(
         onTap: isLocked ? null : onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 18)),
           child: Opacity(
             opacity: isLocked ? 0.6 : 1.0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Título/ID de la lección
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,17 +501,11 @@ class LessonListItem extends StatelessWidget {
                           Expanded(
                             child: Text(
                               lesson.title,
-                              style: TextStyle(
-                                fontSize: context.isMobile
-                                    ? 16
-                                    : (context.isTablet ? 17 : 18),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: context.cardTitle,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // Badge icon if mastered
                           FutureBuilder<achievement.Badge?>(
                             future: BadgeService.getBadge(lesson),
                             builder: (context, snapshot) {
@@ -538,10 +513,10 @@ class LessonListItem extends StatelessWidget {
                                   snapshot.data != null &&
                                   snapshot.data!.unlocked) {
                                 return Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
+                                  padding: EdgeInsets.only(left: Responsive.scale(context, 6, 8, 10)),
                                   child: Text(
                                     snapshot.data!.icon,
-                                    style: const TextStyle(fontSize: 20),
+                                    style: TextStyle(fontSize: Responsive.scale(context, 18, 20, 22)),
                                   ),
                                 );
                               }
@@ -553,23 +528,22 @@ class LessonListItem extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'ID: ${lesson.id}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: context.caption,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Badge de estado de dominio o lock
+                SizedBox(width: Responsive.scale(context, 12, 16, 20)),
                 if (isLocked)
-                  const Text('🔒', style: TextStyle(fontSize: 24))
+                  Text('🔒', style: TextStyle(fontSize: Responsive.scale(context, 20, 24, 28)))
                 else
                   FutureBuilder<LessonMasteryStatus>(
                     future: evaluator.evaluateLesson(lesson.id),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
-                        return const SizedBox(
-                          width: 24,
-                          height: 24,
+                        return SizedBox(
+                          width: Responsive.scale(context, 20, 24, 28),
+                          height: Responsive.scale(context, 20, 24, 28),
                           child: CircularProgressIndicator(strokeWidth: 2),
                         );
                       }
@@ -579,21 +553,17 @@ class LessonListItem extends StatelessWidget {
                       final statusText = getStatusText(status);
 
                       return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.scale(context, 8, 10, 12),
+                          vertical: Responsive.scale(context, 4, 6, 8),
                         ),
                         decoration: BoxDecoration(
                           color: statusColor.withAlpha(230),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
                         ),
                         child: Text(
                           statusText,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: context.label.copyWith(color: Colors.white),
                         ),
                       );
                     },
