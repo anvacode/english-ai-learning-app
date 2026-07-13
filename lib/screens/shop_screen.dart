@@ -166,8 +166,8 @@ class _ShopScreenState extends State<ShopScreen> {
             padding: EdgeInsets.only(right: context.horizontalPadding),
             child: Center(
               child: StarDisplay(
-                iconSize: context.isMobile ? 24 : 28,
-                fontSize: context.isMobile ? 18 : 20,
+                iconSize: Responsive.scale(context, 24, 28, 32),
+                fontSize: Responsive.scale(context, 18, 20, 22),
                 showBackground: true,
               ),
             ),
@@ -196,7 +196,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         Text(
                           'Tus Estrellas',
                           style: TextStyle(
-                            fontSize: context.isMobile ? 16 : (context.isTablet ? 18 : 20),
+                            fontSize: Responsive.scale(context, 16, 18, 20),
                             fontWeight: FontWeight.w600,
                             color: Colors.grey,
                           ),
@@ -205,7 +205,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         Text(
                           '$_totalStars ⭐',
                           style: TextStyle(
-                            fontSize: context.isMobile ? 32 : (context.isTablet ? 36 : 40),
+                            fontSize: Responsive.scale(context, 32, 36, 40),
                             fontWeight: FontWeight.bold,
                             color: Colors.amber[900],
                           ),
@@ -308,188 +308,171 @@ class _ShopItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final typeColor = _getTypeColor();
+    final iconSize = Responsive.scale(context, 22, 26, 30);
+    final iconContainerSize = Responsive.scale(context, 48, 52, 56);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: Responsive.scale(context, 10, 12, 14)),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
         side: isPurchased
             ? const BorderSide(color: Colors.green, width: 2)
             : BorderSide.none,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.scale(context, 10, 12, 14),
+          vertical: Responsive.scale(context, 8, 10, 12),
+        ),
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Ícono del ítem - optimizado para móvil
               Container(
-                width: 52,
-                height: 52,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    typeColor.withAlpha(51),
-                    typeColor.withAlpha(13),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                width: iconContainerSize,
+                height: iconContainerSize,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      typeColor.withAlpha(51),
+                      typeColor.withAlpha(13),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
+                  border: Border.all(
+                    color: typeColor.withAlpha(76),
+                    width: 1.5,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: typeColor.withAlpha(76),
-                  width: 1.5,
+                child: Center(
+                  child: Text(
+                    item.icon,
+                    style: TextStyle(fontSize: iconSize),
+                  ),
                 ),
               ),
-              child: Center(
-                child: Text(
-                  item.icon,
-                  style: const TextStyle(fontSize: 26),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Información del ítem
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+              SizedBox(width: Responsive.scale(context, 8, 10, 12)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.name,
+                            style: context.cardTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      if (isPurchased) ...[
-                        const SizedBox(width: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'Comprado',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                        if (isPurchased) ...[
+                          SizedBox(width: Responsive.scale(context, 3, 4, 5)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.scale(context, 5, 6, 7),
+                              vertical: Responsive.scale(context, 2, 3, 4),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green[100],
+                              borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                            ),
+                            child: Text(
+                              'Comprado',
+                              style: context.label.copyWith(color: Colors.green),
                             ),
                           ),
+                        ],
+                      ],
+                    ),
+                    SizedBox(height: Responsive.scale(context, 2, 3, 4)),
+                    Text(
+                      item.description,
+                      style: context.bodyText2.copyWith(height: 1.2),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.scale(context, 6, 8, 10),
+                              vertical: Responsive.scale(context, 3, 4, 5),
+                            ),
+                            decoration: BoxDecoration(
+                              color: typeColor.withAlpha(38),
+                              borderRadius: BorderRadius.circular(Responsive.scale(context, 6, 8, 10)),
+                              border: Border.all(
+                                color: typeColor.withAlpha(76),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getTypeIcon(),
+                                  size: Responsive.scale(context, 11, 13, 15),
+                                  color: typeColor,
+                                ),
+                                SizedBox(width: Responsive.scale(context, 2, 3, 4)),
+                                Flexible(
+                                  child: Text(
+                                    _getTypeLabel(),
+                                    style: TextStyle(
+                                      fontSize: Responsive.scale(context, 9, 10, 11),
+                                      fontWeight: FontWeight.w600,
+                                      color: typeColor,
+                                      letterSpacing: 0.2,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Responsive.scale(context, 5, 6, 8)),
+                        Text(
+                          '${item.price} ⭐',
+                          style: context.price,
                         ),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    item.description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                      height: 1.2,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      // Badge de tipo con diseño mejorado para móvil
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: typeColor.withAlpha(38),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: typeColor.withAlpha(76),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getTypeIcon(),
-                                size: 13,
-                                color: typeColor,
-                              ),
-                              const SizedBox(width: 3),
-                              Flexible(
-                                child: Text(
-                                  _getTypeLabel(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: typeColor,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${item.price} ⭐',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Botón de compra
-            if (!isPurchased) ...[
-              const SizedBox(width: 6),
-              SizedBox(
-                width: 72,
-                child: ElevatedButton(
-                  onPressed: canAfford ? onPurchase : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    disabledBackgroundColor: Colors.grey[300],
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Comprar',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  ],
                 ),
               ),
+              if (!isPurchased) ...[
+                SizedBox(width: Responsive.scale(context, 5, 6, 8)),
+                SizedBox(
+                  width: Responsive.scale(context, 64, 72, 80),
+                  child: ElevatedButton(
+                    onPressed: canAfford ? onPurchase : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      disabledBackgroundColor: Colors.grey[300],
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.scale(context, 5, 6, 8),
+                        vertical: Responsive.scale(context, 8, 10, 12),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                      ),
+                    ),
+                    child: Text(
+                      'Comprar',
+                      style: context.buttonSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
+          ),
         ),
       ),
     );
