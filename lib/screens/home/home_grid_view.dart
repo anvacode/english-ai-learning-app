@@ -100,7 +100,7 @@ class HomeGridView extends StatelessWidget {
                             color: Colors.white.withAlpha(30),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const StarDisplay(
+                          child: StarDisplay(
                             iconSize: 24,
                             fontSize: Responsive.scale(context, 16, 18, 20),
                           ),

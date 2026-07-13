@@ -14,6 +14,7 @@ import '../models/lesson.dart';
 import '../models/matching_item.dart';
 import '../services/audio_service.dart';
 import '../services/effects_service.dart';
+import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/sparkles_overlay.dart';
@@ -541,7 +542,7 @@ class _LessonScreenState extends State<LessonScreen> {
     if (_exerciseCompleted) {
       return Scaffold(
         appBar: AppBar(title: const Text('Lección')),
-        body: const SafeArea(
+        body: SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -549,15 +550,15 @@ class _LessonScreenState extends State<LessonScreen> {
                 Text(
                   '✓ Correcto',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: Responsive.scale(context, 20, 24, 28),
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                 Text(
                   '🎉 Ejercicio completado',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: context.headline3,
                 ),
               ],
             ),
@@ -616,10 +617,7 @@ class _LessonScreenState extends State<LessonScreen> {
                           : status == LessonProgressStatus.inProgress
                           ? 'En progreso'
                           : 'Dominada',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.label,
                     ),
                   ),
                 ),
@@ -631,26 +629,21 @@ class _LessonScreenState extends State<LessonScreen> {
                       // Visual stimulus - responsivo
                       Padding(
                         padding: EdgeInsets.only(
-                          top: context.isMobile ? 12.0 : 8.0,
+                          top: Responsive.scale(context, 8, 12, 14),
                         ),
                         child: Center(
                           child: Container(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                               color: Colors.grey[50],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                               child: LessonImage(
                                 imagePath: currentItem.stimulusImageAsset,
                                 fallbackColor: currentItem.stimulusColor,
-                                // Tamaño responsivo: más pequeño en web
-                                width: context.isMobile
-                                    ? 200
-                                    : (context.isTablet ? 180 : 150),
-                                height: context.isMobile
-                                    ? 200
-                                    : (context.isTablet ? 180 : 150),
+                                width: Responsive.scale(context, 180, 200, 220),
+                                height: Responsive.scale(context, 180, 200, 220),
                               ),
                             ),
                           ),
@@ -660,8 +653,8 @@ class _LessonScreenState extends State<LessonScreen> {
                       // Question with speaker button and translation helper - responsivo
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: context.isMobile ? 0 : 4.0,
+                          horizontal: Responsive.scale(context, 12, 16, 20),
+                          vertical: Responsive.scale(context, 0, 4, 6),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -669,21 +662,16 @@ class _LessonScreenState extends State<LessonScreen> {
                             Flexible(
                               child: Text(
                                 widget.lesson.question,
-                                style: TextStyle(
-                                  fontSize: context.isMobile
-                                      ? 18
-                                      : 16, // Más pequeño en web
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: Responsive.scale(context, 6, 8, 10)),
                             SpeakerButton(
                               text: currentItem
                                   .options[currentItem.correctAnswerIndex],
-                              iconSize: 20,
-                              buttonSize: 36,
+                              iconSize: Responsive.scale(context, 18, 20, 22),
+                              buttonSize: Responsive.scale(context, 32, 36, 40),
                             ),
                             const SizedBox(width: 4),
                             // Botón de traducción
@@ -723,17 +711,15 @@ class _LessonScreenState extends State<LessonScreen> {
                           children: List.generate(
                             _randomizedOptions.length,
                             (index) => Center(
-                              // Centrar botones horizontalmente
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: context.isMobile ? 6.0 : 4.0,
+                                  vertical: Responsive.scale(context, 4, 6, 8),
                                 ),
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    // Más estrecho en web
-                                    maxWidth: 200,
-                                    minHeight: 50,
-                                    maxHeight: 60,
+                                  constraints: BoxConstraints(
+                                    maxWidth: Responsive.scale(context, 180, 200, 220),
+                                    minHeight: Responsive.scale(context, 44, 50, 56),
+                                    maxHeight: Responsive.scale(context, 52, 60, 64),
                                   ),
                                   child: ElevatedButton(
                                     onPressed:
@@ -759,25 +745,22 @@ class _LessonScreenState extends State<LessonScreen> {
                                                 : Colors.grey[300])
                                           : Colors.grey[200],
                                       padding: EdgeInsets.symmetric(
-                                        horizontal: context.isMobile ? 16 : 12,
-                                        vertical: context.isMobile ? 12 : 8,
+                                        horizontal: Responsive.scale(context, 12, 16, 20),
+                                        vertical: Responsive.scale(context, 8, 12, 14),
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .center, // Centrar contenido
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Flexible(
                                           child: Text(
                                             _randomizedOptions[index],
                                             style: TextStyle(
-                                              fontSize: context.isMobile
-                                                  ? 15
-                                                  : 14, // Más pequeño en web
+                                              fontSize: Responsive.scale(context, 14, 15, 16),
                                               fontWeight: FontWeight.w500,
                                               color:
                                                   _selectedAnswerIndex ==
@@ -787,8 +770,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                                   : Colors.black,
                                               height: 1.2,
                                             ),
-                                            textAlign: TextAlign
-                                                .center, // Centrar texto
+                                            textAlign: TextAlign.center,
                                             overflow: TextOverflow.visible,
                                             softWrap: true,
                                             maxLines: 2,
@@ -798,11 +780,11 @@ class _LessonScreenState extends State<LessonScreen> {
                                             status !=
                                                 LessonProgressStatus
                                                     .mastered) ...[
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: Responsive.scale(context, 6, 8, 10)),
                                           SpeakerButton(
                                             text: _randomizedOptions[index],
-                                            iconSize: 16,
-                                            buttonSize: 28,
+                                            iconSize: Responsive.scale(context, 14, 16, 18),
+                                            buttonSize: Responsive.scale(context, 24, 28, 32),
                                             iconColor:
                                                 _selectedAnswerIndex == index
                                                 ? Colors.white
@@ -827,11 +809,10 @@ class _LessonScreenState extends State<LessonScreen> {
                         ),
                         child: !_answered
                             ? Center(
-                                // Centrar botón
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 320,
-                                    minHeight: 54,
+                                  constraints: BoxConstraints(
+                                    maxWidth: Responsive.scale(context, 280, 320, 360),
+                                    minHeight: Responsive.scale(context, 48, 54, 58),
                                   ),
                                   child: ElevatedButton(
                                     onPressed:
@@ -845,35 +826,30 @@ class _LessonScreenState extends State<LessonScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.deepPurple,
                                       disabledBackgroundColor: Colors.grey[300],
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 32,
-                                        vertical: 16,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.scale(context, 24, 32, 40),
+                                        vertical: Responsive.scale(context, 12, 16, 18),
                                       ),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'Enviar',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
+                                      style: context.buttonText,
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ),
                               )
                             : Center(
-                                // Centrar contenedor de feedback
                                 child: Container(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 320,
+                                  constraints: BoxConstraints(
+                                    maxWidth: Responsive.scale(context, 280, 320, 360),
                                   ),
-                                  padding: const EdgeInsets.all(16),
+                                  padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
                                   decoration: BoxDecoration(
                                     color: _isCorrect == true
                                         ? Colors.green[100]
                                         : Colors.red[100],
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -891,7 +867,7 @@ class _LessonScreenState extends State<LessonScreen> {
                                                 ? '✗ La respuesta correcta es: $_correctAnswerValue'
                                                 : '✗ Intenta de nuevo',
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: Responsive.scale(context, 18, 20, 22),
                                               fontWeight: FontWeight.bold,
                                               color: _isCorrect == true
                                                   ? Colors.green[700]
@@ -901,26 +877,22 @@ class _LessonScreenState extends State<LessonScreen> {
                                           );
                                         },
                                       ),
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: Responsive.scale(context, 10, 12, 14)),
                                       ElevatedButton(
                                         onPressed: _onNextOrRetry,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.deepPurple,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 32,
-                                            vertical: 14,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: Responsive.scale(context, 24, 32, 40),
+                                            vertical: Responsive.scale(context, 12, 14, 16),
                                           ),
-                                          minimumSize: const Size(200, 48),
+                                          minimumSize: Size(Responsive.scale(context, 180, 200, 220), Responsive.scale(context, 44, 48, 52)),
                                         ),
                                         child: Text(
                                           _isCorrect == true
                                               ? 'Siguiente'
                                               : 'Reintentar',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
+                                          style: context.buttonText,
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -940,22 +912,16 @@ class _LessonScreenState extends State<LessonScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
+                              Text(
                                 '🎉 ¡Lección dominada!',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
                               ),
                               if (_badge != null)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
+                                  padding: EdgeInsets.only(top: Responsive.scale(context, 6, 8, 10)),
                                   child: Text(
                                     'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: context.bodyText2.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                             ],
