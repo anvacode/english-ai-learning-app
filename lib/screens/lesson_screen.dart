@@ -692,7 +692,7 @@ class _LessonScreenState extends State<LessonScreen> {
         child: Padding(
           padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 32)),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 2,

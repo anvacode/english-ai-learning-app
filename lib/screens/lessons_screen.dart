@@ -775,7 +775,7 @@ class LessonListItem extends StatelessWidget {
                         return SizedBox(
                           width: Responsive.scale(context, 20, 24, 28),
                           height: Responsive.scale(context, 20, 24, 28),
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: const CircularProgressIndicator(strokeWidth: 2),
                         );
                       }
 
