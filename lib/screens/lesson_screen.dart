@@ -17,9 +17,12 @@ import '../services/audio_service.dart';
 import '../services/effects_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
+import '../widgets/confetti_overlay.dart';
+import '../widgets/feedback_widget.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/sparkles_overlay.dart';
 import '../widgets/speaker_button.dart';
+import '../widgets/streak_indicator.dart';
 import '../widgets/translation_popup.dart';
 import 'matching_exercise_screen.dart';
 
@@ -70,6 +73,12 @@ class _LessonScreenState extends State<LessonScreen> {
   // Sparkles effect state
   bool _showSparkles = false;
   Offset? _sparklesCenter;
+
+  // Streak tracking
+  int _streak = 0;
+
+  // Confetti effect state
+  bool _showConfetti = false;
 
   @override
   void initState() {
@@ -162,12 +171,28 @@ class _LessonScreenState extends State<LessonScreen> {
   Future<void> _triggerSparklesEffect() async {
     final shouldShow = await EffectsService.shouldShowSparkles();
     if (mounted && shouldShow) {
-      // Get center of screen for sparkles
       final screenSize = MediaQuery.of(context).size;
       setState(() {
         _showSparkles = true;
         _sparklesCenter = Offset(screenSize.width / 2, screenSize.height / 2);
       });
+    }
+  }
+
+  /// Trigger confetti effect on streak milestones
+  Future<void> _triggerConfettiEffect() async {
+    final shouldShow = await EffectsService.shouldShowConfetti();
+    if (mounted && shouldShow) {
+      setState(() {
+        _showConfetti = true;
+      });
+      // Confetti dura ~3 segundos, resetear después
+      await Future.delayed(const Duration(seconds: 3));
+      if (mounted) {
+        setState(() {
+          _showConfetti = false;
+        });
+      }
     }
   }
 
@@ -263,13 +288,23 @@ class _LessonScreenState extends State<LessonScreen> {
       completedCount = progress.completedCount;
       totalCount = progress.totalCount;
       status = progress.status;
+      // Track streak
+      if (isCorrect) {
+        _streak++;
+      } else {
+        _streak = 0;
+      }
     });
 
-    // Play feedback sound and show sparkles effect
+    // Play feedback sound and show effects
     if (isCorrect) {
       await _audioService.playCorrectSound();
-      // Show sparkles effect if purchased and active
+      // Show sparkles effect (always free)
       _triggerSparklesEffect();
+      // Show confetti on streak milestones
+      if (_streak >= 3) {
+        _triggerConfettiEffect();
+      }
     } else {
       await _audioService.playWrongSound();
 
@@ -848,55 +883,15 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
               ),
             )
-          : Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: Responsive.scale(context, 280, 320, 360)),
-                padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
-                decoration: BoxDecoration(
-                  color: _isCorrect == true ? Colors.green[100] : Colors.red[100],
-                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Consumer<LessonController>(
-                      builder: (context, lessonController, _) {
-                        final attempts = lessonController.getIncorrectAttemptsForCurrentQuestion(currentItem.id);
-                        return Text(
-                          _isCorrect == true
-                              ? '✓ Correcto'
-                              : attempts >= 3
-                                  ? '✗ La respuesta correcta es: $_correctAnswerValue'
-                                  : '✗ Intenta de nuevo',
-                          style: TextStyle(
-                            fontSize: Responsive.scale(context, 18, 20, 22),
-                            fontWeight: FontWeight.bold,
-                            color: _isCorrect == true ? Colors.green[700] : Colors.red[700],
-                          ),
-                          textAlign: TextAlign.center,
-                        );
-                      },
-                    ),
-                    SizedBox(height: Responsive.scale(context, 10, 12, 14)),
-                    ElevatedButton(
-                      onPressed: _onNextOrRetry,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.scale(context, 24, 32, 40),
-                          vertical: Responsive.scale(context, 12, 14, 16),
-                        ),
-                        minimumSize: Size(Responsive.scale(context, 180, 200, 220), Responsive.scale(context, 44, 48, 52)),
-                      ),
-                      child: Text(
-                        _isCorrect == true ? 'Siguiente' : 'Reintentar',
-                        style: context.buttonText,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          : FeedbackWidget(
+              key: ValueKey('feedback-${widget.lesson.id}-$currentItemIndex'),
+              isCorrect: _isCorrect ?? false,
+              attemptNumber: _isCorrect == true
+                  ? 1
+                  : context.read<LessonController>().getIncorrectAttemptsForCurrentQuestion(currentItem.id),
+              streak: _streak,
+              correctAnswer: _isCorrect == false ? _correctAnswerValue : null,
+              onContinue: _onNextOrRetry,
             ),
     );
   }
@@ -944,7 +939,16 @@ class _LessonScreenState extends State<LessonScreen> {
     final currentItem = items[currentItemIndex];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lección')),
+      appBar: AppBar(
+        title: const Text('Lección'),
+        actions: [
+          // Streak indicator en el AppBar
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: StreakIndicator(streak: _streak),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           SafeArea(
@@ -996,7 +1000,8 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
               ],
             ),
-          ), // Cierre del SafeArea
+          ),
+          // Sparkles overlay
           if (_showSparkles && _sparklesCenter != null)
             SparklesOverlay(
               isPlaying: _showSparkles,
@@ -1007,7 +1012,17 @@ class _LessonScreenState extends State<LessonScreen> {
                 });
               },
             ),
-        ], // Cierre de children del Stack
+          // Confetti overlay para rachas
+          if (_showConfetti)
+            ConfettiOverlay(
+              isPlaying: _showConfetti,
+              onComplete: () {
+                setState(() {
+                  _showConfetti = false;
+                });
+              },
+            ),
+        ],
       ),
     );
   }
