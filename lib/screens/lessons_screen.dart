@@ -176,155 +176,386 @@ class _LessonsScreenState extends State<LessonsScreen> {
             final hasRecommendations =
                 _userLevel != null && _recommendedLessonIds.isNotEmpty;
 
-            return CustomScrollView(
-              slivers: [
-                if (hasRecommendations) ...[
-                  SliverToBoxAdapter(child: _buildRecommendationBanner()),
-                ],
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final level = lessonLevels[index];
-                    final levelIndex = index;
-                    final isBeginnerLevel = levelIndex == 0;
+            return context.isMobile
+                ? _buildMobileLayout(context, hasRecommendations)
+                : _buildDesktopLayout(context, hasRecommendations);
+          },
+        ),
+      ),
+    );
+  }
 
-                    return FutureBuilder<bool>(
-                      future: Future.value(true),
-                      builder: (context, snapshot) {
-                        final isLevelUnlocked = snapshot.data ?? false;
+  Widget _buildMobileLayout(BuildContext context, bool hasRecommendations) {
+    return CustomScrollView(
+      slivers: [
+        if (hasRecommendations) ...[
+          SliverToBoxAdapter(child: _buildRecommendationBanner()),
+        ],
+        SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final level = lessonLevels[index];
+            final levelIndex = index;
+            final isBeginnerLevel = levelIndex == 0;
 
-                        final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
-                            ? ' 🔒'
-                            : '';
+            return FutureBuilder<bool>(
+              future: Future.value(true),
+              builder: (context, snapshot) {
+                final isLevelUnlocked = snapshot.data ?? false;
 
-                        Widget tileContent;
-                        if (level.lessons.isEmpty) {
-                          tileContent = Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'No lessons available',
-                              style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
-                            ),
-                          );
-                        } else if (!isLevelUnlocked && !isBeginnerLevel) {
-                          tileContent = Container(
-                            padding: const EdgeInsets.all(12.0),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Text(
-                              'Completa el nivel anterior para desbloquear',
-                              style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
-                            ),
-                          );
-                        } else {
-                          tileContent = Column(
-                            children: level.lessons
-                                .map(
-                                  (lesson) => LessonListItem(
-                                    lesson: lesson,
-                                    evaluator: _evaluator,
-                                    getStatusColor: _getStatusColor,
-                                    getStatusText: _getStatusText,
-                                    isLocked:
-                                        !isLevelUnlocked && !isBeginnerLevel,
-                                    onTap: () => _openLesson(lesson),
-                                  ),
-                                )
-                                .toList(),
-                          );
-                        }
+                final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
+                    ? ' 🔒'
+                    : '';
 
-                        return Theme(
-                          data: Theme.of(
+                Widget tileContent;
+                if (level.lessons.isEmpty) {
+                  tileContent = Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'No lessons available',
+                      style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
+                    ),
+                  );
+                } else if (!isLevelUnlocked && !isBeginnerLevel) {
+                  tileContent = Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      'Completa el nivel anterior para desbloquear',
+                      style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
+                    ),
+                  );
+                } else {
+                  tileContent = Column(
+                    children: level.lessons
+                        .map(
+                          (lesson) => LessonListItem(
+                            lesson: lesson,
+                            evaluator: _evaluator,
+                            getStatusColor: _getStatusColor,
+                            getStatusText: _getStatusText,
+                            isLocked:
+                                !isLevelUnlocked && !isBeginnerLevel,
+                            onTap: () => _openLesson(lesson),
+                          ),
+                        )
+                        .toList(),
+                  );
+                }
+
+                return Theme(
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(
                             context,
-                          ).copyWith(dividerColor: Colors.transparent),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
+                          ).colorScheme.primary.withAlpha(20),
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(5),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withAlpha(51),
+                        width: 2,
+                      ),
+                    ),
+                    child: ExpansionTile(
+                      initiallyExpanded: true,
+                      title: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Theme.of(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(
                                     context,
-                                  ).colorScheme.primary.withAlpha(20),
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withAlpha(5),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withAlpha(51),
-                                width: 2,
-                              ),
-                            ),
-                            child: ExpansionTile(
-                              initiallyExpanded: true,
-                              title: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary.withAlpha(76),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      _getLevelIcon(levelIndex),
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      '${level.title}$lockIcon',
-                                      style: TextStyle(
-                                        fontSize: Responsive.scale(context, 18, 20, 22),
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: context.horizontalPadding,
-                                    vertical: 8.0,
-                                  ),
-                                  child: tileContent,
+                                  ).colorScheme.primary.withAlpha(76),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
+                            child: Icon(
+                              _getLevelIcon(levelIndex),
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${level.title}$lockIcon',
+                              style: TextStyle(
+                                fontSize: Responsive.scale(context, 18, 20, 22),
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.horizontalPadding,
+                            vertical: 8.0,
+                          ),
+                          child: tileContent,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          }, childCount: lessonLevels.length),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, bool hasRecommendations) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: Responsive.scale(context, 220, 260, 300),
+          child: _buildLevelSidebar(context),
+        ),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              if (hasRecommendations) ...[
+                SliverToBoxAdapter(child: _buildRecommendationBanner()),
+              ],
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final level = lessonLevels[index];
+                  final levelIndex = index;
+                  final isBeginnerLevel = levelIndex == 0;
+
+                  return FutureBuilder<bool>(
+                    future: Future.value(true),
+                    builder: (context, snapshot) {
+                      final isLevelUnlocked = snapshot.data ?? false;
+
+                      final lockIcon = (!isLevelUnlocked && !isBeginnerLevel)
+                          ? ' 🔒'
+                          : '';
+
+                      Widget tileContent;
+                      if (level.lessons.isEmpty) {
+                        tileContent = Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'No lessons available',
+                            style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
                           ),
                         );
-                      },
-                    );
-                  }, childCount: lessonLevels.length),
-                ),
-              ],
-            );
-          },
+                      } else if (!isLevelUnlocked && !isBeginnerLevel) {
+                        tileContent = Container(
+                          padding: const EdgeInsets.all(12.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Text(
+                            'Completa el nivel anterior para desbloquear',
+                            style: context.bodyText2.copyWith(fontStyle: FontStyle.italic),
+                          ),
+                        );
+                      } else {
+                        tileContent = Column(
+                          children: level.lessons
+                              .map(
+                                (lesson) => LessonListItem(
+                                  lesson: lesson,
+                                  evaluator: _evaluator,
+                                  getStatusColor: _getStatusColor,
+                                  getStatusText: _getStatusText,
+                                  isLocked:
+                                      !isLevelUnlocked && !isBeginnerLevel,
+                                  onTap: () => _openLesson(lesson),
+                                ),
+                              )
+                              .toList(),
+                        );
+                      }
+
+                      return Theme(
+                        data: Theme.of(
+                          context,
+                        ).copyWith(dividerColor: Colors.transparent),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(
+                                  context,
+                                ).colorScheme.primary.withAlpha(20),
+                                Theme.of(
+                                  context,
+                                ).colorScheme.primary.withAlpha(5),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(51),
+                              width: 2,
+                            ),
+                          ),
+                          child: ExpansionTile(
+                            initiallyExpanded: true,
+                            title: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary.withAlpha(76),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    _getLevelIcon(levelIndex),
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    '${level.title}$lockIcon',
+                                    style: TextStyle(
+                                      fontSize: Responsive.scale(context, 18, 20, 22),
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.horizontalPadding,
+                                  vertical: 8.0,
+                                ),
+                                child: tileContent,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }, childCount: lessonLevels.length),
+              ),
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildLevelSidebar(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: ListView.builder(
+        padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
+        itemCount: lessonLevels.length,
+        itemBuilder: (context, index) {
+          final level = lessonLevels[index];
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: Responsive.scale(context, 8, 10, 12)),
+            child: Container(
+              padding: EdgeInsets.all(Responsive.scale(context, 12, 14, 16)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(51),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 8, 10, 12)),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                        ),
+                        child: Icon(
+                          _getLevelIcon(index),
+                          color: Colors.white,
+                          size: Responsive.scale(context, 20, 24, 28),
+                        ),
+                      ),
+                      SizedBox(width: Responsive.scale(context, 8, 10, 12)),
+                      Expanded(
+                        child: Text(
+                          level.title,
+                          style: context.cardTitle.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.scale(context, 8, 10, 12)),
+                  Text(
+                    '${level.lessons.length} lecciones',
+                    style: context.bodyText2,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
