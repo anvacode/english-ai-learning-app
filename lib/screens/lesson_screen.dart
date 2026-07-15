@@ -536,9 +536,10 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   Widget _buildMobileLayout(BuildContext context, LessonItem currentItem) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
         Padding(
           padding: EdgeInsets.only(top: Responsive.scale(context, 8, 12, 14)),
           child: Center(
@@ -645,6 +646,7 @@ class _LessonScreenState extends State<LessonScreen> {
             ),
           ),
       ],
+      ),
     );
   }
 
@@ -655,99 +657,104 @@ class _LessonScreenState extends State<LessonScreen> {
         child: Padding(
           padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 32)),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 2,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                        color: Colors.grey[50],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                        child: LessonImage(
-                          imagePath: currentItem.stimulusImageAsset,
-                          fallbackColor: currentItem.stimulusColor,
-                          width: Responsive.scale(context, 240, 280, 320),
-                          height: Responsive.scale(context, 240, 280, 320),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                          color: Colors.grey[50],
                         ),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.scale(context, 16, 20, 24)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            widget.lesson.question,
-                            style: context.headline3.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                          child: LessonImage(
+                            imagePath: currentItem.stimulusImageAsset,
+                            fallbackColor: currentItem.stimulusColor,
+                            width: Responsive.scale(context, 200, 240, 280),
+                            height: Responsive.scale(context, 200, 240, 280),
                           ),
                         ),
-                        SizedBox(width: Responsive.scale(context, 8, 12, 16)),
-                        SpeakerButton(
-                          text: currentItem.options[currentItem.correctAnswerIndex],
-                          iconSize: Responsive.scale(context, 22, 26, 30),
-                          buttonSize: Responsive.scale(context, 40, 48, 56),
+                      ),
+                      SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              widget.lesson.question,
+                              style: context.headline3.copyWith(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(width: Responsive.scale(context, 8, 12, 16)),
+                          SpeakerButton(
+                            text: currentItem.options[currentItem.correctAnswerIndex],
+                            iconSize: Responsive.scale(context, 22, 26, 30),
+                            buttonSize: Responsive.scale(context, 40, 48, 56),
+                          ),
+                          SizedBox(width: Responsive.scale(context, 6, 8, 12)),
+                          IconButton(
+                            onPressed: () {
+                              final word = currentItem.options[currentItem.correctAnswerIndex];
+                              final translation = TranslationService.translate(word);
+                              TranslationPopup.show(context, word: word, translation: translation);
+                            },
+                            icon: const Icon(Icons.help_outline),
+                            color: Colors.blue[600],
+                            iconSize: Responsive.scale(context, 24, 28, 32),
+                            tooltip: 'Ver traducción',
+                          ),
+                        ],
+                      ),
+                      if (status == LessonProgressStatus.mastered) ...[
+                        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                        Text(
+                          '🎉 ¡Lección dominada!',
+                          style: context.headline3.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        SizedBox(width: Responsive.scale(context, 6, 8, 12)),
-                        IconButton(
-                          onPressed: () {
-                            final word = currentItem.options[currentItem.correctAnswerIndex];
-                            final translation = TranslationService.translate(word);
-                            TranslationPopup.show(context, word: word, translation: translation);
-                          },
-                          icon: const Icon(Icons.help_outline),
-                          color: Colors.blue[600],
-                          iconSize: Responsive.scale(context, 24, 28, 32),
-                          tooltip: 'Ver traducción',
-                        ),
+                        if (_badge != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: Responsive.scale(context, 8, 10, 12)),
+                            child: Text(
+                              'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
+                              style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
                       ],
-                    ),
-                    if (status == LessonProgressStatus.mastered) ...[
-                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
-                      Text(
-                        '🎉 ¡Lección dominada!',
-                        style: context.headline3.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      if (_badge != null)
-                        Padding(
-                          padding: EdgeInsets.only(top: Responsive.scale(context, 8, 10, 12)),
-                          child: Text(
-                            'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
-                            style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ),
                     ],
-                  ],
+                  ),
                 ),
               ),
               SizedBox(width: Responsive.scale(context, 24, 32, 40)),
               Expanded(
                 flex: 3,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: Responsive.scale(context, 12, 16, 20),
-                      crossAxisSpacing: Responsive.scale(context, 12, 16, 20),
-                      childAspectRatio: 2.5,
-                      children: List.generate(
-                        _randomizedOptions.length,
-                        (index) => _buildOptionButton(context, index, status),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: Responsive.scale(context, 12, 16, 20),
+                        crossAxisSpacing: Responsive.scale(context, 12, 16, 20),
+                        childAspectRatio: 3.0,
+                        children: List.generate(
+                          _randomizedOptions.length,
+                          (index) => _buildOptionButton(context, index, status),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: Responsive.scale(context, 20, 24, 28)),
-                    _buildSubmitOrFeedback(context, currentItem, status),
-                  ],
+                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                      _buildSubmitOrFeedback(context, currentItem, status),
+                    ],
+                  ),
                 ),
               ),
             ],

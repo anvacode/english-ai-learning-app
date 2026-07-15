@@ -354,9 +354,9 @@ class _ShopItemCard extends StatelessWidget {
           horizontal: Responsive.scale(context, 10, 12, 14),
           vertical: Responsive.scale(context, 8, 10, 12),
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               Container(
                 width: iconContainerSize,
                 height: iconContainerSize,
@@ -501,7 +501,6 @@ class _ShopItemCard extends StatelessWidget {
                 ),
               ],
             ],
-          ),
         ),
       ),
     );

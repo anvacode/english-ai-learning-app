@@ -337,7 +337,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
   Widget _buildDesktopLayout(BuildContext context, bool hasRecommendations) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           width: Responsive.scale(context, 220, 260, 300),
