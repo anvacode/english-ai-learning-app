@@ -117,32 +117,37 @@ class _DiagnosticTestScreenState extends State<DiagnosticTestScreen>
               colors: [Color(0xFF4FC3F7), Color(0xFF2196F3)],
             ),
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(isCompact, fontSize, spacing),
-                Expanded(
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: _buildQuestionCard(
-                        emojiSize,
-                        optionSize,
-                        fontSize,
-                        largeFontSize,
-                        spacing,
-                        gridColumns,
-                        isCompact,
-                        height,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(isCompact, fontSize, spacing),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: Responsive.maxContainerWidth(context)),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: _buildQuestionCard(
+                          emojiSize,
+                          optionSize,
+                          fontSize,
+                          largeFontSize,
+                          spacing,
+                          gridColumns,
+                          isCompact,
+                          height,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                _buildBottomNavigation(isCompact, fontSize, spacing),
-              ],
-            ),
+              ),
+              _buildBottomNavigation(isCompact, fontSize, spacing),
+            ],
           ),
+        ),
         ),
       ),
     );
