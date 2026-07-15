@@ -174,7 +174,7 @@ class _ShopScreenState extends State<ShopScreen> {
       padding: EdgeInsets.all(context.horizontalPadding),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: Responsive.gridColumns(context, tablet: 2, desktop: 3, wide: 4),
-        childAspectRatio: 0.8,
+        childAspectRatio: 1.2,
         crossAxisSpacing: Responsive.gridSpacing(context),
         mainAxisSpacing: Responsive.gridSpacing(context),
       ),
@@ -337,11 +337,11 @@ class _ShopItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final typeColor = _getTypeColor();
-    final iconSize = Responsive.scale(context, 22, 26, 30);
-    final iconContainerSize = Responsive.scale(context, 48, 52, 56);
+    final iconSize = Responsive.scale(context, 28, 32, 36);
+    final iconContainerSize = Responsive.scale(context, 52, 60, 68);
 
     return Card(
-      margin: EdgeInsets.only(bottom: Responsive.scale(context, 10, 12, 14)),
+      margin: EdgeInsets.zero,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
@@ -350,14 +350,12 @@ class _ShopItemCard extends StatelessWidget {
             : BorderSide.none,
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.scale(context, 10, 12, 14),
-          vertical: Responsive.scale(context, 8, 10, 12),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: EdgeInsets.all(Responsive.scale(context, 10, 12, 14)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-              Container(
+            Center(
+              child: Container(
                 width: iconContainerSize,
                 height: iconContainerSize,
                 decoration: BoxDecoration(
@@ -382,125 +380,105 @@ class _ShopItemCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: Responsive.scale(context, 8, 10, 12)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.name,
-                            style: context.cardTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (isPurchased) ...[
-                          SizedBox(width: Responsive.scale(context, 3, 4, 5)),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.scale(context, 5, 6, 7),
-                              vertical: Responsive.scale(context, 2, 3, 4),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green[100],
-                              borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
-                            ),
-                            child: Text(
-                              'Comprado',
-                              style: context.label.copyWith(color: Colors.green),
-                            ),
-                          ),
-                        ],
-                      ],
+            ),
+            SizedBox(height: Responsive.scale(context, 8, 10, 12)),
+            Text(
+              item.name,
+              style: context.cardTitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+            Text(
+              item.description,
+              style: context.bodyText2.copyWith(height: 1.2),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Responsive.scale(context, 6, 8, 10)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.scale(context, 6, 8, 10),
+                    vertical: Responsive.scale(context, 3, 4, 5),
+                  ),
+                  decoration: BoxDecoration(
+                    color: typeColor.withAlpha(38),
+                    borderRadius: BorderRadius.circular(Responsive.scale(context, 6, 8, 10)),
+                    border: Border.all(
+                      color: typeColor.withAlpha(76),
                     ),
-                    SizedBox(height: Responsive.scale(context, 2, 3, 4)),
-                    Text(
-                      item.description,
-                      style: context.bodyText2.copyWith(height: 1.2),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: Responsive.scale(context, 4, 6, 8)),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.scale(context, 6, 8, 10),
-                              vertical: Responsive.scale(context, 3, 4, 5),
-                            ),
-                            decoration: BoxDecoration(
-                              color: typeColor.withAlpha(38),
-                              borderRadius: BorderRadius.circular(Responsive.scale(context, 6, 8, 10)),
-                              border: Border.all(
-                                color: typeColor.withAlpha(76),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getTypeIcon(),
-                                  size: Responsive.scale(context, 11, 13, 15),
-                                  color: typeColor,
-                                ),
-                                SizedBox(width: Responsive.scale(context, 2, 3, 4)),
-                                Flexible(
-                                  child: Text(
-                                    _getTypeLabel(),
-                                    style: TextStyle(
-                                      fontSize: Responsive.scale(context, 9, 10, 11),
-                                      fontWeight: FontWeight.w600,
-                                      color: typeColor,
-                                      letterSpacing: 0.2,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: Responsive.scale(context, 5, 6, 8)),
-                        Text(
-                          '${item.price} ⭐',
-                          style: context.price,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (!isPurchased) ...[
-                SizedBox(width: Responsive.scale(context, 5, 6, 8)),
-                SizedBox(
-                  width: Responsive.scale(context, 64, 72, 80),
-                  child: ElevatedButton(
-                    onPressed: canAfford ? onPurchase : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      disabledBackgroundColor: Colors.grey[300],
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.scale(context, 5, 6, 8),
-                        vertical: Responsive.scale(context, 8, 10, 12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getTypeIcon(),
+                        size: Responsive.scale(context, 11, 13, 15),
+                        color: typeColor,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                      SizedBox(width: Responsive.scale(context, 2, 3, 4)),
+                      Text(
+                        _getTypeLabel(),
+                        style: TextStyle(
+                          fontSize: Responsive.scale(context, 9, 10, 11),
+                          fontWeight: FontWeight.w600,
+                          color: typeColor,
+                          letterSpacing: 0.2,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Comprar',
-                      style: context.buttonSmall,
-                      textAlign: TextAlign.center,
-                    ),
+                    ],
                   ),
                 ),
               ],
-            ],
+            ),
+            SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+            Text(
+              '${item.price} ⭐',
+              style: context.price.copyWith(fontSize: Responsive.scale(context, 16, 18, 20)),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Responsive.scale(context, 6, 8, 10)),
+            if (isPurchased)
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.scale(context, 8, 10, 12),
+                  vertical: Responsive.scale(context, 4, 6, 8),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                ),
+                child: Text(
+                  'Comprado',
+                  style: context.label.copyWith(color: Colors.green),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              ElevatedButton(
+                onPressed: canAfford ? onPurchase : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  disabledBackgroundColor: Colors.grey[300],
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.scale(context, 8, 10, 12),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Responsive.scale(context, 8, 10, 12)),
+                  ),
+                ),
+                child: Text(
+                  'Comprar',
+                  style: context.buttonSmall,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ],
         ),
       ),
     );

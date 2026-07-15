@@ -65,10 +65,10 @@ class AchievementsScreen extends StatelessWidget {
                 return GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+                  crossAxisCount: Responsive.gridColumns(context, mobile: 3, tablet: 4, desktop: 5, wide: 6),
                   mainAxisSpacing: Responsive.gridSpacing(context),
                   crossAxisSpacing: Responsive.gridSpacing(context),
-                  childAspectRatio: 0.85,
+                  childAspectRatio: 0.7,
                   children: unlockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: true),
@@ -121,10 +121,10 @@ class AchievementsScreen extends StatelessWidget {
                 return GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+                  crossAxisCount: Responsive.gridColumns(context, mobile: 3, tablet: 4, desktop: 5, wide: 6),
                   mainAxisSpacing: Responsive.gridSpacing(context),
                   crossAxisSpacing: Responsive.gridSpacing(context),
-                  childAspectRatio: 0.85,
+                  childAspectRatio: 0.7,
                   children: lockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: false),
@@ -149,12 +149,10 @@ class _BadgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeWidth = Responsive.scale(context, 80.0, 100.0, 120.0);
-    final iconSize = Responsive.scale(context, 36.0, 44.0, 48.0);
+    final iconSize = Responsive.scale(context, 28.0, 32.0, 36.0);
 
     return Container(
-      width: badgeWidth,
-      padding: EdgeInsets.all(Responsive.scale(context, 8, 12, 14)),
+      padding: EdgeInsets.all(Responsive.scale(context, 6, 8, 10)),
       decoration: BoxDecoration(
         color: isUnlocked ? Colors.amber[100] : Colors.grey[200],
         borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
@@ -165,6 +163,7 @@ class _BadgeCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             badge.icon,
@@ -173,11 +172,11 @@ class _BadgeCard extends StatelessWidget {
               color: isUnlocked ? null : Colors.grey[400],
             ),
           ),
-          SizedBox(height: Responsive.scale(context, 6, 8, 10)),
+          SizedBox(height: Responsive.scale(context, 4, 6, 8)),
           Text(
             badge.title,
             style: TextStyle(
-              fontSize: Responsive.scale(context, 12, 14, 15),
+              fontSize: Responsive.scale(context, 10, 12, 13),
               fontWeight: FontWeight.bold,
               color: isUnlocked ? Colors.amber[900] : Colors.grey[600],
             ),
@@ -186,11 +185,11 @@ class _BadgeCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           if (!isUnlocked) ...[
-            SizedBox(height: Responsive.scale(context, 3, 4, 5)),
+            SizedBox(height: Responsive.scale(context, 2, 3, 4)),
             Text(
               'Bloqueado',
               style: TextStyle(
-                fontSize: Responsive.scale(context, 10, 11, 12),
+                fontSize: Responsive.scale(context, 9, 10, 11),
                 color: Colors.grey[500],
                 fontStyle: FontStyle.italic,
               ),
