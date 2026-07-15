@@ -150,6 +150,50 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
+  Widget _buildMobileShop(BuildContext context, List<ShopItem> items) {
+    return ListView.builder(
+      padding: EdgeInsets.all(context.horizontalPadding),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final isPurchased = _purchasedIds.contains(item.id);
+        final canAfford = _totalStars >= item.price;
+
+        return _ShopItemCard(
+          item: item,
+          isPurchased: isPurchased,
+          canAfford: canAfford,
+          onPurchase: () => _purchaseItem(item),
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopShop(BuildContext context, List<ShopItem> items) {
+    return GridView.builder(
+      padding: EdgeInsets.all(context.horizontalPadding),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: Responsive.gridColumns(context, tablet: 2, desktop: 3, wide: 4),
+        childAspectRatio: 0.8,
+        crossAxisSpacing: Responsive.gridSpacing(context),
+        mainAxisSpacing: Responsive.gridSpacing(context),
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final isPurchased = _purchasedIds.contains(item.id);
+        final canAfford = _totalStars >= item.price;
+
+        return _ShopItemCard(
+          item: item,
+          isPurchased: isPurchased,
+          canAfford: canAfford,
+          onPurchase: () => _purchaseItem(item),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = ShopService.getAvailableItems();
@@ -179,7 +223,6 @@ class _ShopScreenState extends State<ShopScreen> {
           : ResponsiveContainer(
               child: Column(
                 children: [
-                  // Banner de estrellas disponibles
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(context.horizontalPadding),
@@ -201,7 +244,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             color: Colors.grey,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: Responsive.scale(context, 3, 4, 6)),
                         Text(
                           '$_totalStars ⭐',
                           style: TextStyle(
@@ -214,24 +257,10 @@ class _ShopScreenState extends State<ShopScreen> {
                     ),
                   ),
 
-                  // Lista de ítems
                   Expanded(
-                    child: ListView.builder(
-                      padding: EdgeInsets.all(context.horizontalPadding),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        final isPurchased = _purchasedIds.contains(item.id);
-                        final canAfford = _totalStars >= item.price;
-
-                        return _ShopItemCard(
-                          item: item,
-                          isPurchased: isPurchased,
-                          canAfford: canAfford,
-                          onPurchase: () => _purchaseItem(item),
-                        );
-                      },
-                    ),
+                    child: context.isMobile
+                        ? _buildMobileShop(context, items)
+                        : _buildDesktopShop(context, items),
                   ),
                 ],
               ),
