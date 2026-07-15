@@ -11,13 +11,18 @@ import '../logic/star_service.dart';
 import '../models/activity_result.dart';
 import '../models/badge.dart' as achievement;
 import '../models/lesson.dart';
+import '../models/lesson_item.dart';
 import '../models/matching_item.dart';
 import '../services/audio_service.dart';
 import '../services/effects_service.dart';
+import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
+import '../widgets/confetti_overlay.dart';
+import '../widgets/feedback_widget.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/sparkles_overlay.dart';
 import '../widgets/speaker_button.dart';
+import '../widgets/streak_indicator.dart';
 import '../widgets/translation_popup.dart';
 import 'matching_exercise_screen.dart';
 
@@ -68,6 +73,12 @@ class _LessonScreenState extends State<LessonScreen> {
   // Sparkles effect state
   bool _showSparkles = false;
   Offset? _sparklesCenter;
+
+  // Streak tracking
+  int _streak = 0;
+
+  // Confetti effect state
+  bool _showConfetti = false;
 
   @override
   void initState() {
@@ -160,12 +171,28 @@ class _LessonScreenState extends State<LessonScreen> {
   Future<void> _triggerSparklesEffect() async {
     final shouldShow = await EffectsService.shouldShowSparkles();
     if (mounted && shouldShow) {
-      // Get center of screen for sparkles
       final screenSize = MediaQuery.of(context).size;
       setState(() {
         _showSparkles = true;
         _sparklesCenter = Offset(screenSize.width / 2, screenSize.height / 2);
       });
+    }
+  }
+
+  /// Trigger confetti effect on streak milestones
+  Future<void> _triggerConfettiEffect() async {
+    final shouldShow = await EffectsService.shouldShowConfetti();
+    if (mounted && shouldShow) {
+      setState(() {
+        _showConfetti = true;
+      });
+      // Confetti dura ~3 segundos, resetear después
+      await Future.delayed(const Duration(seconds: 3));
+      if (mounted) {
+        setState(() {
+          _showConfetti = false;
+        });
+      }
     }
   }
 
@@ -261,13 +288,23 @@ class _LessonScreenState extends State<LessonScreen> {
       completedCount = progress.completedCount;
       totalCount = progress.totalCount;
       status = progress.status;
+      // Track streak
+      if (isCorrect) {
+        _streak++;
+      } else {
+        _streak = 0;
+      }
     });
 
-    // Play feedback sound and show sparkles effect
+    // Play feedback sound and show effects
     if (isCorrect) {
       await _audioService.playCorrectSound();
-      // Show sparkles effect if purchased and active
+      // Show sparkles effect (always free)
       _triggerSparklesEffect();
+      // Show confetti on streak milestones
+      if (_streak >= 3) {
+        _triggerConfettiEffect();
+      }
     } else {
       await _audioService.playWrongSound();
 
@@ -533,6 +570,332 @@ class _LessonScreenState extends State<LessonScreen> {
     });
   }
 
+  Widget _buildMobileLayout(BuildContext context, LessonItem currentItem) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+        Padding(
+          padding: EdgeInsets.only(top: Responsive.scale(context, 8, 12, 14)),
+          child: Center(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                color: Colors.grey[50],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                child: LessonImage(
+                  imagePath: currentItem.stimulusImageAsset,
+                  fallbackColor: currentItem.stimulusColor,
+                  width: Responsive.scale(context, 180, 200, 220),
+                  height: Responsive.scale(context, 180, 200, 220),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.scale(context, 12, 16, 20),
+            vertical: Responsive.scale(context, 0, 4, 6),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  widget.lesson.question,
+                  style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+              SpeakerButton(
+                text: currentItem.options[currentItem.correctAnswerIndex],
+                iconSize: Responsive.scale(context, 18, 20, 22),
+                buttonSize: Responsive.scale(context, 32, 36, 40),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () {
+                  final word = currentItem.options[currentItem.correctAnswerIndex];
+                  final translation = TranslationService.translate(word);
+                  TranslationPopup.show(context, word: word, translation: translation);
+                },
+                icon: const Icon(Icons.help_outline),
+                color: Colors.blue[600],
+                iconSize: 24,
+                tooltip: 'Ver traducción',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ],
+          ),
+        ),
+
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: context.isMobile ? 8.0 : 4.0),
+          child: Column(
+            children: List.generate(
+              _randomizedOptions.length,
+              (index) => Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 4, 6, 8)),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.scale(context, 180, 200, 220),
+                      minHeight: Responsive.scale(context, 44, 50, 56),
+                      maxHeight: Responsive.scale(context, 52, 60, 64),
+                    ),
+                    child: _buildOptionButton(context, index, status),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        _buildSubmitOrFeedback(context, currentItem, status),
+
+        if (status == LessonProgressStatus.mastered)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '🎉 ¡Lección dominada!',
+                  style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
+                ),
+                if (_badge != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: Responsive.scale(context, 6, 8, 10)),
+                    child: Text(
+                      'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
+                      style: context.bodyText2.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, LessonItem currentItem) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: Responsive.maxContainerWidth(context)),
+        child: Padding(
+          padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 32)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 2,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                          color: Colors.grey[50],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                          child: LessonImage(
+                            imagePath: currentItem.stimulusImageAsset,
+                            fallbackColor: currentItem.stimulusColor,
+                            width: Responsive.scale(context, 200, 240, 280),
+                            height: Responsive.scale(context, 200, 240, 280),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              widget.lesson.question,
+                              style: context.headline3.copyWith(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(width: Responsive.scale(context, 8, 12, 16)),
+                          SpeakerButton(
+                            text: currentItem.options[currentItem.correctAnswerIndex],
+                            iconSize: Responsive.scale(context, 22, 26, 30),
+                            buttonSize: Responsive.scale(context, 40, 48, 56),
+                          ),
+                          SizedBox(width: Responsive.scale(context, 6, 8, 12)),
+                          IconButton(
+                            onPressed: () {
+                              final word = currentItem.options[currentItem.correctAnswerIndex];
+                              final translation = TranslationService.translate(word);
+                              TranslationPopup.show(context, word: word, translation: translation);
+                            },
+                            icon: const Icon(Icons.help_outline),
+                            color: Colors.blue[600],
+                            iconSize: Responsive.scale(context, 24, 28, 32),
+                            tooltip: 'Ver traducción',
+                          ),
+                        ],
+                      ),
+                      if (status == LessonProgressStatus.mastered) ...[
+                        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                        Text(
+                          '🎉 ¡Lección dominada!',
+                          style: context.headline3.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        if (_badge != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: Responsive.scale(context, 8, 10, 12)),
+                            child: Text(
+                              'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
+                              style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: Responsive.scale(context, 24, 32, 40)),
+              Expanded(
+                flex: 3,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: Responsive.scale(context, 12, 16, 20),
+                        crossAxisSpacing: Responsive.scale(context, 12, 16, 20),
+                        childAspectRatio: 3.0,
+                        children: List.generate(
+                          _randomizedOptions.length,
+                          (index) => _buildOptionButton(context, index, status),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                      _buildSubmitOrFeedback(context, currentItem, status),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionButton(BuildContext context, int index, LessonProgressStatus status) {
+    return ElevatedButton(
+      onPressed: (status == LessonProgressStatus.mastered || _answered)
+          ? null
+          : () {
+              setState(() {
+                _selectedAnswerIndex = index;
+              });
+            },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _selectedAnswerIndex == index ? Colors.deepPurple : Colors.grey[200],
+        disabledBackgroundColor: _answered
+            ? (_selectedAnswerIndex == index
+                ? (_isCorrect == true ? Colors.green[300] : Colors.red[300])
+                : Colors.grey[300])
+            : Colors.grey[200],
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.scale(context, 12, 16, 20),
+          vertical: Responsive.scale(context, 8, 12, 14),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Responsive.borderRadius(context))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              _randomizedOptions[index],
+              style: TextStyle(
+                fontSize: Responsive.scale(context, 14, 15, 16),
+                fontWeight: FontWeight.w500,
+                color: _selectedAnswerIndex == index && !_answered ? Colors.white : Colors.black,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.visible,
+              softWrap: true,
+              maxLines: 2,
+            ),
+          ),
+          if (!_answered && status != LessonProgressStatus.mastered) ...[
+            SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+            SpeakerButton(
+              text: _randomizedOptions[index],
+              iconSize: Responsive.scale(context, 14, 16, 18),
+              buttonSize: Responsive.scale(context, 24, 28, 32),
+              iconColor: _selectedAnswerIndex == index ? Colors.white : Colors.deepPurple,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitOrFeedback(BuildContext context, LessonItem currentItem, LessonProgressStatus status) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.scale(context, 12, 16, 20),
+        vertical: Responsive.scale(context, 6, 8, 10),
+      ),
+      child: !_answered
+          ? Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.scale(context, 280, 320, 360),
+                  minHeight: Responsive.scale(context, 48, 54, 58),
+                ),
+                child: ElevatedButton(
+                  onPressed: _selectedAnswerIndex != null && status != LessonProgressStatus.mastered
+                      ? () => _handleOptionTap(_selectedAnswerIndex!)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    disabledBackgroundColor: Colors.grey[300],
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.scale(context, 24, 32, 40),
+                      vertical: Responsive.scale(context, 12, 16, 18),
+                    ),
+                  ),
+                  child: Text('Enviar', style: context.buttonText, textAlign: TextAlign.center),
+                ),
+              ),
+            )
+          : FeedbackWidget(
+              key: ValueKey('feedback-${widget.lesson.id}-$currentItemIndex'),
+              isCorrect: _isCorrect ?? false,
+              attemptNumber: _isCorrect == true
+                  ? 1
+                  : context.read<LessonController>().getIncorrectAttemptsForCurrentQuestion(currentItem.id),
+              streak: _streak,
+              correctAnswer: _isCorrect == false ? _correctAnswerValue : null,
+              onContinue: _onNextOrRetry,
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = widget.lesson.items;
@@ -541,7 +904,7 @@ class _LessonScreenState extends State<LessonScreen> {
     if (_exerciseCompleted) {
       return Scaffold(
         appBar: AppBar(title: const Text('Lección')),
-        body: const SafeArea(
+        body: SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -549,15 +912,15 @@ class _LessonScreenState extends State<LessonScreen> {
                 Text(
                   '✓ Correcto',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: Responsive.scale(context, 20, 24, 28),
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                 Text(
                   '🎉 Ejercicio completado',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: context.headline3,
                 ),
               ],
             ),
@@ -576,7 +939,16 @@ class _LessonScreenState extends State<LessonScreen> {
     final currentItem = items[currentItemIndex];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lección')),
+      appBar: AppBar(
+        title: const Text('Lección'),
+        actions: [
+          // Streak indicator en el AppBar
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: StreakIndicator(streak: _streak),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           SafeArea(
@@ -616,357 +988,20 @@ class _LessonScreenState extends State<LessonScreen> {
                           : status == LessonProgressStatus.inProgress
                           ? 'En progreso'
                           : 'Dominada',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.label,
                     ),
                   ),
                 ),
 
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Visual stimulus - responsivo
-                      Padding(
-                        padding: EdgeInsets.only(
-                          top: context.isMobile ? 12.0 : 8.0,
-                        ),
-                        child: Center(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.grey[50],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: LessonImage(
-                                imagePath: currentItem.stimulusImageAsset,
-                                fallbackColor: currentItem.stimulusColor,
-                                // Tamaño responsivo: más pequeño en web
-                                width: context.isMobile
-                                    ? 200
-                                    : (context.isTablet ? 180 : 150),
-                                height: context.isMobile
-                                    ? 200
-                                    : (context.isTablet ? 180 : 150),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Question with speaker button and translation helper - responsivo
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: context.isMobile ? 0 : 4.0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                widget.lesson.question,
-                                style: TextStyle(
-                                  fontSize: context.isMobile
-                                      ? 18
-                                      : 16, // Más pequeño en web
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SpeakerButton(
-                              text: currentItem
-                                  .options[currentItem.correctAnswerIndex],
-                              iconSize: 20,
-                              buttonSize: 36,
-                            ),
-                            const SizedBox(width: 4),
-                            // Botón de traducción
-                            IconButton(
-                              onPressed: () {
-                                final word = currentItem
-                                    .options[currentItem.correctAnswerIndex];
-                                final translation =
-                                    TranslationService.translate(word);
-                                TranslationPopup.show(
-                                  context,
-                                  word: word,
-                                  translation: translation,
-                                );
-                              },
-                              icon: const Icon(Icons.help_outline),
-                              color: Colors.blue[600],
-                              iconSize: 24,
-                              tooltip: 'Ver traducción',
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 36,
-                                minHeight: 36,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Options (only tappable if not answered) - responsivo
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: context.isMobile ? 8.0 : 4.0,
-                        ),
-                        child: Column(
-                          children: List.generate(
-                            _randomizedOptions.length,
-                            (index) => Center(
-                              // Centrar botones horizontalmente
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: context.isMobile ? 6.0 : 4.0,
-                                ),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    // Más estrecho en web
-                                    maxWidth: 200,
-                                    minHeight: 50,
-                                    maxHeight: 60,
-                                  ),
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        (status ==
-                                                LessonProgressStatus.mastered ||
-                                            _answered)
-                                        ? null
-                                        : () {
-                                            setState(() {
-                                              _selectedAnswerIndex = index;
-                                            });
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          _selectedAnswerIndex == index
-                                          ? Colors.deepPurple
-                                          : Colors.grey[200],
-                                      disabledBackgroundColor: _answered
-                                          ? (_selectedAnswerIndex == index
-                                                ? (_isCorrect == true
-                                                      ? Colors.green[300]
-                                                      : Colors.red[300])
-                                                : Colors.grey[300])
-                                          : Colors.grey[200],
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: context.isMobile ? 16 : 12,
-                                        vertical: context.isMobile ? 12 : 8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .center, // Centrar contenido
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            _randomizedOptions[index],
-                                            style: TextStyle(
-                                              fontSize: context.isMobile
-                                                  ? 15
-                                                  : 14, // Más pequeño en web
-                                              fontWeight: FontWeight.w500,
-                                              color:
-                                                  _selectedAnswerIndex ==
-                                                          index &&
-                                                      !_answered
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                              height: 1.2,
-                                            ),
-                                            textAlign: TextAlign
-                                                .center, // Centrar texto
-                                            overflow: TextOverflow.visible,
-                                            softWrap: true,
-                                            maxLines: 2,
-                                          ),
-                                        ),
-                                        if (!_answered &&
-                                            status !=
-                                                LessonProgressStatus
-                                                    .mastered) ...[
-                                          const SizedBox(width: 8),
-                                          SpeakerButton(
-                                            text: _randomizedOptions[index],
-                                            iconSize: 16,
-                                            buttonSize: 28,
-                                            iconColor:
-                                                _selectedAnswerIndex == index
-                                                ? Colors.white
-                                                : Colors.deepPurple,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Submit button OR Feedback + Next button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        child: !_answered
-                            ? Center(
-                                // Centrar botón
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 320,
-                                    minHeight: 54,
-                                  ),
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        _selectedAnswerIndex != null &&
-                                            status !=
-                                                LessonProgressStatus.mastered
-                                        ? () => _handleOptionTap(
-                                            _selectedAnswerIndex!,
-                                          )
-                                        : null,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.deepPurple,
-                                      disabledBackgroundColor: Colors.grey[300],
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 32,
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Enviar',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : Center(
-                                // Centrar contenedor de feedback
-                                child: Container(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 320,
-                                  ),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: _isCorrect == true
-                                        ? Colors.green[100]
-                                        : Colors.red[100],
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Consumer<LessonController>(
-                                        builder: (context, lessonController, _) {
-                                          final attempts = lessonController
-                                              .getIncorrectAttemptsForCurrentQuestion(
-                                                currentItem.id,
-                                              );
-                                          return Text(
-                                            _isCorrect == true
-                                                ? '✓ Correcto'
-                                                : attempts >= 3
-                                                ? '✗ La respuesta correcta es: $_correctAnswerValue'
-                                                : '✗ Intenta de nuevo',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: _isCorrect == true
-                                                  ? Colors.green[700]
-                                                  : Colors.red[700],
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 12),
-                                      ElevatedButton(
-                                        onPressed: _onNextOrRetry,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.deepPurple,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 32,
-                                            vertical: 14,
-                                          ),
-                                          minimumSize: const Size(200, 48),
-                                        ),
-                                        child: Text(
-                                          _isCorrect == true
-                                              ? 'Siguiente'
-                                              : 'Reintentar',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                      ),
-
-                      // Mastered message (only if status is mastered)
-                      if (status == LessonProgressStatus.mastered)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 12.0,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                '🎉 ¡Lección dominada!',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_badge != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                  child: context.isMobile
+                      ? _buildMobileLayout(context, currentItem)
+                      : _buildDesktopLayout(context, currentItem),
                 ),
               ],
             ),
-          ), // Cierre del SafeArea
+          ),
+          // Sparkles overlay
           if (_showSparkles && _sparklesCenter != null)
             SparklesOverlay(
               isPlaying: _showSparkles,
@@ -977,7 +1012,17 @@ class _LessonScreenState extends State<LessonScreen> {
                 });
               },
             ),
-        ], // Cierre de children del Stack
+          // Confetti overlay para rachas
+          if (_showConfetti)
+            ConfettiOverlay(
+              isPlaying: _showConfetti,
+              onComplete: () {
+                setState(() {
+                  _showConfetti = false;
+                });
+              },
+            ),
+        ],
       ),
     );
   }

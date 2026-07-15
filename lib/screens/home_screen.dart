@@ -8,6 +8,7 @@ import '../services/diagnostic_service.dart';
 import '../services/tutorial_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
+import '../widgets/connection_banner.dart';
 import 'diagnostic/diagnostic_intro_screen.dart';
 import 'home/home_grid_view.dart';
 import 'lessons_screen.dart';
@@ -100,7 +101,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     Widget screen = Scaffold(
-      body: _screens[_currentIndex],
+      body: Column(
+        children: [
+          const ConnectionBanner(),
+          Expanded(child: _screens[_currentIndex]),
+        ],
+      ),
       bottomNavigationBar: Container(
         key: TutorialKeys.bottomNav,
         decoration: BoxDecoration(

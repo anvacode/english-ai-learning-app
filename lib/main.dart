@@ -7,6 +7,7 @@ import 'logic/auth_provider.dart';
 import 'logic/lesson_controller.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_service.dart';
+import 'services/connectivity_service.dart';
 import 'services/firebase_service.dart';
 import 'services/sync_queue_service.dart';
 import 'services/sync_service.dart';
@@ -47,6 +48,9 @@ void main() async {
     );
   };
 
+  // Initialize connectivity service
+  await ConnectivityService().initialize();
+
   // Initialize Firebase with error handling
   try {
     await FirebaseService().initialize();
@@ -62,6 +66,7 @@ void main() async {
       AudioService.disposeInstance();
       SyncService.disposeInstance();
       SyncQueueService.disposeInstance();
+      ConnectivityService.disposeInstance();
       return AppExitResponse.exit;
     },
   );
@@ -78,8 +83,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => LessonController()),
-        ChangeNotifierProvider(
-          create: (context) => ThemeService()..initialize(),
+        ChangeNotifierProvider(create: (context) => ThemeService()..initialize()),
+        ChangeNotifierProvider.value(
+          value: ConnectivityService(),
         ),
       ],
       child: Consumer<ThemeService>(

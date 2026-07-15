@@ -10,6 +10,8 @@ import '../../logic/star_service.dart';
 import '../../models/activity_result.dart';
 import '../../models/lesson_item.dart';
 import '../../services/audio_service.dart';
+import '../../theme/text_styles.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/lesson_image.dart';
 
 /// Pantalla de Speed Match:
@@ -261,19 +263,22 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
   @override
   Widget build(BuildContext context) {
     final progress = _correctMatches / _items.length;
+    final columns = Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 3, wide: 3);
+    final hPadding = Responsive.horizontalPadding(context);
+    final vPadding = Responsive.verticalPadding(context);
+    final gridSpacing = Responsive.gridSpacing(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('⚡ Speed Match'),
         actions: [
-          // Timer display
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: hPadding),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.scale(context, 10, 12, 14),
+                  vertical: Responsive.scale(context, 5, 6, 7),
                 ),
                 decoration: BoxDecoration(
                   color: _secondsRemaining <= 10 ? Colors.red : Colors.orange,
@@ -281,13 +286,13 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.timer, color: Colors.white, size: 20),
-                    const SizedBox(width: 4),
+                    Icon(Icons.timer, color: Colors.white, size: Responsive.scale(context, 18, 20, 22)),
+                    SizedBox(width: Responsive.scale(context, 3, 4, 5)),
                     Text(
                       '$_secondsRemaining',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: Responsive.scale(context, 16, 18, 20),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -300,48 +305,40 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
       ),
       body: Column(
         children: [
-          // Progress bar
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[300],
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
-            minHeight: 8,
+            minHeight: Responsive.scale(context, 6, 8, 10),
           ),
-
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
               child: Column(
                 children: [
-                  // Instruction
-                  const Text(
+                  Text(
                     '¡Empareja las imágenes con las palabras lo más rápido posible!',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-
-                  // Score
+                  SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                   Text(
                     'Correctos: $_correctMatches/${_items.length}',
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 16, 18, 20),
                       fontWeight: FontWeight.bold,
                       color: Colors.orange,
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Images grid
+                  SizedBox(height: Responsive.scale(context, 16, 24, 28)),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: gridSpacing,
+                      mainAxisSpacing: gridSpacing,
+                    ),
                     itemCount: _items.length,
                     itemBuilder: (context, index) {
                       final item = _items[index];
@@ -356,23 +353,23 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                               color: isMatched
                                   ? Colors.green
                                   : isSelected
-                                  ? Colors.orange
-                                  : Colors.grey[300]!,
+                                      ? Colors.orange
+                                      : Colors.grey[300]!,
                               width: isSelected || isMatched ? 4 : 2,
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                             color: isMatched ? Colors.green[100] : Colors.white,
                           ),
                           child: isMatched
-                              ? const Center(
+                              ? Center(
                                   child: Icon(
                                     Icons.check_circle,
                                     color: Colors.green,
-                                    size: 48,
+                                    size: Responsive.scale(context, 36, 42, 48),
                                   ),
                                 )
                               : ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context) - 2),
                                   child: LessonImage(
                                     imagePath: item.stimulusImageAsset,
                                     fallbackColor: item.stimulusColor,
@@ -384,13 +381,10 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                       );
                     },
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Words list
+                  SizedBox(height: Responsive.scale(context, 16, 24, 28)),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: Responsive.scale(context, 6, 8, 10),
+                    runSpacing: Responsive.scale(context, 6, 8, 10),
                     alignment: WrapAlignment.center,
                     children: _items.map((item) {
                       final word = item.options[item.correctAnswerIndex];
@@ -400,36 +394,36 @@ class _SpeedMatchScreenState extends State<SpeedMatchScreen> {
                       return GestureDetector(
                         onTap: () => _selectWord(word),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.scale(context, 16, 20, 24),
+                            vertical: Responsive.scale(context, 10, 12, 14),
                           ),
                           decoration: BoxDecoration(
                             color: isMatched
                                 ? Colors.green[100]
                                 : isSelected
-                                ? Colors.orange
-                                : Colors.grey[200],
+                                    ? Colors.orange
+                                    : Colors.grey[200],
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isMatched
                                   ? Colors.green
                                   : isSelected
-                                  ? Colors.orange
-                                  : Colors.grey[400]!,
+                                      ? Colors.orange
+                                      : Colors.grey[400]!,
                               width: 2,
                             ),
                           ),
                           child: Text(
                             word,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: Responsive.scale(context, 14, 16, 18),
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? Colors.white
                                   : isMatched
-                                  ? Colors.green[900]
-                                  : Colors.black87,
+                                      ? Colors.green[900]
+                                      : Colors.black87,
                               decoration: isMatched
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,

@@ -9,6 +9,8 @@ import '../../logic/practice_service.dart';
 import '../../logic/star_service.dart';
 import '../../models/activity_result.dart';
 import '../../services/audio_service.dart';
+import '../../theme/text_styles.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/lesson_image.dart';
 
 class MemoryCard {
@@ -308,32 +310,35 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final progress = _matches / (_cards.length / 2);
-    
+    final columns = Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 4);
+    final hPadding = Responsive.horizontalPadding(context);
+    final vPadding = Responsive.verticalPadding(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('🖼️ Memory Game'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: hPadding),
             child: Center(
               child: Row(
                 children: [
-                  const Icon(Icons.timer, size: 20),
-                  const SizedBox(width: 4),
+                  Icon(Icons.timer, size: Responsive.iconSize(context) * 0.8),
+                  SizedBox(width: Responsive.scale(context, 3, 4, 5)),
                   Text(
                     _formatTime(_elapsedSeconds),
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 14, 16, 18),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.touch_app, size: 20),
-                  const SizedBox(width: 4),
+                  SizedBox(width: Responsive.scale(context, 12, 16, 20)),
+                  Icon(Icons.touch_app, size: Responsive.iconSize(context) * 0.8),
+                  SizedBox(width: Responsive.scale(context, 3, 4, 5)),
                   Text(
                     '$_moves',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 14, 16, 18),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -345,50 +350,42 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
       ),
       body: Column(
         children: [
-          // Progress bar
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[300],
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.purple),
-            minHeight: 8,
+            minHeight: Responsive.scale(context, 6, 8, 10),
           ),
-          
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     '¡Encuentra los pares!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: context.headline3,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: Responsive.scale(context, 6, 8, 10)),
                   Text(
                     'Emparejamientos: $_matches/${_cards.length ~/ 2}',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 14, 16, 18),
                       color: Colors.purple,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  
-                  // Cards grid
+                  SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: Responsive.gridSpacing(context) * 0.6,
+                        mainAxisSpacing: Responsive.gridSpacing(context) * 0.6,
                         childAspectRatio: 0.75,
                       ),
                       itemCount: _cards.length,
                       itemBuilder: (context, index) {
                         final card = _cards[index];
-                        
                         return GestureDetector(
                           onTap: () => _onCardTap(index),
                           child: AnimatedContainer(
@@ -399,7 +396,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
                                   : card.isFlipped
                                       ? Colors.white
                                       : Colors.purple,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                               border: Border.all(
                                 color: card.isMatched
                                     ? Colors.green
@@ -417,7 +414,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(Responsive.borderRadius(context) - 2),
                               child: card.isFlipped || card.isMatched
                                   ? _buildCardFront(card)
                                   : _buildCardBack(),
@@ -435,10 +432,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
       ),
     );
   }
-  
+
   Widget _buildCardFront(MemoryCard card) {
     if (card.imagePath.isNotEmpty) {
-      // Image card
       return LessonImage(
         imagePath: card.imagePath,
         fallbackColor: card.color,
@@ -446,16 +442,15 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
         height: double.infinity,
       );
     } else {
-      // Text card
       return Container(
         color: card.color,
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(Responsive.scale(context, 6, 8, 10)),
             child: Text(
               card.word,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TextStyle(
+                fontSize: Responsive.scale(context, 12, 14, 16),
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
@@ -466,7 +461,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
       );
     }
   }
-  
+
   Widget _buildCardBack() {
     return Container(
       decoration: BoxDecoration(
@@ -476,11 +471,11 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> with SingleTickerPr
           end: Alignment.bottomRight,
         ),
       ),
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.question_mark,
           color: Colors.white,
-          size: 32,
+          size: Responsive.scale(context, 28, 32, 36),
         ),
       ),
     );
