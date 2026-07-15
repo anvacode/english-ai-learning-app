@@ -22,7 +22,7 @@ class HomeGridView extends StatelessWidget {
             pinned: context.isMobile ? false : true,
             elevation: context.isMobile ? 0 : 4,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+              titlePadding: EdgeInsets.only(left: context.horizontalPadding, bottom: 16),
               title: Row(
                 children: [
                   Text(
@@ -37,17 +37,17 @@ class HomeGridView extends StatelessWidget {
                   if (context.isMobile)
                     Container(
                       key: TutorialKeys.starCounter,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.scale(context, 10, 12, 14),
+                        vertical: Responsive.scale(context, 4, 6, 8),
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(30),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 16, 18, 20)),
                       ),
                       child: const StarDisplay(),
                     ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: Responsive.scale(context, 6, 8, 10)),
                 ],
               ),
               background: Container(
@@ -88,20 +88,20 @@ class HomeGridView extends StatelessWidget {
                 ? []
                 : [
                     Padding(
-                      padding: const EdgeInsets.only(right: 16),
+                      padding: EdgeInsets.only(right: context.horizontalPadding),
                       child: Center(
                         child: Container(
                           key: TutorialKeys.starCounter,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.scale(context, 10, 12, 14),
+                            vertical: Responsive.scale(context, 4, 6, 8),
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withAlpha(30),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(Responsive.scale(context, 16, 18, 20)),
                           ),
                           child: StarDisplay(
-                            iconSize: 24,
+                            iconSize: Responsive.scale(context, 20, 24, 28),
                             fontSize: Responsive.scale(context, 16, 18, 20),
                           ),
                         ),
@@ -110,15 +110,13 @@ class HomeGridView extends StatelessWidget {
                   ],
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(context.horizontalPadding),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: context.isMobile
-                    ? 2
-                    : (context.isTablet ? 3 : 4),
-                childAspectRatio: context.isMobile ? 0.9 : 0.85,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+                childAspectRatio: Responsive.cardAspectRatio(context),
+                crossAxisSpacing: Responsive.gridSpacing(context),
+                mainAxisSpacing: Responsive.gridSpacing(context),
               ),
               delegate: SliverChildListDelegate([
                 _buildMenuCard(
@@ -210,31 +208,31 @@ class HomeGridView extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: gradient,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 24, 28)),
           boxShadow: [
             BoxShadow(
               color: (gradient as LinearGradient).colors.first.withAlpha(60),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: -5,
+              blurRadius: Responsive.scale(context, 16, 20, 24),
+              offset: Offset(0, Responsive.scale(context, 6, 8, 10)),
+              spreadRadius: Responsive.scale(context, -4, -5, -6),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 24, 28)),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: onTap,
               child: Padding(
-                padding: EdgeInsets.all(context.isMobile ? 16 : 20),
+                padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(
-                        vertical: context.isMobile ? 12 : 20,
+                        vertical: Responsive.scale(context, 10, 16, 20),
                       ),
                       child: Text(
                         emoji,
@@ -251,7 +249,7 @@ class HomeGridView extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: Responsive.scale(context, 3, 4, 6)),
                     Text(
                       subtitle,
                       style: TextStyle(
