@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../utils/responsive.dart';
 import 'app_colors.dart';
 
@@ -13,7 +14,7 @@ class AppTextStyles {
 
   /// Título principal - Grande y llamativo
   static TextStyle headline1(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 28, 32, 36),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -24,7 +25,7 @@ class AppTextStyles {
 
   /// Título secundario
   static TextStyle headline2(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 24, 28, 32),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -35,7 +36,7 @@ class AppTextStyles {
 
   /// Título terciario
   static TextStyle headline3(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 20, 24, 28),
       fontWeight: FontWeight.w700,
       color: AppColors.textPrimary,
@@ -49,7 +50,7 @@ class AppTextStyles {
 
   /// Título de tarjetas - Destacado pero no tan grande
   static TextStyle cardTitle(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 18, 20, 22),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -59,7 +60,7 @@ class AppTextStyles {
 
   /// Subtítulo de tarjetas
   static TextStyle cardSubtitle(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 14, 15, 16),
       fontWeight: FontWeight.w600,
       color: AppColors.textSecondary,
@@ -73,7 +74,7 @@ class AppTextStyles {
 
   /// Texto base - Legible y claro
   static TextStyle bodyText(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.baseFontSize(context),
       fontWeight: FontWeight.normal,
       color: AppColors.textPrimary,
@@ -83,7 +84,7 @@ class AppTextStyles {
 
   /// Texto base grande
   static TextStyle bodyTextLarge(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 16, 17, 18),
       fontWeight: FontWeight.normal,
       color: AppColors.textPrimary,
@@ -93,7 +94,7 @@ class AppTextStyles {
 
   /// Texto secundario (descripciones)
   static TextStyle bodyText2(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 14, 15, 16),
       fontWeight: FontWeight.normal,
       color: AppColors.textSecondary,
@@ -103,7 +104,7 @@ class AppTextStyles {
 
   /// Texto pequeño (etiquetas, hints)
   static TextStyle caption(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.smallFontSize(context),
       fontWeight: FontWeight.normal,
       color: AppColors.textTertiary,
@@ -117,7 +118,7 @@ class AppTextStyles {
 
   /// Texto de botón estándar
   static TextStyle button(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 15, 16, 17),
       fontWeight: FontWeight.bold,
       color: Colors.white,
@@ -128,7 +129,7 @@ class AppTextStyles {
 
   /// Texto de botón grande
   static TextStyle buttonLarge(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 18, 20, 22),
       fontWeight: FontWeight.bold,
       color: Colors.white,
@@ -139,7 +140,7 @@ class AppTextStyles {
 
   /// Texto de botón pequeño
   static TextStyle buttonSmall(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 13, 14, 15),
       fontWeight: FontWeight.w600,
       color: Colors.white,
@@ -154,7 +155,7 @@ class AppTextStyles {
 
   /// Números grandes (estrellas, puntos)
   static TextStyle largeNumber(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 36, 40, 44),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -164,7 +165,7 @@ class AppTextStyles {
 
   /// Contador de estrellas
   static TextStyle starCounter(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 28, 32, 36),
       fontWeight: FontWeight.bold,
       color: AppColors.starGold,
@@ -181,7 +182,7 @@ class AppTextStyles {
 
   /// Etiquetas y tags
   static TextStyle label(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 12, 13, 14),
       fontWeight: FontWeight.w600,
       color: AppColors.textSecondary,
@@ -191,7 +192,7 @@ class AppTextStyles {
 
   /// Etiqueta destacada
   static TextStyle labelBold(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 12, 13, 14),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -205,7 +206,7 @@ class AppTextStyles {
 
   /// Título de AppBar
   static TextStyle appBarTitle(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 20, 22, 24),
       fontWeight: FontWeight.bold,
       color: Colors.white,
@@ -215,7 +216,7 @@ class AppTextStyles {
 
   /// Texto de navegación inferior
   static TextStyle bottomNavLabel(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 11, 12, 13),
       fontWeight: FontWeight.w600,
       color: AppColors.textSecondary,
@@ -228,7 +229,7 @@ class AppTextStyles {
 
   /// Título de onboarding
   static TextStyle onboardingTitle(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 28, 32, 36),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -239,7 +240,7 @@ class AppTextStyles {
 
   /// Descripción de onboarding
   static TextStyle onboardingDescription(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 16, 17, 18),
       fontWeight: FontWeight.normal,
       color: AppColors.textSecondary,
@@ -253,7 +254,7 @@ class AppTextStyles {
 
   /// Pregunta de lección
   static TextStyle lessonQuestion(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 20, 22, 24),
       fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
@@ -263,7 +264,7 @@ class AppTextStyles {
 
   /// Opción de respuesta
   static TextStyle optionText(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 16, 17, 18),
       fontWeight: FontWeight.w600,
       color: AppColors.textPrimary,
@@ -273,7 +274,7 @@ class AppTextStyles {
 
   /// Palabra en inglés
   static TextStyle englishWord(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 24, 26, 28),
       fontWeight: FontWeight.bold,
       color: AppColors.primary,
@@ -283,7 +284,7 @@ class AppTextStyles {
 
   /// Precio en tienda
   static TextStyle price(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 18, 20, 22),
       fontWeight: FontWeight.bold,
       color: AppColors.starGold,
@@ -293,7 +294,7 @@ class AppTextStyles {
 
   /// Texto de lista
   static TextStyle listItem(BuildContext context) {
-    return TextStyle(
+    return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 15, 16, 17),
       fontWeight: FontWeight.w500,
       color: AppColors.textPrimary,

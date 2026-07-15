@@ -45,7 +45,7 @@ class FirebaseService {
       // Configure Firestore settings for offline persistence
       _firestore!.settings = const Settings(
         persistenceEnabled: true,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        cacheSizeBytes: 50 * 1024 * 1024, // 50 MB
       );
 
       _initialized = true;

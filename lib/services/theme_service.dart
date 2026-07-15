@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/shop_item.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_fonts.dart';
 import 'shop_service.dart';
 
 /// Servicio para gestionar los temas de la aplicación.
@@ -89,6 +90,7 @@ class ThemeService extends ChangeNotifier {
       colorScheme: colorScheme,
       useMaterial3: true,
       brightness: colorScheme.brightness,
+      fontFamily: AppFonts.family,
 
       // Scaffold
       scaffoldBackgroundColor: colorScheme.surface,
@@ -333,84 +335,21 @@ class ThemeService extends ChangeNotifier {
 
       // Texto
       textTheme: TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
-        ),
-        displayMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
-        ),
-        displaySmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: colorScheme.onSurface,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: colorScheme.onSurface,
-          height: 1.5,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: colorScheme.onSurface,
-          height: 1.5,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.normal,
-          color: colorScheme.onSurface,
-          height: 1.4,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        labelMedium: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-        labelSmall: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
+        displayLarge: AppFonts.base(fontSize: 32, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+        displayMedium: AppFonts.base(fontSize: 28, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+        displaySmall: AppFonts.base(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+        headlineLarge: AppFonts.base(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+        headlineMedium: AppFonts.base(fontSize: 20, fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+        headlineSmall: AppFonts.base(fontSize: 18, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        titleLarge: AppFonts.base(fontSize: 18, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        titleMedium: AppFonts.base(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        titleSmall: AppFonts.base(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        bodyLarge: AppFonts.base(fontSize: 16, fontWeight: FontWeight.normal, color: colorScheme.onSurface, height: 1.5),
+        bodyMedium: AppFonts.base(fontSize: 14, fontWeight: FontWeight.normal, color: colorScheme.onSurface, height: 1.5),
+        bodySmall: AppFonts.base(fontSize: 12, fontWeight: FontWeight.normal, color: colorScheme.onSurface, height: 1.4),
+        labelLarge: AppFonts.base(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        labelMedium: AppFonts.base(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+        labelSmall: AppFonts.base(fontSize: 11, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
       ),
     );
   }
