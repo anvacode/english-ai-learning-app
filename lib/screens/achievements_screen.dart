@@ -17,7 +17,7 @@ class AchievementsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Logros'), elevation: 0),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
+        padding: EdgeInsets.all(context.horizontalPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,9 +62,13 @@ class AchievementsScreen extends StatelessWidget {
                   );
                 }
 
-                return Wrap(
-                  spacing: Responsive.scale(context, 12, 16, 20),
-                  runSpacing: Responsive.scale(context, 12, 16, 20),
+                return GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+                  mainAxisSpacing: Responsive.gridSpacing(context),
+                  crossAxisSpacing: Responsive.gridSpacing(context),
+                  childAspectRatio: 0.85,
                   children: unlockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: true),
@@ -114,9 +118,13 @@ class AchievementsScreen extends StatelessWidget {
                   );
                 }
 
-                return Wrap(
-                  spacing: Responsive.scale(context, 12, 16, 20),
-                  runSpacing: Responsive.scale(context, 12, 16, 20),
+                return GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+                  mainAxisSpacing: Responsive.gridSpacing(context),
+                  crossAxisSpacing: Responsive.gridSpacing(context),
+                  childAspectRatio: 0.85,
                   children: lockedBadges
                       .map(
                         (badge) => _BadgeCard(badge: badge, isUnlocked: false),
