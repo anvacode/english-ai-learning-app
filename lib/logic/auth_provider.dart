@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/admin_auth_service.dart';
 import '../services/firebase_service.dart';
 import '../services/sync_service.dart';
 
@@ -27,6 +28,7 @@ class AuthProvider extends ChangeNotifier {
   String? get guestId => _guestId;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isGuest => _status == AuthStatus.guest;
+  bool get isAdmin => _user != null && AdminAuthService.isAdminEmail(_user!.email ?? '');
 
   AuthProvider() {
     _initialize();

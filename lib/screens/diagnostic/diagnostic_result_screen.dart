@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/diagnostic_result.dart';
+import '../../widgets/app_scaffold.dart';
 import '../home_screen.dart';
 
 class DiagnosticResultScreen extends StatefulWidget {
@@ -70,8 +71,9 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return AppScaffold(
+      currentIndex: -1,
+      child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -79,26 +81,24 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             colors: [_levelColor.withAlpha(40), Colors.white],
           ),
         ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildResultCard(),
-                    const SizedBox(height: 24),
-                    _buildScoreCard(),
-                    const SizedBox(height: 24),
-                    _buildRecommendations(),
-                    const SizedBox(height: 32),
-                    _buildContinueButton(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildResultCard(),
+                  const SizedBox(height: 24),
+                  _buildScoreCard(),
+                  const SizedBox(height: 24),
+                  _buildRecommendations(),
+                  const SizedBox(height: 32),
+                  _buildContinueButton(),
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),

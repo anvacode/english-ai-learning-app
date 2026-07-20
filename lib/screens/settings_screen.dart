@@ -9,6 +9,10 @@ import '../screens/purchased_items_screen.dart';
 import '../services/audio_service.dart';
 import '../services/shop_service.dart';
 import '../services/theme_service.dart';
+import '../utils/responsive.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/responsive_container.dart';
+import '../widgets/responsive_snack_bar.dart';
 import 'help_screen.dart';
 import 'tutorial/tutorial_screen.dart';
 
@@ -16,7 +20,12 @@ import 'tutorial/tutorial_screen.dart';
 ///
 /// Muestra opciones de configuración y preferencias del usuario.
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool showNavBar;
+
+  const SettingsScreen({
+    super.key,
+    this.showNavBar = true,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -161,15 +170,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Configuración'), elevation: 0),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
-    return Scaffold(
-      appBar: AppBar(title: const Text('Configuración'), elevation: 0),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
+    
+    final content = ResponsiveContainer(
+      child: ListView(
+        padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
         children: [
           // Sección de cuenta
           _SettingsSection(
@@ -258,7 +264,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           'Tono de voz',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: Responsive.scale(context, 15, 16, 17),
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[800],
                           ),
@@ -267,7 +273,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           _pitch.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: Responsive.scale(context, 13, 14, 15),
                             color: Colors.grey[600],
                           ),
                         ),
@@ -309,7 +315,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           'Velocidad de habla',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: Responsive.scale(context, 15, 16, 17),
                             fontWeight: FontWeight.w500,
                             color: Colors.grey[800],
                           ),
@@ -318,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           _rate.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: Responsive.scale(context, 13, 14, 15),
                             color: Colors.grey[600],
                           ),
                         ),
@@ -402,11 +408,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Idioma',
                 subtitle: 'Español',
                 onTap: () {
-                  // TODO: Implementar selector de idioma
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Próximamente: Selector de idioma'),
-                    ),
+                  ResponsiveSnackBar.showInfo(
+                    context,
+                    message: 'Próximamente: Selector de idioma',
                   );
                 },
               ),
@@ -474,7 +478,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Botón de reset (para testing)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.scale(context, 12, 16, 20),
+            ),
             child: OutlinedButton.icon(
               onPressed: () => _showResetConfirmation(context),
               icon: const Icon(Icons.refresh),
@@ -482,9 +488,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
             ),
           ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+
+    if (widget.showNavBar) {
+      return AppScaffold(
+        currentIndex: 3,
+        child: content,
+      );
+    }
+
+    return content;
   }
 
   Future<void> _showResetConfirmation(BuildContext context) async {
@@ -513,9 +528,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true && mounted) {
       await _resetAllData();
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Datos restablecidos')));
+      ResponsiveSnackBar.showSuccess(context, message: 'Datos restablecidos');
     }
   }
 
@@ -540,11 +553,14 @@ class _SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+          padding: EdgeInsets.only(
+            left: Responsive.scale(context, 12, 16, 20),
+            bottom: Responsive.scale(context, 6, 8, 10),
+          ),
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: Responsive.scale(context, 13, 14, 15),
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
               letterSpacing: 0.5,
@@ -554,7 +570,7 @@ class _SettingsSection extends StatelessWidget {
         Card(
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
           ),
           child: Column(children: children),
         ),
@@ -582,9 +598,19 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      title: Text(title),
-      subtitle: Text(subtitle),
+      leading: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.primary,
+        size: Responsive.scale(context, 22, 24, 26),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(fontSize: Responsive.scale(context, 15, 16, 17)),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: Responsive.scale(context, 13, 14, 15)),
+      ),
       trailing:
           trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
       onTap: onTap,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../logic/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
+import 'responsive_snack_bar.dart';
 
 /// Widget que muestra el estado de autenticación del usuario
 /// y proporciona acceso a las pantallas de login/registro
@@ -102,11 +103,10 @@ class AuthStatusWidget extends StatelessWidget {
                 if (confirm == true && context.mounted) {
                   await context.read<AuthProvider>().signOut();
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Sesión cerrada'),
-                        backgroundColor: Colors.orange,
-                      ),
+                    ResponsiveSnackBar.showInfo(
+                      context,
+                      message: 'Sesión cerrada',
+                      backgroundColor: Colors.orange,
                     );
                   }
                 }

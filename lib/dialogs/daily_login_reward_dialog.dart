@@ -27,7 +27,7 @@ class DailyLoginRewardDialog extends StatefulWidget {
   }) async {
     return showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (context) => DailyLoginRewardDialog(
         starsEarned: starsEarned,
         loginStreak: loginStreak,

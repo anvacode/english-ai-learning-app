@@ -9,6 +9,7 @@ import '../services/audio_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/lesson_image.dart';
+import '../widgets/responsive_container.dart';
 import '../widgets/speaker_button.dart';
 
 class MatchingExerciseScreen extends StatefulWidget {
@@ -189,9 +190,10 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: SafeArea(
-        child: Column(
-          children: [
+      body: ResponsiveContainer(
+        child: SafeArea(
+          child: Column(
+            children: [
             Padding(
               padding: EdgeInsets.fromLTRB(hPadding, vPadding, hPadding, vPadding * 0.6),
               child: Column(
@@ -289,6 +291,7 @@ class _MatchingExerciseScreenState extends State<MatchingExerciseScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

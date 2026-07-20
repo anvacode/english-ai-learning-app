@@ -7,9 +7,10 @@ import '../services/shop_service.dart';
 import '../services/theme_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
+import '../widgets/app_scaffold.dart';
 import '../widgets/error_dialog.dart';
 import '../widgets/responsive_container.dart';
-import '../widgets/star_display.dart';
+import '../widgets/responsive_snack_bar.dart';
 
 /// Pantalla de la tienda de estrellas.
 /// 
@@ -113,18 +114,9 @@ class _ShopScreenState extends State<ShopScreen> {
           message = '¡${item.name} comprado exitosamente!';
         }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text(message)),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: message,
         );
       }
     } catch (e) {
@@ -198,27 +190,9 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget build(BuildContext context) {
     final items = ShopService.getAvailableItems();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Tienda de Estrellas',
-          style: context.headline2,
-        ),
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: context.horizontalPadding),
-            child: Center(
-              child: StarDisplay(
-                iconSize: Responsive.scale(context, 24, 28, 32),
-                fontSize: Responsive.scale(context, 18, 20, 22),
-                showBackground: true,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: _isLoading
+    return AppScaffold(
+      currentIndex: -1,
+      child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ResponsiveContainer(
               child: Column(

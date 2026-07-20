@@ -5,11 +5,13 @@ import '../dialogs/lesson_completion_dialog.dart';
 import '../logic/activity_result_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_completion_service.dart';
+import '../logic/mastery_evaluator.dart';
 import '../logic/star_service.dart';
 import '../models/badge.dart' as achievement;
 import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/matching_item.dart';
+import '../services/firestore_progress_service.dart';
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
 // Spelling movido a práctica - ya no se usa en el flujo de lecciones
@@ -133,10 +135,18 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
         lessonId: widget.lesson.id,
         description: 'Completaste la lección "${widget.lesson.title}"',
       );
+
+      FirestoreProgressService().saveLessonProgress(
+        lessonId: widget.lesson.id,
+        starsEarned: starsForCompletion,
+        accuracy: 100.0,
+      );
     }
 
     // Save lesson completion (updates the record)
     await LessonCompletionService.saveCompletion(widget.lesson.id);
+    MasteryEvaluator.invalidateCache();
+    BadgeService.invalidateCache();
 
     // Check for badge
     final badgeJustAwarded = await BadgeService.checkAndAwardBadge(

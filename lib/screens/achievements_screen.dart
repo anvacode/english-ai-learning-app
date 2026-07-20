@@ -4,6 +4,8 @@ import '../logic/badge_service.dart';
 import '../models/badge.dart' as achievement;
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/responsive_container.dart';
 
 /// Pantalla que muestra todos los badges/insignias del usuario.
 ///
@@ -14,13 +16,20 @@ class AchievementsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Logros'), elevation: 0),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(context.horizontalPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return AppScaffold(
+      currentIndex: -1,
+      child: ResponsiveContainer(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(context.horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            const SizedBox(height: 16),
+            Text(
+              'Logros',
+              style: context.headline2,
+            ),
+            const SizedBox(height: 16),
             Text(
               '🏆 Badges Desbloqueados',
               style: context.headline3.copyWith(color: Colors.deepPurple),
@@ -136,6 +145,7 @@ class AchievementsScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

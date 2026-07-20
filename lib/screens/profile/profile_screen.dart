@@ -10,6 +10,7 @@ import '../../models/badge.dart' as achievement;
 import '../../models/user_profile.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/auth_status_widget.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/responsive_container.dart';
@@ -73,20 +74,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'My Profile',
-          style: context.headline2,
-        ),
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: ResponsiveContainer(
+    return AppScaffold(
+      currentIndex: -1,
+      child: ResponsiveContainer(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(context.horizontalPadding),
           child: Column(
           children: [
+            const SizedBox(height: 16),
+            Text(
+              'My Profile',
+              style: context.headline2,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
             // Auth Status Widget
             const AuthStatusWidget(),
             const SizedBox(height: 24),
@@ -221,10 +222,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -234,14 +235,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   'Estrellas',
                   style: TextStyle(
-                    fontSize: context.isMobile ? 20 : (context.isTablet ? 22 : 24),
+                    fontSize: Responsive.scale(context, 20, 22, 24),
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
                   ),
                 ),
                 StarDisplay(
-                  iconSize: context.isMobile ? 28 : 32,
-                  fontSize: context.isMobile ? 24 : 26,
+                  iconSize: Responsive.scale(context, 28, 30, 32),
+                  fontSize: Responsive.scale(context, 24, 25, 26),
                   iconColor: Colors.amber[700],
                 ),
               ],
@@ -260,17 +261,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Total de estrellas:',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: Responsive.scale(context, 16, 17, 18),
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
                               '$totalStars ⭐',
-                              style: const TextStyle(
-                                fontSize: 18,
+                              style: TextStyle(
+                                fontSize: Responsive.scale(context, 18, 19, 20),
                                 fontWeight: FontWeight.bold,
                                 color: Colors.deepPurple,
                               ),
@@ -281,17 +282,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Ganadas hoy:',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: Responsive.scale(context, 16, 17, 18),
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
                               '$todayStars ⭐',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: Responsive.scale(context, 18, 19, 20),
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green[700],
                               ),
@@ -314,17 +315,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Progreso',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: Responsive.scale(context, 20, 22, 24),
                 fontWeight: FontWeight.bold,
                 color: Colors.deepPurple,
               ),
@@ -342,14 +343,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value: progress,
                       backgroundColor: Colors.grey[300],
                       color: Colors.deepPurple,
-                      minHeight: 12,
-                      borderRadius: BorderRadius.circular(6),
+                      minHeight: Responsive.scale(context, 10, 12, 14),
+                      borderRadius: BorderRadius.circular(Responsive.scale(context, 4, 6, 8)),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       '$percentage% completado',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: Responsive.scale(context, 16, 18, 20),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -367,17 +368,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Badges',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: Responsive.scale(context, 20, 22, 24),
                 fontWeight: FontWeight.bold,
                 color: Colors.deepPurple,
               ),
@@ -400,15 +401,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 if (unlockedBadges.isEmpty) {
                   return Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Completa lecciones para desbloquear badges',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: Responsive.scale(context, 14, 16, 18),
                         color: Colors.grey,
                       ),
                       textAlign: TextAlign.center,
@@ -421,11 +422,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   runSpacing: 12,
                   children: unlockedBadges.take(6).map((badge) {
                     return Container(
-                      width: 60,
-                      height: 60,
+                      width: Responsive.scale(context, 50, 60, 70),
+                      height: Responsive.scale(context, 50, 60, 70),
                       decoration: BoxDecoration(
                         color: Colors.amber[100],
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 10, 12, 14)),
                         border: Border.all(
                           color: Colors.amber[400]!,
                           width: 2,
@@ -434,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Center(
                         child: Text(
                           badge.icon,
-                          style: const TextStyle(fontSize: 32),
+                          style: TextStyle(fontSize: Responsive.scale(context, 28, 32, 36)),
                         ),
                       ),
                     );

@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_scaffold.dart';
+
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Ayuda y Soporte'), elevation: 0),
-      body: ListView(
+    return AppScaffold(
+      currentIndex: -1,
+      child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const SizedBox(height: 16),
+          const Text(
+            'Ayuda y Soporte',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
           _buildFaqSection(
             context,
             '¿Cómo funciona la app?',

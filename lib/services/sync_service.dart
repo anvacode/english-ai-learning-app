@@ -55,6 +55,7 @@ class SyncService {
           'nickname': profile.nickname,
           'avatarId': profile.avatarId,
           'email': user.email,
+          'createdAt': profile.createdAt.toIso8601String(),
           'lastUpdated': FieldValue.serverTimestamp(),
         },
         'progress': {

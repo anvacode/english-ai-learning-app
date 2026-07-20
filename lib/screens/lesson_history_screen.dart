@@ -5,6 +5,7 @@ import '../logic/activity_result_service.dart';
 import '../models/activity_result.dart';
 import '../models/lesson.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_scaffold.dart';
 
 class LessonHistoryScreen extends StatefulWidget {
   const LessonHistoryScreen({super.key});
@@ -54,9 +55,9 @@ class _LessonHistoryScreenState extends State<LessonHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Historial de Lecciones'), elevation: 0),
-      body: _isLoading
+    return AppScaffold(
+      currentIndex: -1,
+      child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _results.isEmpty
           ? _buildEmptyState()

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
 import '../../utils/responsive.dart';
-import '../../widgets/star_display.dart';
+import '../../widgets/animated_menu_card.dart';
+import '../../widgets/floating_particles_background.dart';
+import '../../widgets/responsive_container.dart';
 import '../achievements_screen.dart';
 import '../lessons_screen.dart';
 import '../profile/profile_screen.dart';
@@ -14,113 +15,23 @@ class HomeGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: context.isMobile ? 80 : 120,
-            pinned: context.isMobile ? false : true,
-            elevation: context.isMobile ? 0 : 4,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: EdgeInsets.only(left: context.horizontalPadding, bottom: 16),
-              title: Row(
-                children: [
-                  Text(
-                    'English Learning',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: Responsive.scale(context, 20, 22, 24),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (context.isMobile)
-                    Container(
-                      key: TutorialKeys.starCounter,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.scale(context, 10, 12, 14),
-                        vertical: Responsive.scale(context, 4, 6, 8),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(30),
-                        borderRadius: BorderRadius.circular(Responsive.scale(context, 16, 18, 20)),
-                      ),
-                      child: const StarDisplay(),
-                    ),
-                  SizedBox(width: Responsive.scale(context, 6, 8, 10)),
-                ],
-              ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -50,
-                      top: -50,
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withAlpha(10),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: -30,
-                      bottom: -30,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withAlpha(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: context.isMobile
-                ? []
-                : [
-                    Padding(
-                      padding: EdgeInsets.only(right: context.horizontalPadding),
-                      child: Center(
-                        child: Container(
-                          key: TutorialKeys.starCounter,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.scale(context, 10, 12, 14),
-                            vertical: Responsive.scale(context, 4, 6, 8),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(30),
-                            borderRadius: BorderRadius.circular(Responsive.scale(context, 16, 18, 20)),
-                          ),
-                          child: StarDisplay(
-                            iconSize: Responsive.scale(context, 20, 24, 28),
-                            fontSize: Responsive.scale(context, 16, 18, 20),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-          ),
-          SliverPadding(
+    return FloatingParticlesBackground(
+      particleCount: 15,
+      child: ResponsiveContainer(
+        addHorizontalPadding: false,
+        child: Center(
+          child: Padding(
             padding: EdgeInsets.all(context.horizontalPadding),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
-                childAspectRatio: Responsive.cardAspectRatio(context),
-                crossAxisSpacing: Responsive.gridSpacing(context),
-                mainAxisSpacing: Responsive.gridSpacing(context),
-              ),
-              delegate: SliverChildListDelegate([
-                _buildMenuCard(
-                  context,
+            child: GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4, wide: 5),
+              childAspectRatio: Responsive.cardAspectRatio(context),
+              crossAxisSpacing: Responsive.gridSpacing(context),
+              mainAxisSpacing: Responsive.gridSpacing(context),
+              children: [
+                AnimatedMenuCard(
+                  index: 0,
                   cardKey: TutorialKeys.lessonsCard,
                   emoji: '📚',
                   title: 'Lecciones',
@@ -130,13 +41,14 @@ class HomeGridView extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  onTap: () => Navigator.push(
+                  onTap: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const LessonsScreen()),
+                    (route) => false,
                   ),
                 ),
-                _buildMenuCard(
-                  context,
+                AnimatedMenuCard(
+                  index: 1,
                   cardKey: TutorialKeys.profileCard,
                   emoji: '👤',
                   title: 'Perfil',
@@ -146,13 +58,14 @@ class HomeGridView extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  onTap: () => Navigator.push(
+                  onTap: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    (route) => false,
                   ),
                 ),
-                _buildMenuCard(
-                  context,
+                AnimatedMenuCard(
+                  index: 2,
                   cardKey: TutorialKeys.achievementsCard,
                   emoji: '🏆',
                   title: 'Logros',
@@ -162,15 +75,16 @@ class HomeGridView extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  onTap: () => Navigator.push(
+                  onTap: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
                       builder: (_) => const AchievementsScreen(),
                     ),
+                    (route) => false,
                   ),
                 ),
-                _buildMenuCard(
-                  context,
+                AnimatedMenuCard(
+                  index: 3,
                   cardKey: TutorialKeys.shopCard,
                   emoji: '🏪',
                   title: 'Tienda',
@@ -180,87 +94,13 @@ class HomeGridView extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  onTap: () => Navigator.push(
+                  onTap: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const ShopScreen()),
+                    (route) => false,
                   ),
                 ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(
-    BuildContext context, {
-    Key? cardKey,
-    required String emoji,
-    required String title,
-    required String subtitle,
-    required Gradient gradient,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      key: cardKey,
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 24, 28)),
-          boxShadow: [
-            BoxShadow(
-              color: (gradient as LinearGradient).colors.first.withAlpha(60),
-              blurRadius: Responsive.scale(context, 16, 20, 24),
-              offset: Offset(0, Responsive.scale(context, 6, 8, 10)),
-              spreadRadius: Responsive.scale(context, -4, -5, -6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 20, 24, 28)),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              child: Padding(
-                padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        vertical: Responsive.scale(context, 10, 16, 20),
-                      ),
-                      child: Text(
-                        emoji,
-                        style: TextStyle(fontSize: Responsive.scale(context, 48, 56, 64)),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: Responsive.scale(context, 18, 20, 22),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: Responsive.scale(context, 3, 4, 6)),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(80),
-                        fontSize: Responsive.scale(context, 13, 14, 15),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ),

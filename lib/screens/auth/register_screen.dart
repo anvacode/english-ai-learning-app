@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/auth_provider.dart';
 import '../../services/diagnostic_service.dart';
+import '../../widgets/responsive_snack_bar.dart';
+import '../admin_dashboard_screen.dart';
 import '../diagnostic/diagnostic_intro_screen.dart';
 import '../home_screen.dart';
 
@@ -44,6 +46,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted && !_isNavigating) {
         _isNavigating = true;
+        final authProvider = context.read<AuthProvider>();
+
+        if (authProvider.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            (route) => false,
+          );
+          return;
+        }
+
         final diagnosticCompleted =
             await DiagnosticService.isDiagnosticCompleted();
 
@@ -65,20 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
 
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Cuenta creada exitosamente!'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: '¡Cuenta creada exitosamente!',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        ResponsiveSnackBar.showError(
+          context,
+          message: 'Error: ${e.toString()}',
         );
       }
     } finally {
@@ -97,6 +105,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted && !_isNavigating) {
         _isNavigating = true;
+        final authProvider = context.read<AuthProvider>();
+
+        if (authProvider.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            (route) => false,
+          );
+          return;
+        }
+
         final diagnosticCompleted =
             await DiagnosticService.isDiagnosticCompleted();
 
@@ -118,21 +136,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
 
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Registro con Google exitoso!'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: '¡Registro con Google exitoso!',
         );
       }
     } catch (e) {
       if (mounted) {
         if (!e.toString().contains('cancelado')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
+          ResponsiveSnackBar.showError(
+            context,
+            message: 'Error: ${e.toString()}',
           );
         }
       }

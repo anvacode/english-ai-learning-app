@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/tutorial_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/app_scaffold.dart';
 import '../home_screen.dart';
 
 /// Pantalla de tutorial estático con tarjetas deslizables.
@@ -121,12 +122,11 @@ class _TutorialScreenState extends State<TutorialScreen> {
   Widget build(BuildContext context) {
     final isLastPage = _currentPage == _cards.length - 1;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return AppScaffold(
+      currentIndex: -1,
+      child: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(

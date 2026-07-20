@@ -7,6 +7,7 @@ import '../logic/badge_service.dart';
 import '../logic/lesson_completion_service.dart';
 import '../logic/lesson_controller.dart';
 import '../logic/lesson_progress_evaluator.dart';
+import '../logic/mastery_evaluator.dart';
 import '../logic/star_service.dart';
 import '../models/activity_result.dart';
 import '../models/badge.dart' as achievement;
@@ -15,11 +16,13 @@ import '../models/lesson_item.dart';
 import '../models/matching_item.dart';
 import '../services/audio_service.dart';
 import '../services/effects_service.dart';
+import '../services/firestore_progress_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/confetti_overlay.dart';
 import '../widgets/feedback_widget.dart';
 import '../widgets/lesson_image.dart';
+import '../widgets/responsive_snack_bar.dart';
 import '../widgets/sparkles_overlay.dart';
 import '../widgets/speaker_button.dart';
 import '../widgets/streak_indicator.dart';
@@ -315,14 +318,9 @@ class _LessonScreenState extends State<LessonScreen> {
             currentItem.id,
           );
       if (attemptsLeft > 0 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '⚠️ Intentos restantes para esta pregunta: $attemptsLeft',
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.orange[700],
-          ),
+        ResponsiveSnackBar.showWarning(
+          context,
+          message: '⚠️ Intentos restantes para esta pregunta: $attemptsLeft',
         );
       }
     }
@@ -356,6 +354,8 @@ class _LessonScreenState extends State<LessonScreen> {
 
           // Save lesson completion record (source of truth for mastery)
           await LessonCompletionService.saveCompletion(widget.lesson.id);
+          MasteryEvaluator.invalidateCache();
+          BadgeService.invalidateCache();
 
           // Award stars only if this is the first time completing the lesson
           if (!wasAlreadyCompleted) {
@@ -367,6 +367,17 @@ class _LessonScreenState extends State<LessonScreen> {
               description: 'Completaste la lección "${widget.lesson.title}"',
             );
             starsEarned = starsForCompletion;
+
+            final accuracy = lessonController.totalQuestions > 0
+                ? (lessonController.correctAnswers /
+                        lessonController.totalQuestions) *
+                    100
+                : 0.0;
+            FirestoreProgressService().saveLessonProgress(
+              lessonId: widget.lesson.id,
+              starsEarned: starsEarned,
+              accuracy: accuracy,
+            );
           }
 
           // Award badge (only on first perfect completion)
@@ -398,6 +409,17 @@ class _LessonScreenState extends State<LessonScreen> {
             description: 'Progreso en la lección "${widget.lesson.title}"',
           );
           starsEarned = starsForProgress;
+
+          final accuracy = lessonController.totalQuestions > 0
+              ? (lessonController.correctAnswers /
+                      lessonController.totalQuestions) *
+                  100
+              : 0.0;
+          FirestoreProgressService().saveLessonProgress(
+            lessonId: widget.lesson.id,
+            starsEarned: starsEarned,
+            accuracy: accuracy,
+          );
         }
 
         // Show completion dialog with feedback (only in standalone mode)

@@ -7,7 +7,9 @@ import '../services/effects_service.dart';
 import '../services/powerup_service.dart';
 import '../services/shop_service.dart';
 import '../services/theme_service.dart';
+import '../widgets/app_scaffold.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/responsive_snack_bar.dart';
 
 /// Pantalla para ver y gestionar los ítems comprados.
 /// 
@@ -71,31 +73,40 @@ class _PurchasedItemsScreenState extends State<PurchasedItemsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Ítems'),
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.face), text: 'Avatares'),
-            Tab(icon: Icon(Icons.palette), text: 'Temas'),
-            Tab(icon: Icon(Icons.auto_awesome), text: 'Efectos'),
-            Tab(icon: Icon(Icons.flash_on), text: 'Power-ups'),
-          ],
-        ),
+    return AppScaffold(
+      currentIndex: -1,
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'Mis Ítems',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(icon: Icon(Icons.face), text: 'Avatares'),
+              Tab(icon: Icon(Icons.palette), text: 'Temas'),
+              Tab(icon: Icon(Icons.auto_awesome), text: 'Efectos'),
+              Tab(icon: Icon(Icons.flash_on), text: 'Power-ups'),
+            ],
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildAvatarsTab(),
+                      _buildThemesTab(),
+                      _buildEffectsTab(),
+                      _buildPowerUpsTab(),
+                    ],
+                  ),
+          ),
+        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildAvatarsTab(),
-                _buildThemesTab(),
-                _buildEffectsTab(),
-                _buildPowerUpsTab(),
-              ],
-            ),
     );
   }
 
@@ -491,20 +502,16 @@ class _PurchasedItemsScreenState extends State<PurchasedItemsScreen>
         _currentAvatarId = avatarId;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Avatar actualizado'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: 'Avatar actualizado',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+        ResponsiveSnackBar.showError(
+          context,
+          message: 'Error: $e',
         );
       }
     }
@@ -518,20 +525,16 @@ class _PurchasedItemsScreenState extends State<PurchasedItemsScreen>
         _activeThemeId = themeId;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tema actualizado'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: 'Tema actualizado',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+        ResponsiveSnackBar.showError(
+          context,
+          message: 'Error: $e',
         );
       }
     }
@@ -548,20 +551,16 @@ class _PurchasedItemsScreenState extends State<PurchasedItemsScreen>
         }
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(active ? 'Efecto activado' : 'Efecto desactivado'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: active ? 'Efecto activado' : 'Efecto desactivado',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+        ResponsiveSnackBar.showError(
+          context,
+          message: 'Error: $e',
         );
       }
     }

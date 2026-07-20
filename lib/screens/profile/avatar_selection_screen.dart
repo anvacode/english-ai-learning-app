@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/shop_item.dart';
 import '../../services/shop_service.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/avatar_widget.dart';
 
 /// Pantalla para seleccionar un avatar.
@@ -50,19 +51,17 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Seleccionar Avatar'),
-        elevation: 0,
-      ),
-      body: _isLoading
+    return AppScaffold(
+      currentIndex: -1,
+      child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
+                  const SizedBox(height: 16),
                   const Text(
-                    'Elige tu avatar',
+                    'Seleccionar Avatar',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

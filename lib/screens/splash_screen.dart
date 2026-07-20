@@ -7,6 +7,7 @@ import '../logic/auth_provider.dart';
 import '../logic/first_time_service.dart';
 import '../logic/star_service.dart';
 import '../logic/student_service.dart';
+import '../screens/admin_dashboard_screen.dart';
 import '../services/tutorial_service.dart';
 import 'home_screen.dart';
 import 'onboarding/modern_onboarding_screen.dart';
@@ -52,6 +53,11 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initializeAndNavigate() async {
     await StudentService.initializeStudent();
 
+    final authProvider = context.read<AuthProvider>();
+
+    // Wait for auth state to be ready
+    await Future.delayed(const Duration(milliseconds: 500));
+
     // Verificar estados
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = await FirstTimeService.isFirstTime();
@@ -63,8 +69,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Si ya completó el onboarding, procesar recompensa diaria
     if (!isFirstTime && onboardingCompleted) {
-      final authProvider = context.read<AuthProvider>();
-
       // Solo usuarios autenticados (email/Google) reciben recompensa diaria
       if (authProvider.isAuthenticated) {
         final starsEarned = await StarService.processDailyLogin();
@@ -94,7 +98,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Determinar pantalla destino
     Widget destination;
-    if (!isFirstTime && onboardingCompleted) {
+    if (authProvider.isAdmin) {
+      destination = const AdminDashboardScreen();
+    } else if (!isFirstTime && onboardingCompleted) {
       destination = HomeScreen(showTutorial: showInteractiveTutorial);
     } else {
       destination = const ModernOnboardingScreen();
@@ -116,15 +122,12 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Image.asset(
-            'assets/logo.png',
-            width: 200,
-            height: 200,
-            errorBuilder: (context, error, stackTrace) {
-              // Si el logo no existe, mostrar un placeholder
-              return Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: Container(
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
@@ -136,9 +139,15 @@ class _SplashScreenState extends State<SplashScreen>
                   size: 100,
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
         ),
       ),
     );

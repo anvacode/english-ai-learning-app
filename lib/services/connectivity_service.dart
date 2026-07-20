@@ -27,6 +27,9 @@ class ConnectivityService extends ChangeNotifier {
   Timer? _pingTimer;
   bool _isOnline = true;
   bool _wasJustRestored = false;
+  int _consecutiveFailures = 0;
+
+  static const int _failuresBeforeOffline = 3;
 
   bool get isOnline => _isOnline;
   bool get wasJustRestored => _wasJustRestored;
@@ -35,6 +38,7 @@ class ConnectivityService extends ChangeNotifier {
   /// httpbin tiene CORS habilitado, gstatic es el fallback de Google.
   static const String _pingUrl = 'https://httpbin.org/status/200';
   static const String _pingUrlFallback = 'https://www.gstatic.com/generate_204';
+  static const String _pingUrlFallback2 = 'https://www.google.com/favicon.ico';
 
   /// Inicializa el servicio y comienza a monitorizar la conectividad.
   Future<void> initialize() async {
@@ -54,9 +58,11 @@ class ConnectivityService extends ChangeNotifier {
       debugPrint(
         '🌐 ConnectivityService: interfaz de red = ${hadInterface ? "sí" : "no"} ($result)',
       );
-      // Si pierde interfaz, marcar offline inmediatamente
       if (!hadInterface && _isOnline) {
         _setOffline();
+      } else if (hadInterface && !_isOnline) {
+        _consecutiveFailures = 0;
+        checkConnection();
       }
     });
 
@@ -108,19 +114,35 @@ class ConnectivityService extends ChangeNotifier {
       return ok;
     } catch (e) {
       debugPrint('🌐 ConnectivityService: ping fallback FALLÓ ($e)');
+    }
+
+    try {
+      final response = await http
+          .get(Uri.parse(_pingUrlFallback2))
+          .timeout(const Duration(seconds: 5));
+      final ok = response.statusCode < 400;
+      debugPrint(
+        '🌐 ConnectivityService: ping fallback2 = ${ok ? "OK" : "FALLÓ"} (status: ${response.statusCode})',
+      );
+      return ok;
+    } catch (e) {
+      debugPrint('🌐 ConnectivityService: ping fallback2 FALLÓ ($e)');
       return false;
     }
   }
 
   void _startPingTimer() {
     _pingTimer?.cancel();
-    // Ping cada 10 segundos
     _pingTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
       final actuallyOnline = await _checkRealConnectivity();
-      if (actuallyOnline && !_isOnline) {
-        _setOnline();
-      } else if (!actuallyOnline && _isOnline) {
-        _setOffline();
+      if (actuallyOnline) {
+        _consecutiveFailures = 0;
+        if (!_isOnline) _setOnline();
+      } else {
+        _consecutiveFailures++;
+        if (_consecutiveFailures >= _failuresBeforeOffline && _isOnline) {
+          _setOffline();
+        }
       }
     });
   }
@@ -129,6 +151,7 @@ class ConnectivityService extends ChangeNotifier {
     debugPrint('🌐 ConnectivityService: → ONLINE');
     _isOnline = true;
     _wasJustRestored = true;
+    _consecutiveFailures = 0;
     notifyListeners();
 
     // Resetear el flag tras 3 segundos

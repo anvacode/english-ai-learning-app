@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../utils/responsive.dart';
 import 'feedback_messages.dart';
 
 /// Widget de retroalimentación animado para niños.
@@ -154,8 +155,8 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
           child: Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              padding: const EdgeInsets.all(20),
+              constraints: BoxConstraints(maxWidth: Responsive.scale(context, 300, 340, 380)),
+              padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
               decoration: BoxDecoration(
                 color: _getBackgroundColor(),
                 borderRadius: BorderRadius.circular(20),
@@ -173,20 +174,19 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
                   // Emoji grande animado
                   Text(
                     _cachedEmoji,
-                    style: const TextStyle(fontSize: 56),
+                    style: TextStyle(fontSize: Responsive.scale(context, 48, 56, 64)),
                   ),
-                  const SizedBox(height: 8),
-                  // Mensaje
+                  SizedBox(height: Responsive.scale(context, 6, 8, 10)),
                   Text(
                     _cachedMessage,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: Responsive.scale(context, 18, 20, 22),
                       fontWeight: FontWeight.bold,
                       color: _getTextColor(),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                   // Botón
                   ElevatedButton(
                     onPressed: widget.onContinue,
@@ -194,18 +194,20 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
                       backgroundColor:
                           widget.isCorrect ? Colors.green : AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 14),
-                      minimumSize: const Size(200, 50),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.scale(context, 28, 32, 36),
+                          vertical: Responsive.scale(context, 12, 14, 16)),
+                      minimumSize: Size(Responsive.scale(context, 180, 200, 220), Responsive.scale(context, 46, 50, 54)),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 12, 14, 16)),
                       ),
                       elevation: 4,
                     ),
                     child: Text(
                       _getButtonText(),
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: Responsive.scale(context, 16, 18, 20),
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

@@ -5,6 +5,8 @@ import '../../logic/auth_provider.dart';
 import '../../services/diagnostic_service.dart';
 import '../../theme/app_icons.dart';
 import '../../utils/feedback_messages.dart';
+import '../../widgets/responsive_snack_bar.dart';
+import '../admin_dashboard_screen.dart';
 import '../diagnostic/diagnostic_intro_screen.dart';
 import '../home_screen.dart';
 import 'register_screen.dart';
@@ -45,6 +47,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted && !_isNavigating) {
         _isNavigating = true;
+        final authProvider = context.read<AuthProvider>();
+
+        if (authProvider.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            (route) => false,
+          );
+          return;
+        }
+
         final diagnosticCompleted =
             await DiagnosticService.isDiagnosticCompleted();
 
@@ -66,11 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Sesión iniciada correctamente!'),
-            backgroundColor: Colors.green,
-          ),
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: '¡Sesión iniciada correctamente!',
         );
       }
     } catch (e) {
@@ -108,6 +118,16 @@ class _LoginScreenState extends State<LoginScreen> {
       await context.read<AuthProvider>().signInWithGoogle();
 
       if (mounted) {
+        final authProvider = context.read<AuthProvider>();
+
+        if (authProvider.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            (route) => false,
+          );
+          return;
+        }
+
         Navigator.of(context).pop();
         final successMsg = FeedbackMessages.getAuthSuccessMessage(
           'google_signin_success',

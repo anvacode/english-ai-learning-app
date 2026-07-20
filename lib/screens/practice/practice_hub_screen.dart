@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../../logic/practice_service.dart';
-import '../../logic/star_service.dart';
 import '../../models/practice_activity.dart';
-import '../../theme/app_colors.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/adaptive_practice_card.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../widgets/responsive_container.dart';
+import '../../widgets/responsive_snack_bar.dart';
 import 'listening_practice_screen.dart';
 import 'memory_game_screen.dart';
-import 'phrase_practice_screen.dart';
 import 'pronunciation_practice_screen.dart';
 import 'speed_match_screen.dart';
 import 'spelling_practice_screen.dart';
 
 /// Pantalla principal del hub de prácticas
 class PracticeHubScreen extends StatefulWidget {
-  const PracticeHubScreen({super.key});
+  final bool showNavBar;
+
+  const PracticeHubScreen({
+    super.key,
+    this.showNavBar = true,
+  });
 
   @override
   State<PracticeHubScreen> createState() => _PracticeHubScreenState();
@@ -27,7 +31,6 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   bool _isLoading = true;
   List<PracticeActivity> _activities = [];
   Map<String, PracticeProgress> _progressMap = {};
-  int _totalStars = 0;
 
   @override
   void initState() {
@@ -39,27 +42,22 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Cargar actividades con estado de desbloqueo
       final activities =
           await PracticeService.getAllActivitiesWithUnlockStatus();
 
-      // Cargar progreso de todas las actividades
       final progressMap = await PracticeService.getAllProgress();
-
-      // Obtener estrellas totales globales
-      final totalStars = await StarService.getTotalStars();
 
       setState(() {
         _activities = activities;
         _progressMap = progressMap;
-        _totalStars = totalStars;
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar actividades: $e')),
+        ResponsiveSnackBar.showError(
+          context,
+          message: 'Error al cargar actividades: $e',
         );
       }
     }
@@ -74,11 +72,10 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
 
   void _onActivityTap(PracticeActivity activity) {
     if (!activity.isUnlocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Esta actividad aún no está desbloqueada'),
-          duration: Duration(seconds: 2),
-        ),
+      ResponsiveSnackBar.showInfo(
+        context,
+        message: 'Esta actividad aún no está desbloqueada',
+        duration: const Duration(seconds: 2),
       );
       return;
     }
@@ -172,15 +169,6 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
     });
   }
 
-  void _navigateToPhrasePractice() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PhrasePracticeScreen()),
-    ).then((_) {
-      _loadData();
-    });
-  }
-
   void _showComingSoon(String activityName) {
     showDialog(
       context: context,
@@ -201,103 +189,71 @@ class _PracticeHubScreenState extends State<PracticeHubScreen> {
   Widget build(BuildContext context) {
     final crossAxisCount = Responsive.gridColumns(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('🎮 Práctica y Juegos'),
-        actions: [
-          // Contador de estrellas
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.star, color: Colors.amber, size: 24),
-                const SizedBox(width: 4),
-                Text(
-                  '$_totalStars',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    final content = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
+            onRefresh: _loadData,
+            child: ResponsiveContainer(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: _buildStatsHeader(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: ResponsiveContainer(
-                child: CustomScrollView(
-                  slivers: [
-                    // Header con estadísticas
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: _buildStatsHeader(),
-                      ),
-                    ),
-
-                    // Filtro por lección
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildLessonFilter(),
-                      ),
-                    ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                    // Grid de actividades
-                    SliverPadding(
+                  SliverToBoxAdapter(
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      sliver: _filteredActivities.isEmpty
-                          ? SliverToBoxAdapter(child: _buildEmptyState())
-                          : SliverGrid(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    // Aspect ratio responsivo: móvil más alto, web más cuadrado
-                                    childAspectRatio:
-                                        Responsive.isMobile(context)
-                                        ? 0.75
-                                        : (Responsive.isTablet(context)
-                                              ? 0.95
-                                              : 1.1),
-                                  ),
-                              delegate: SliverChildBuilderDelegate((
-                                context,
-                                index,
-                              ) {
-                                final activity = _filteredActivities[index];
-                                final progress = _progressMap[activity.id];
-                                return AdaptivePracticeCard(
-                                  activity: activity,
-                                  isUnlocked: progress != null,
-                                  onTap: () => _onActivityTap(activity),
-                                );
-                              }, childCount: _filteredActivities.length),
-                            ),
+                      child: _buildLessonFilter(),
                     ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
-                ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: _filteredActivities.isEmpty
+                        ? SliverToBoxAdapter(child: _buildEmptyState())
+                        : SliverGrid(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio:
+                                      Responsive.isMobile(context)
+                                      ? 0.75
+                                      : (Responsive.isTablet(context)
+                                            ? 0.95
+                                            : 1.1),
+                                ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final activity = _filteredActivities[index];
+                              final progress = _progressMap[activity.id];
+                              return AdaptivePracticeCard(
+                                activity: activity,
+                                isUnlocked: progress != null,
+                                onTap: () => _onActivityTap(activity),
+                              );
+                            }, childCount: _filteredActivities.length),
+                          ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToPhrasePractice,
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-        label: const Text(
-          'Práctica de Frases',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
+          );
+
+    if (widget.showNavBar) {
+      return AppScaffold(
+        currentIndex: 2,
+        child: content,
+      );
+    }
+
+    return content;
   }
 
   Widget _buildStatsHeader() {

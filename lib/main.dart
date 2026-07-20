@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +27,9 @@ void main() async {
   PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
     debugPrint('❌ Unhandled error: $error');
     debugPrint('Stack: $stack');
+    if (kDebugMode) {
+      Error.throwWithStackTrace(error, stack);
+    }
     return true;
   };
 
@@ -48,8 +52,8 @@ void main() async {
     );
   };
 
-  // Initialize connectivity service
-  await ConnectivityService().initialize();
+  // Initialize connectivity service (non-blocking)
+  ConnectivityService().initialize();
 
   // Initialize Firebase with error handling
   try {
