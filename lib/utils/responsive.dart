@@ -150,6 +150,13 @@ class Responsive {
     return wide;
   }
 
+  static double cardMaxWidth(BuildContext context) {
+    if (isMobile(context)) return double.infinity;
+    if (isTablet(context)) return 500.0;
+    if (isDesktop(context)) return 600.0;
+    return 800.0;
+  }
+
   static Widget builder({
     required BuildContext context,
     required Widget mobile,
@@ -216,6 +223,7 @@ extension ResponsiveExtension on BuildContext {
   double get titleFontSize => Responsive.titleFontSize(this);
   double get subtitleFontSize => Responsive.subtitleFontSize(this);
   double get smallFontSize => Responsive.smallFontSize(this);
+  double get cardMaxWidth => Responsive.cardMaxWidth(this);
   double scale(double mobile, double tablet, double desktop) =>
       Responsive.scale(this, mobile, tablet, desktop);
   double scale4(double mobile, double tablet, double desktop, double wide) =>

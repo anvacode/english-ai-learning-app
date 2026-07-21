@@ -13,7 +13,6 @@ import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/auth_status_widget.dart';
 import '../../widgets/avatar_widget.dart';
-import '../../widgets/responsive_container.dart';
 import '../../widgets/star_display.dart';
 import 'avatar_selection_screen.dart';
 
@@ -76,145 +75,223 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       currentIndex: -1,
-      child: ResponsiveContainer(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(context.horizontalPadding),
-          child: Column(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: context.horizontalPadding,
+          vertical: Responsive.scale(context, 16, 20, 24),
+        ),
+        child: Column(
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
             Text(
-              'My Profile',
+              'Perfil',
               style: context.headline2,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            // Auth Status Widget
-            const AuthStatusWidget(),
-            const SizedBox(height: 24),
-            
-            // Avatar Section
-            FutureBuilder<UserProfile>(
-              future: _profileFuture,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const AvatarWidget(avatarId: 0, size: 100);
-                }
+            SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: Responsive.builder(
+                context: context,
+                mobile: _buildMobileLayout(),
+                tablet: _buildTabletLayout(),
+                desktop: _buildDesktopLayout(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                final profile = snapshot.data!;
-                return Column(
-                  children: [
-                    // Avatar tappable
-                    GestureDetector(
-                      onTap: () => _editAvatar(profile),
-                      child: AvatarWidget(
-                        avatarId: profile.avatarId,
-                        size: context.isMobile ? 100 : (context.isTablet ? 120 : 140),
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        const AuthStatusWidget(),
+        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+        _buildProfileHeader(),
+        SizedBox(height: Responsive.scale(context, 24, 28, 32)),
+        _buildStarsSection(),
+        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+        _buildProgressSection(),
+        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+        _buildBadgesPreview(),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final rightColumnWidth = (constraints.maxWidth - 250 - 16).clamp(0.0, double.infinity);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 250,
+              child: Column(
+                children: [
+                  _buildProfileHeader(),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 20)),
+                  const AuthStatusWidget(),
+                ],
+              ),
+            ),
+            SizedBox(width: Responsive.scale(context, 16, 20, 20)),
+            SizedBox(
+              width: rightColumnWidth,
+              child: Column(
+                children: [
+                  _buildStarsSection(),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 20)),
+                  _buildProgressSection(),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 20)),
+                  _buildBadgesPreview(),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 250,
+          child: Column(
+            children: [
+              _buildProfileHeader(),
+              SizedBox(height: Responsive.scale(context, 16, 20, 20)),
+              const AuthStatusWidget(),
+            ],
+          ),
+        ),
+        SizedBox(width: Responsive.scale(context, 16, 20, 20)),
+        Expanded(
+          child: Column(
+            children: [
+              _buildStarsSection(),
+              SizedBox(height: Responsive.scale(context, 16, 20, 20)),
+              _buildProgressSection(),
+            ],
+          ),
+        ),
+        SizedBox(width: Responsive.scale(context, 16, 20, 20)),
+        SizedBox(
+          width: 280,
+          child: _buildBadgesPreview(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return FutureBuilder<UserProfile>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const AvatarWidget(avatarId: 0, size: 100);
+        }
+
+        final profile = snapshot.data!;
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: () => _editAvatar(profile),
+              child: AvatarWidget(
+                avatarId: profile.avatarId,
+                size: context.isMobile ? 100 : (context.isTablet ? 120 : 140),
+              ),
+            ),
+            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
+            GestureDetector(
+              onTap: () => _editNickname(profile),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      profile.nickname,
+                      style: TextStyle(
+                        fontSize: context.isMobile ? 24 : (context.isTablet ? 28 : 32),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 16),
-                    // Nickname with edit icon (tappable)
-                    GestureDetector(
-                      onTap: () => _editNickname(profile),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            profile.nickname,
-                            style: TextStyle(
-                              fontSize: context.isMobile ? 24 : (context.isTablet ? 28 : 32),
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
+                  ),
+                  SizedBox(width: Responsive.scale(context, 6, 8, 8)),
+                  Icon(
+                    Icons.edit,
+                    size: Responsive.scale(context, 18, 20, 20),
+                    color: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+            if (_saveMessage != null) ...[
+              const SizedBox(height: 12),
+              AnimatedOpacity(
+                opacity: _showSuccess ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _showSuccess
+                        ? Colors.green[100]
+                        : Colors.orange[100],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isSaving)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.edit,
-                            size: 20,
-                            color: Colors.grey[600],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Save status message
-                    if (_saveMessage != null) ...[
-                      const SizedBox(height: 12),
-                      AnimatedOpacity(
-                        opacity: _showSuccess ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _showSuccess
-                                ? Colors.green[100]
-                                : Colors.orange[100],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_isSaving)
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              else if (_showSuccess)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                  size: 16,
-                                )
-                              else
-                                const Icon(
-                                  Icons.error,
-                                  color: Colors.orange,
-                                  size: 16,
-                                ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _saveMessage!,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: _showSuccess
-                                      ? Colors.green[900]
-                                      : Colors.orange[900],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
+                        )
+                      else if (_showSuccess)
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 16,
+                        )
+                      else
+                        const Icon(
+                          Icons.error,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _saveMessage!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _showSuccess
+                              ? Colors.green[900]
+                              : Colors.orange[900],
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
-                  ],
-                );
-              },
-            ),
-
-            const SizedBox(height: 32),
-
-            // Stars Section
-            _buildStarsSection(),
-
-            const SizedBox(height: 32),
-
-            // Progress Statistics Section
-            _buildProgressSection(),
-
-            const SizedBox(height: 32),
-
-            // Badges Preview Section
-            _buildBadgesPreview(),
+                  ),
+                ),
+              ),
+            ],
           ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 

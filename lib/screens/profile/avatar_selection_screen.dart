@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/shop_item.dart';
 import '../../services/shop_service.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/avatar_widget.dart';
 
@@ -51,114 +52,121 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gridColumns = Responsive.gridColumns(context, mobile: 3, tablet: 4, desktop: 6);
+    final titleSize = Responsive.scale(context, 20, 22, 24);
+    final sectionTitleSize = Responsive.scale(context, 14, 15, 16);
+    final padding = Responsive.scale(context, 16, 20, 24);
+    
     return AppScaffold(
       currentIndex: -1,
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Seleccionar Avatar',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Sección de avatares predefinidos
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Avatares básicos',
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(padding),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
+                  children: [
+                    SizedBox(height: Responsive.scale(context, 12, 16, 20)),
+                    Text(
+                      'Seleccionar Avatar',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  Expanded(
-                    flex: 2,
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
-                      itemCount: 8,
-                      itemBuilder: (context, index) {
-                        return _buildAvatarTile(index, isShopAvatar: false);
-                      },
-                    ),
-                  ),
-                  
-                  // Sección de avatares de tienda (si hay comprados)
-                  if (_purchasedAvatars.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        children: [
-                          Icon(Icons.star, color: Colors.amber, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Avatares especiales',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.amber,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: Responsive.scale(context, 12, 16, 20)),
                     
-                    Expanded(
-                      child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Avatares básicos',
+                        style: TextStyle(
+                          fontSize: sectionTitleSize,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
                         ),
-                        itemCount: _purchasedAvatars.length,
+                      ),
+                    ),
+                    SizedBox(height: Responsive.scale(context, 10, 12, 12)),
+                    
+                    SizedBox(
+                      height: gridColumns <= 3 ? 280 : (gridColumns <= 4 ? 240 : 200),
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: gridColumns,
+                          crossAxisSpacing: Responsive.scale(context, 10, 12, 12),
+                          mainAxisSpacing: Responsive.scale(context, 10, 12, 12),
+                        ),
+                        itemCount: 8,
                         itemBuilder: (context, index) {
-                          final avatar = _purchasedAvatars[index];
-                          final avatarId = avatar.metadata?['avatarId'] as int? ?? 8;
-                          return _buildAvatarTile(avatarId, isShopAvatar: true, shopItem: avatar);
+                          return _buildAvatarTile(index, isShopAvatar: false);
                         },
                       ),
                     ),
-                  ],
-                  
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _confirmSelection,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    
+                    if (_purchasedAvatars.isNotEmpty) ...[
+                      SizedBox(height: Responsive.scale(context, 20, 24, 24)),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: Responsive.scale(context, 18, 20, 20)),
+                            SizedBox(width: Responsive.scale(context, 6, 8, 8)),
+                            Text(
+                              'Avatares especiales',
+                              style: TextStyle(
+                                fontSize: sectionTitleSize,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Text(
-                        'Confirmar',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(height: Responsive.scale(context, 10, 12, 12)),
+                      
+                      SizedBox(
+                        height: gridColumns <= 3 ? 280 : (gridColumns <= 4 ? 240 : 200),
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: gridColumns,
+                            crossAxisSpacing: Responsive.scale(context, 10, 12, 12),
+                            mainAxisSpacing: Responsive.scale(context, 10, 12, 12),
+                          ),
+                          itemCount: _purchasedAvatars.length,
+                          itemBuilder: (context, index) {
+                            final avatar = _purchasedAvatars[index];
+                            final avatarId = avatar.metadata?['avatarId'] as int? ?? 8;
+                            return _buildAvatarTile(avatarId, isShopAvatar: true, shopItem: avatar);
+                          },
+                        ),
+                      ),
+                    ],
+                    
+                    SizedBox(height: Responsive.scale(context, 20, 24, 24)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _confirmSelection,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 14, 16, 16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                          ),
+                        ),
+                        child: Text(
+                          'Confirmar',
+                          style: TextStyle(
+                            fontSize: Responsive.scale(context, 16, 17, 18),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
     );
@@ -166,6 +174,9 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
   Widget _buildAvatarTile(int avatarId, {required bool isShopAvatar, ShopItem? shopItem}) {
     final isSelected = _selectedAvatarId == avatarId;
+    final avatarSize = Responsive.scale(context, 40, 45, 50);
+    final borderRadius = Responsive.scale(context, 12, 14, 16);
+    final borderWidth = isSelected ? Responsive.scale(context, 3, 4, 4) : Responsive.scale(context, 2, 2, 2);
     
     return GestureDetector(
       onTap: () {
@@ -181,14 +192,14 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               : isShopAvatar
                   ? Colors.amber[50]
                   : Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
                 : isShopAvatar
                     ? Colors.amber[300]!
                     : Colors.grey[300]!,
-            width: isSelected ? 4 : 2,
+            width: borderWidth,
           ),
           boxShadow: isSelected
               ? [
@@ -208,41 +219,41 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             Center(
               child: AvatarWidget(
                 avatarId: avatarId,
-                size: 50,
+                size: avatarSize,
                 backgroundColor: Colors.transparent,
               ),
             ),
             if (isSelected)
               Positioned(
-                top: 4,
-                right: 4,
+                top: Responsive.scale(context, 3, 4, 4),
+                right: Responsive.scale(context, 3, 4, 4),
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: EdgeInsets.all(Responsive.scale(context, 1, 2, 2)),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check,
                     color: Colors.white,
-                    size: 14,
+                    size: Responsive.scale(context, 12, 14, 14),
                   ),
                 ),
               ),
             if (isShopAvatar && !isSelected)
               Positioned(
-                top: 4,
-                right: 4,
+                top: Responsive.scale(context, 3, 4, 4),
+                right: Responsive.scale(context, 3, 4, 4),
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: EdgeInsets.all(Responsive.scale(context, 1, 2, 2)),
                   decoration: const BoxDecoration(
                     color: Colors.amber,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.star,
                     color: Colors.white,
-                    size: 12,
+                    size: Responsive.scale(context, 10, 12, 12),
                   ),
                 ),
               ),
