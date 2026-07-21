@@ -46,7 +46,6 @@ class _LessonGridCardState extends State<LessonGridCard> {
 
   Widget _buildCard(BuildContext context, LessonTheme theme) {
     final borderRadius = Responsive.scale(context, 10, 12, 14);
-    final isMobile = context.isMobile;
 
     return Container(
       decoration: BoxDecoration(
@@ -75,8 +74,8 @@ class _LessonGridCardState extends State<LessonGridCard> {
           child: InkWell(
             onTap: widget.isLocked ? null : widget.onTap,
             child: Padding(
-              padding: EdgeInsets.all(isMobile ? 8 : Responsive.scale(context, 10, 12, 14)),
-              child: isMobile ? _buildMobileLayout(context, theme) : _buildDesktopLayout(context, theme),
+              padding: EdgeInsets.all(Responsive.scale(context, 8, 10, 12)),
+              child: _buildLayout(context, theme),
             ),
           ),
         ),
@@ -84,157 +83,118 @@ class _LessonGridCardState extends State<LessonGridCard> {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, LessonTheme theme) {
-    final emojiSize = 24.0;
+  Widget _buildLayout(BuildContext context, LessonTheme theme) {
+    final emojiSize = Responsive.scale(context, 32, 36, 40);
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Container(
-          width: emojiSize,
-          height: emojiSize,
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha(widget.isLocked ? 60 : 35),
-            borderRadius: BorderRadius.circular(emojiSize * 0.3),
-          ),
-          child: Center(
-            child: Text(
-              widget.isLocked ? '🔒' : theme.emoji,
-              style: TextStyle(fontSize: emojiSize * 0.65),
-            ),
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          widget.lesson.title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        SizedBox(height: 2),
-        Row(
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '#${widget.index + 1}',
-              style: TextStyle(
-                color: Colors.white.withAlpha(140),
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
+            Container(
+              width: emojiSize,
+              height: emojiSize,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(widget.isLocked ? 60 : 35),
+                borderRadius: BorderRadius.circular(emojiSize * 0.3),
+              ),
+              child: Center(
+                child: Text(
+                  widget.isLocked ? '🔒' : theme.emoji,
+                  style: TextStyle(fontSize: emojiSize * 0.6),
+                ),
               ),
             ),
-            Spacer(),
-            _buildStatusIcon(context),
+            SizedBox(height: Responsive.scale(context, 6, 8, 10)),
+            Text(
+              widget.lesson.title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: Responsive.scale(context, 12, 13, 14),
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
+        if (!widget.isLocked)
+          Positioned(
+            top: -Responsive.scale(context, 4, 5, 6),
+            right: -Responsive.scale(context, 4, 5, 6),
+            child: _buildStatusBadge(context),
+          ),
       ],
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, LessonTheme theme) {
-    final emojiSize = Responsive.scale(context, 36, 40, 44);
-    
-    return Row(
-      children: [
-        Container(
-          width: emojiSize,
-          height: emojiSize,
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha(widget.isLocked ? 60 : 35),
-            borderRadius: BorderRadius.circular(emojiSize * 0.3),
-          ),
-          child: Center(
-            child: Text(
-              widget.isLocked ? '🔒' : theme.emoji,
-              style: TextStyle(fontSize: emojiSize * 0.6),
-            ),
-          ),
-        ),
-        SizedBox(width: Responsive.scale(context, 8, 10, 12)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.lesson.title,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: Responsive.scale(context, 12, 13, 14),
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 2),
-              Text(
-                '#${widget.index + 1}',
-                style: TextStyle(
-                  color: Colors.white.withAlpha(140),
-                  fontSize: Responsive.scale(context, 10, 11, 11),
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: 6),
-        _buildStatusIcon(context),
-      ],
-    );
-  }
-
-  Widget _buildStatusIcon(BuildContext context) {
-    if (widget.isLocked) {
-      return Text(
-        '🔒',
-        style: TextStyle(fontSize: Responsive.scale(context, 14, 16, 18)),
-      );
-    }
-
+  Widget _buildStatusBadge(BuildContext context) {
     return FutureBuilder<LessonMasteryStatus>(
       future: widget.evaluator.evaluateLesson(widget.lesson.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return SizedBox(
-            width: 16,
-            height: 16,
-            child: const CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-            ),
-          );
+          return const SizedBox.shrink();
         }
 
         final status = snapshot.data!;
-        late IconData icon;
-        late Color iconColor;
-
+        
         switch (status) {
-          case LessonMasteryStatus.notStarted:
-            icon = Icons.play_arrow_rounded;
-            iconColor = Colors.white.withAlpha(180);
-            break;
-          case LessonMasteryStatus.inProgress:
-            icon = Icons.refresh_rounded;
-            iconColor = Colors.amber;
-            break;
           case LessonMasteryStatus.mastered:
-            icon = Icons.check_circle_rounded;
-            iconColor = Colors.green;
-            break;
+            return Container(
+              width: Responsive.scale(context, 20, 22, 24),
+              height: Responsive.scale(context, 20, 22, 24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: Responsive.scale(context, 1.5, 2, 2.5),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF4CAF50).withAlpha(100),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.check_rounded,
+                size: Responsive.scale(context, 12, 14, 16),
+                color: Colors.white,
+              ),
+            );
+          case LessonMasteryStatus.inProgress:
+            return Container(
+              width: Responsive.scale(context, 20, 22, 24),
+              height: Responsive.scale(context, 20, 22, 24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFC107),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: Responsive.scale(context, 1.5, 2, 2.5),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFFC107).withAlpha(100),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.refresh_rounded,
+                size: Responsive.scale(context, 12, 14, 16),
+                color: Colors.white,
+              ),
+            );
+          case LessonMasteryStatus.notStarted:
+            return const SizedBox.shrink();
         }
-
-        return Icon(
-          icon,
-          size: Responsive.scale(context, 18, 20, 22),
-          color: iconColor,
-        );
       },
     );
   }

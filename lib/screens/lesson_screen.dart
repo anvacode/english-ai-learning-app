@@ -20,6 +20,7 @@ import '../services/firestore_progress_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/confetti_overlay.dart';
+import '../widgets/exercise_completion_screen.dart';
 import '../widgets/feedback_widget.dart';
 import '../widgets/lesson_image.dart';
 import '../widgets/responsive_snack_bar.dart';
@@ -597,112 +598,202 @@ class _LessonScreenState extends State<LessonScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-        Padding(
-          padding: EdgeInsets.only(top: Responsive.scale(context, 8, 12, 14)),
-          child: Center(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                color: Colors.grey[50],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                child: LessonImage(
-                  imagePath: currentItem.stimulusImageAsset,
-                  fallbackColor: currentItem.stimulusColor,
-                  width: Responsive.scale(context, 180, 200, 220),
-                  height: Responsive.scale(context, 180, 200, 220),
+          Padding(
+            padding: EdgeInsets.only(top: Responsive.scale(context, 8, 12, 14)),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                  color: Colors.grey[50],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                  child: LessonImage(
+                    imagePath: currentItem.stimulusImageAsset,
+                    fallbackColor: currentItem.stimulusColor,
+                    width: Responsive.scale(context, 180, 200, 220),
+                    height: Responsive.scale(context, 180, 200, 220),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
 
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.scale(context, 12, 16, 20),
-            vertical: Responsive.scale(context, 0, 4, 6),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  widget.lesson.question,
-                  style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.scale(context, 12, 16, 20),
+              vertical: Responsive.scale(context, 8, 12, 16),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.lesson.question,
+                    style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-              SizedBox(width: Responsive.scale(context, 6, 8, 10)),
-              SpeakerButton(
-                text: currentItem.options[currentItem.correctAnswerIndex],
-                iconSize: Responsive.scale(context, 18, 20, 22),
-                buttonSize: Responsive.scale(context, 32, 36, 40),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                onPressed: () {
-                  final word = currentItem.options[currentItem.correctAnswerIndex];
-                  final translation = TranslationService.translate(word);
-                  TranslationPopup.show(context, word: word, translation: translation);
-                },
-                icon: const Icon(Icons.help_outline),
-                color: Colors.blue[600],
-                iconSize: 24,
-                tooltip: 'Ver traducción',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ],
+                SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+                SpeakerButton(
+                  text: currentItem.options[currentItem.correctAnswerIndex],
+                  iconSize: Responsive.scale(context, 18, 20, 22),
+                  buttonSize: Responsive.scale(context, 32, 36, 40),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: () {
+                    final word = currentItem.options[currentItem.correctAnswerIndex];
+                    final translation = TranslationService.translate(word);
+                    TranslationPopup.show(context, word: word, translation: translation);
+                  },
+                  icon: const Icon(Icons.help_outline),
+                  color: Colors.blue[600],
+                  iconSize: 24,
+                  tooltip: 'Ver traducción',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: context.isMobile ? 8.0 : 4.0),
-          child: Column(
-            children: List.generate(
-              _randomizedOptions.length,
-              (index) => Center(
-                child: Padding(
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: context.isMobile ? 8.0 : 4.0),
+            child: Column(
+              children: List.generate(
+                _randomizedOptions.length,
+                (index) => Padding(
                   padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 4, 6, 8)),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: Responsive.scale(context, 180, 200, 220),
-                      minHeight: Responsive.scale(context, 44, 50, 56),
-                      maxHeight: Responsive.scale(context, 52, 60, 64),
-                    ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: Responsive.scale(context, 52, 56, 60),
                     child: _buildOptionButton(context, index, status),
                   ),
                 ),
               ),
             ),
           ),
-        ),
 
-        _buildSubmitOrFeedback(context, currentItem, status),
+          _buildSubmitOrFeedback(context, currentItem, status),
 
-        if (status == LessonProgressStatus.mastered)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '🎉 ¡Lección dominada!',
-                  style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-                if (_badge != null)
-                  Padding(
-                    padding: EdgeInsets.only(top: Responsive.scale(context, 6, 8, 10)),
-                    child: Text(
-                      'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
-                      style: context.bodyText2.copyWith(fontWeight: FontWeight.w600),
-                    ),
+          if (status == LessonProgressStatus.mastered)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '🎉 ¡Lección dominada!',
+                    style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.bold),
                   ),
-              ],
+                  if (_badge != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: Responsive.scale(context, 6, 8, 10)),
+                      child: Text(
+                        'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
+                        style: context.bodyText2.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                ],
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletLayout(BuildContext context, LessonItem currentItem) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 800),
+        child: Padding(
+          padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                        color: Colors.grey[50],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                        child: LessonImage(
+                          imagePath: currentItem.stimulusImageAsset,
+                          fallbackColor: currentItem.stimulusColor,
+                          width: Responsive.scale(context, 180, 200, 220),
+                          height: Responsive.scale(context, 180, 200, 220),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.lesson.question,
+                            style: context.headline3.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(width: Responsive.scale(context, 8, 12, 16)),
+                        SpeakerButton(
+                          text: currentItem.options[currentItem.correctAnswerIndex],
+                          iconSize: Responsive.scale(context, 20, 24, 28),
+                          buttonSize: Responsive.scale(context, 36, 44, 52),
+                        ),
+                        SizedBox(width: Responsive.scale(context, 6, 8, 12)),
+                        IconButton(
+                          onPressed: () {
+                            final word = currentItem.options[currentItem.correctAnswerIndex];
+                            final translation = TranslationService.translate(word);
+                            TranslationPopup.show(context, word: word, translation: translation);
+                          },
+                          icon: const Icon(Icons.help_outline),
+                          color: Colors.blue[600],
+                          iconSize: Responsive.scale(context, 22, 26, 30),
+                          tooltip: 'Ver traducción',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: Responsive.scale(context, 20, 28, 36)),
+              Expanded(
+                flex: 3,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ...List.generate(
+                        _randomizedOptions.length,
+                        (index) => Padding(
+                          padding: EdgeInsets.symmetric(vertical: Responsive.scale(context, 6, 8, 10)),
+                          child: SizedBox(
+                            height: Responsive.scale(context, 52, 56, 60),
+                            child: _buildOptionButton(context, index, status),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                      _buildSubmitOrFeedback(context, currentItem, status),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-      ],
+        ),
       ),
     );
   }
@@ -712,9 +803,9 @@ class _LessonScreenState extends State<LessonScreen> {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: Responsive.maxContainerWidth(context)),
         child: Padding(
-          padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 32)),
+          padding: EdgeInsets.all(Responsive.scale(context, 20, 28, 36)),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 2,
@@ -732,12 +823,12 @@ class _LessonScreenState extends State<LessonScreen> {
                           child: LessonImage(
                             imagePath: currentItem.stimulusImageAsset,
                             fallbackColor: currentItem.stimulusColor,
-                            width: Responsive.scale(context, 200, 240, 280),
-                            height: Responsive.scale(context, 200, 240, 280),
+                            width: Responsive.scale(context, 220, 260, 300),
+                            height: Responsive.scale(context, 220, 260, 300),
                           ),
                         ),
                       ),
-                      SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
@@ -749,13 +840,13 @@ class _LessonScreenState extends State<LessonScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          SizedBox(width: Responsive.scale(context, 8, 12, 16)),
+                          SizedBox(width: Responsive.scale(context, 12, 16, 20)),
                           SpeakerButton(
                             text: currentItem.options[currentItem.correctAnswerIndex],
-                            iconSize: Responsive.scale(context, 22, 26, 30),
-                            buttonSize: Responsive.scale(context, 40, 48, 56),
+                            iconSize: Responsive.scale(context, 24, 28, 32),
+                            buttonSize: Responsive.scale(context, 44, 52, 60),
                           ),
-                          SizedBox(width: Responsive.scale(context, 6, 8, 12)),
+                          SizedBox(width: Responsive.scale(context, 8, 12, 16)),
                           IconButton(
                             onPressed: () {
                               final word = currentItem.options[currentItem.correctAnswerIndex];
@@ -764,20 +855,20 @@ class _LessonScreenState extends State<LessonScreen> {
                             },
                             icon: const Icon(Icons.help_outline),
                             color: Colors.blue[600],
-                            iconSize: Responsive.scale(context, 24, 28, 32),
+                            iconSize: Responsive.scale(context, 26, 30, 34),
                             tooltip: 'Ver traducción',
                           ),
                         ],
                       ),
                       if (status == LessonProgressStatus.mastered) ...[
-                        SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                        SizedBox(height: Responsive.scale(context, 24, 28, 32)),
                         Text(
                           '🎉 ¡Lección dominada!',
                           style: context.headline3.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (_badge != null)
                           Padding(
-                            padding: EdgeInsets.only(top: Responsive.scale(context, 8, 10, 12)),
+                            padding: EdgeInsets.only(top: Responsive.scale(context, 10, 12, 14)),
                             child: Text(
                               'Badge desbloqueado: ${_badge!.icon} ${_badge!.title}',
                               style: context.bodyTextLarge.copyWith(fontWeight: FontWeight.w600),
@@ -788,7 +879,7 @@ class _LessonScreenState extends State<LessonScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: Responsive.scale(context, 24, 32, 40)),
+              SizedBox(width: Responsive.scale(context, 32, 40, 48)),
               Expanded(
                 flex: 3,
                 child: SingleChildScrollView(
@@ -800,15 +891,15 @@ class _LessonScreenState extends State<LessonScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
-                        mainAxisSpacing: Responsive.scale(context, 12, 16, 20),
-                        crossAxisSpacing: Responsive.scale(context, 12, 16, 20),
+                        mainAxisSpacing: Responsive.scale(context, 14, 18, 22),
+                        crossAxisSpacing: Responsive.scale(context, 14, 18, 22),
                         childAspectRatio: 3.0,
                         children: List.generate(
                           _randomizedOptions.length,
                           (index) => _buildOptionButton(context, index, status),
                         ),
                       ),
-                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                      SizedBox(height: Responsive.scale(context, 24, 28, 32)),
                       _buildSubmitOrFeedback(context, currentItem, status),
                     ],
                   ),
@@ -822,8 +913,43 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   Widget _buildOptionButton(BuildContext context, int index, LessonProgressStatus status) {
+    final isSelected = _selectedAnswerIndex == index;
+    final isAnswered = _answered;
+    final isCorrect = _isCorrect == true;
+    final isWrong = _isCorrect == false && isSelected;
+
+    Color backgroundColor;
+    Color textColor;
+    Color iconColor;
+
+    if (isAnswered) {
+      if (isCorrect && isSelected) {
+        backgroundColor = Colors.green[400]!;
+        textColor = Colors.white;
+        iconColor = Colors.white;
+      } else if (isWrong) {
+        backgroundColor = Colors.red[400]!;
+        textColor = Colors.white;
+        iconColor = Colors.white;
+      } else {
+        backgroundColor = Colors.grey[300]!;
+        textColor = Colors.grey[600]!;
+        iconColor = Colors.grey[600]!;
+      }
+    } else {
+      if (isSelected) {
+        backgroundColor = Colors.deepPurple;
+        textColor = Colors.white;
+        iconColor = Colors.white;
+      } else {
+        backgroundColor = Colors.grey[200]!;
+        textColor = Colors.black;
+        iconColor = Colors.deepPurple;
+      }
+    }
+
     return ElevatedButton(
-      onPressed: (status == LessonProgressStatus.mastered || _answered)
+      onPressed: (status == LessonProgressStatus.mastered || isAnswered)
           ? null
           : () {
               setState(() {
@@ -831,29 +957,39 @@ class _LessonScreenState extends State<LessonScreen> {
               });
             },
       style: ElevatedButton.styleFrom(
-        backgroundColor: _selectedAnswerIndex == index ? Colors.deepPurple : Colors.grey[200],
-        disabledBackgroundColor: _answered
-            ? (_selectedAnswerIndex == index
-                ? (_isCorrect == true ? Colors.green[300] : Colors.red[300])
-                : Colors.grey[300])
-            : Colors.grey[200],
+        backgroundColor: backgroundColor,
+        disabledBackgroundColor: backgroundColor,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.scale(context, 12, 16, 20),
           vertical: Responsive.scale(context, 8, 12, 14),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Responsive.borderRadius(context))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+          side: isSelected && !isAnswered
+              ? BorderSide(color: Colors.deepPurple.shade700, width: 2)
+              : BorderSide.none,
+        ),
+        elevation: isSelected && !isAnswered ? 4 : 2,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (isAnswered && isSelected) ...[
+            Icon(
+              isCorrect ? Icons.check_circle : Icons.cancel,
+              color: Colors.white,
+              size: Responsive.scale(context, 18, 20, 22),
+            ),
+            SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+          ],
           Flexible(
             child: Text(
               _randomizedOptions[index],
               style: TextStyle(
                 fontSize: Responsive.scale(context, 14, 15, 16),
-                fontWeight: FontWeight.w500,
-                color: _selectedAnswerIndex == index && !_answered ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w600,
+                color: textColor,
                 height: 1.2,
               ),
               textAlign: TextAlign.center,
@@ -862,13 +998,13 @@ class _LessonScreenState extends State<LessonScreen> {
               maxLines: 2,
             ),
           ),
-          if (!_answered && status != LessonProgressStatus.mastered) ...[
+          if (!isAnswered && status != LessonProgressStatus.mastered) ...[
             SizedBox(width: Responsive.scale(context, 6, 8, 10)),
             SpeakerButton(
               text: _randomizedOptions[index],
               iconSize: Responsive.scale(context, 14, 16, 18),
               buttonSize: Responsive.scale(context, 24, 28, 32),
-              iconColor: _selectedAnswerIndex == index ? Colors.white : Colors.deepPurple,
+              iconColor: iconColor,
             ),
           ],
         ],
@@ -924,30 +1060,18 @@ class _LessonScreenState extends State<LessonScreen> {
 
     // If exercise is complete, show completion feedback and stop rendering
     if (_exerciseCompleted) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Lección')),
-        body: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '✓ Correcto',
-                  style: TextStyle(
-                    fontSize: Responsive.scale(context, 20, 24, 28),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-                Text(
-                  '🎉 Ejercicio completado',
-                  style: context.headline3,
-                ),
-              ],
-            ),
-          ),
-        ),
+      return ExerciseCompletionScreen(
+        lessonTitle: widget.lesson.title,
+        correctAnswers: context.read<LessonController>().correctAnswers,
+        totalQuestions: context.read<LessonController>().totalQuestions,
+        onContinue: () {
+          // Check if lesson has matching exercise and navigate to it
+          if (widget.lesson.id == 'animals' || widget.lesson.id == 'family_1') {
+            _navigateToMatchingExercise();
+          } else {
+            Navigator.pop(context, true); // Return true to signal state changed
+          }
+        },
       );
     }
 
@@ -962,9 +1086,26 @@ class _LessonScreenState extends State<LessonScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lección'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.lesson.title,
+              style: TextStyle(
+                fontSize: Responsive.scale(context, 16, 18, 20),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Pregunta ${currentItemIndex + 1} de ${items.length}',
+              style: TextStyle(
+                fontSize: Responsive.scale(context, 11, 12, 13),
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          // Streak indicator en el AppBar
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: StreakIndicator(streak: _streak),
@@ -983,47 +1124,63 @@ class _LessonScreenState extends State<LessonScreen> {
                   ),
                   child: Consumer<LessonController>(
                     builder: (context, lessonController, _) {
-                      // Calculate progress with offset and scale
                       final adjustedProgress =
                           widget.progressOffset +
                           (lessonController.progress * widget.progressScale);
-                      return LinearProgressIndicator(
-                        value: adjustedProgress,
-                        backgroundColor: Colors.grey[300],
-                        color: Colors.deepPurple,
-                        minHeight: 8,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LinearProgressIndicator(
+                            value: adjustedProgress,
+                            backgroundColor: Colors.grey[300],
+                            color: Colors.deepPurple,
+                            minHeight: 8,
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                status == LessonProgressStatus.notStarted
+                                    ? 'No iniciada'
+                                    : status == LessonProgressStatus.inProgress
+                                    ? 'En progreso'
+                                    : 'Dominada',
+                                style: context.label,
+                              ),
+                              Text(
+                                '${(adjustedProgress * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: Responsive.scale(context, 11, 12, 13),
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       );
                     },
                   ),
                 ),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 2.0,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      status == LessonProgressStatus.notStarted
-                          ? 'No iniciada'
-                          : status == LessonProgressStatus.inProgress
-                          ? 'En progreso'
-                          : 'Dominada',
-                      style: context.label,
-                    ),
-                  ),
-                ),
-
                 Expanded(
-                  child: context.isMobile
-                      ? _buildMobileLayout(context, currentItem)
-                      : _buildDesktopLayout(context, currentItem),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      if (width < 600) {
+                        return _buildMobileLayout(context, currentItem);
+                      } else if (width < 1024) {
+                        return _buildTabletLayout(context, currentItem);
+                      } else {
+                        return _buildDesktopLayout(context, currentItem);
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
           ),
-          // Sparkles overlay
           if (_showSparkles && _sparklesCenter != null)
             SparklesOverlay(
               isPlaying: _showSparkles,
@@ -1034,7 +1191,6 @@ class _LessonScreenState extends State<LessonScreen> {
                 });
               },
             ),
-          // Confetti overlay para rachas
           if (_showConfetti)
             ConfettiOverlay(
               isPlaying: _showConfetti,

@@ -298,7 +298,7 @@ class _LevelSectionState extends State<LevelSection> {
           crossAxisCount: widget.gridColumns,
           crossAxisSpacing: Responsive.scale(context, 6, 8, 10),
           mainAxisSpacing: Responsive.scale(context, 6, 8, 10),
-          childAspectRatio: Responsive.scale(context, 1.8, 2.2, 2.6),
+          childAspectRatio: Responsive.scale(context, 1.2, 1.3, 1.4),
         ),
         itemCount: widget.level.lessons.length,
         itemBuilder: (context, index) {

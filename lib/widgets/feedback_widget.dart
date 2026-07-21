@@ -147,6 +147,9 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+    final isTablet = Responsive.isTablet(context);
+    
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -154,68 +157,326 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
           offset: Offset(_shakeAnimation.value, 0),
           child: Transform.scale(
             scale: _scaleAnimation.value,
-            child: Container(
-              constraints: BoxConstraints(maxWidth: Responsive.scale(context, 300, 340, 380)),
-              padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
-              decoration: BoxDecoration(
-                color: _getBackgroundColor(),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: _getBackgroundColor().withAlpha(120),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
+            child: isMobile || isTablet
+                ? _buildCompactLayout(context)
+                : _buildDesktopLayout(context),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCompactLayout(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: Responsive.scale(context, 320, 360, 400),
+      ),
+      padding: EdgeInsets.all(Responsive.scale(context, 12, 14, 16)),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            _getBackgroundColor().withAlpha(240),
+            _getBackgroundColor().withAlpha(200),
+            _getBackgroundColor().withAlpha(180),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: Colors.white.withAlpha(100),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _getTextColor().withAlpha(80),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.white.withAlpha(60),
+            blurRadius: 10,
+            spreadRadius: 1,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Emoji con efecto glassmorphism
+          Container(
+            width: Responsive.scale(context, 56, 60, 64),
+            height: Responsive.scale(context, 56, 60, 64),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withAlpha(120),
+                  Colors.white.withAlpha(40),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Emoji grande animado
-                  Text(
-                    _cachedEmoji,
-                    style: TextStyle(fontSize: Responsive.scale(context, 48, 56, 64)),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withAlpha(80),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                _cachedEmoji,
+                style: TextStyle(
+                  fontSize: Responsive.scale(context, 32, 36, 40),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: Responsive.scale(context, 12, 14, 16)),
+          
+          // Contenido: mensaje + botón
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Mensaje
+                Text(
+                  _cachedMessage,
+                  style: TextStyle(
+                    fontSize: Responsive.scale(context, 14, 15, 16),
+                    fontWeight: FontWeight.bold,
+                    color: _getTextColor(),
+                    height: 1.2,
                   ),
-                  SizedBox(height: Responsive.scale(context, 6, 8, 10)),
-                  Text(
-                    _cachedMessage,
-                    style: TextStyle(
-                      fontSize: Responsive.scale(context, 18, 20, 22),
-                      fontWeight: FontWeight.bold,
-                      color: _getTextColor(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                
+                // Indicador de racha si aplica
+                if (widget.streak >= 3) ...[
+                  SizedBox(height: 6),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.orange[400]!,
+                          Colors.red[400]!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    textAlign: TextAlign.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('🔥', style: TextStyle(fontSize: 12)),
+                        SizedBox(width: 3),
+                        Text(
+                          '${widget.streak}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-                  // Botón
-                  ElevatedButton(
+                ],
+                
+                SizedBox(height: 8),
+                
+                // Botón compacto
+                SizedBox(
+                  width: double.infinity,
+                  height: Responsive.scale(context, 36, 38, 40),
+                  child: ElevatedButton(
                     onPressed: widget.onContinue,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          widget.isCorrect ? Colors.green : AppColors.primary,
+                      backgroundColor: widget.isCorrect ? Colors.green : AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.scale(context, 28, 32, 36),
-                          vertical: Responsive.scale(context, 12, 14, 16)),
-                      minimumSize: Size(Responsive.scale(context, 180, 200, 220), Responsive.scale(context, 46, 50, 54)),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Responsive.scale(context, 12, 14, 16)),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 4,
+                      elevation: 2,
                     ),
-                    child: Text(
-                      _getButtonText(),
-                      style: TextStyle(
-                          fontSize: Responsive.scale(context, 16, 18, 20),
-                          fontWeight: FontWeight.bold),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getButtonText(),
+                          style: TextStyle(
+                            fontSize: Responsive.scale(context, 13, 14, 15),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(
+                          widget.isCorrect ? Icons.arrow_forward : Icons.refresh,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: Responsive.scale(context, 340, 380, 420),
+      ),
+      padding: EdgeInsets.all(Responsive.scale(context, 16, 18, 20)),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            _getBackgroundColor().withAlpha(240),
+            _getBackgroundColor().withAlpha(200),
+            _getBackgroundColor().withAlpha(180),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: Colors.white.withAlpha(100),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _getTextColor().withAlpha(80),
+            blurRadius: 24,
+            spreadRadius: 3,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.white.withAlpha(60),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Emoji con efecto glassmorphism
+          Container(
+            width: Responsive.scale(context, 64, 68, 72),
+            height: Responsive.scale(context, 64, 68, 72),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withAlpha(120),
+                  Colors.white.withAlpha(40),
+                ],
+              ),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withAlpha(80),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                _cachedEmoji,
+                style: TextStyle(
+                  fontSize: Responsive.scale(context, 36, 40, 44),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.scale(context, 10, 12, 14)),
+          
+          // Mensaje
+          Text(
+            _cachedMessage,
+            style: TextStyle(
+              fontSize: Responsive.scale(context, 15, 16, 17),
+              fontWeight: FontWeight.bold,
+              color: _getTextColor(),
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          // Indicador de racha si aplica
+          if (widget.streak >= 3) ...[
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.orange[400]!,
+                    Colors.red[400]!,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
+                  Text(
+                    'Racha: ${widget.streak}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+          
+          SizedBox(height: Responsive.scale(context, 12, 14, 16)),
+          
+          // Botón
+          SizedBox(
+            width: double.infinity,
+            height: Responsive.scale(context, 40, 42, 44),
+            child: ElevatedButton(
+              onPressed: widget.onContinue,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.isCorrect ? Colors.green : AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                elevation: 2,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _getButtonText(),
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 14, 15, 16),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    widget.isCorrect ? Icons.arrow_forward : Icons.refresh,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

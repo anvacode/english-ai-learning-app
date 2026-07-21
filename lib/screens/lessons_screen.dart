@@ -177,7 +177,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     evaluator: _evaluator,
                     onLessonTap: _openLesson,
                     startIndex: lessonLevels.take(i).fold(0, (sum, l) => sum + l.lessons.length),
-                    gridColumns: 3,
+                    gridColumns: 4,
                   );
                 }),
               ),
@@ -191,7 +191,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints, double horizontalPadding) {
     final isWide = context.isWide;
     final sidebarWidth = isWide ? 200.0 : 180.0;
-    final gridColumns = isWide ? 5 : 4;
+    final gridColumns = isWide ? 8 : 6;
 
     return SingleChildScrollView(
       padding: EdgeInsets.zero,
