@@ -46,7 +46,7 @@ Una aplicación educativa interactiva para que niños aprendan inglés de forma 
 | Feature | Descripción |
 |---------|-------------|
 | **Sistema de Estrellas** | Gana estrellas por completar lecciones y ejercicios |
-| **Tienda Integral** | Avatares, temas de color, efectos visuales, power-ups |
+| **Tienda Integral** | Avatares, efectos visuales, power-ups |
 | **Logros/Badges** | Insignias por completar lecciones y alcanzar metas |
 | **Rachas Diarias** | Bonificaciones por práctica consistente |
 | **Power-ups** | Efectos temporales (ej: doble estrellas por 3 días) |
@@ -76,7 +76,6 @@ Una aplicación educativa interactiva para que niños aprendan inglés de forma 
 | Feature | Descripción |
 |---------|-------------|
 | **Diseño Responsive** | Breakpoints: 600px (móvil), 900px (tablet), 1200px (desktop) |
-| **Temas Personalizables** | Múltiples temas de color comprables en la tienda |
 | **Modo Oscuro/Claro** | Soporte para temas del sistema |
 | **Animaciones** | Transiciones suaves, confeti, efectos visuales |
 | **Accesible para Niños** | Botones grandes, emojis claros, feedback visual |
