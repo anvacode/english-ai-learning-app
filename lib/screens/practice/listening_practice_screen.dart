@@ -11,6 +11,7 @@ import '../../models/lesson_item.dart';
 import '../../services/audio_service.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/animated_progress_bar.dart';
 import '../../widgets/lesson_image.dart';
 
 /// Pantalla de práctica de listening:
@@ -299,7 +300,11 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen>
   Widget build(BuildContext context) {
     if (_currentIndex >= _items.length) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Listening')),
+        appBar: AppBar(
+          title: Text('🎧 Listening Practice', style: context.appBarTitle),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -309,10 +314,13 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen>
     final buttonSize = Responsive.scale(context, 80.0, 100.0, 120.0);
     final iconSize = Responsive.scale(context, 40.0, 50.0, 60.0);
     final hPadding = Responsive.horizontalPadding(context);
+    final isDesktop = !Responsive.isMobile(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎧 Listening Practice'),
+        title: Text('🎧 Listening Practice', style: context.appBarTitle),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         actions: [
           Padding(
             padding: EdgeInsets.only(right: hPadding),
@@ -330,207 +338,298 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen>
       ),
       body: Column(
         children: [
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-            minHeight: Responsive.scale(context, 6, 8, 10),
+          AnimatedProgressBar(
+            progress: progress,
+            color: Colors.blue,
+            label: '${_currentIndex + 1}/${_items.length}',
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
-              child: Column(
-                children: [
-                  Text(
-                    'Escucha y selecciona la respuesta correcta',
-                    style: context.headline3,
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: Responsive.scale(context, 16, 24, 28)),
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      width: buttonSize,
-                      height: buttonSize,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withAlpha(77),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
+            child: isDesktop
+                ? _buildDesktopLayout(context, currentItem, buttonSize, iconSize)
+                : _buildMobileLayout(context, currentItem, buttonSize, iconSize),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(
+    BuildContext context,
+    LessonItem currentItem,
+    double buttonSize,
+    double iconSize,
+  ) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(Responsive.scale(context, 16, 20, 24)),
+      child: Column(
+        children: [
+          Text(
+            'Escucha y selecciona la respuesta correcta',
+            style: context.headline3,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: Responsive.scale(context, 16, 24, 28)),
+          _buildAudioButton(context, buttonSize, iconSize),
+          SizedBox(height: Responsive.scale(context, 24, 32, 36)),
+          if (_answered) ...[
+            _buildFeedback(context),
+            SizedBox(height: Responsive.scale(context, 16, 24, 28)),
+          ],
+          _buildOptionsGrid(context, currentItem),
+          SizedBox(height: Responsive.scale(context, 16, 24, 28)),
+          _buildActionButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    LessonItem currentItem,
+    double buttonSize,
+    double iconSize,
+  ) {
+    return Padding(
+      padding: EdgeInsets.all(Responsive.scale(context, 24, 28, 32)),
+      child: Column(
+        children: [
+          Text(
+            'Escucha y selecciona la respuesta correcta',
+            style: context.headline3,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildAudioButton(context, buttonSize, iconSize),
+                        if (_answered) ...[
+                          SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                          _buildFeedback(context),
                         ],
-                      ),
-                      child: IconButton(
-                        onPressed: _answered ? null : _playCurrentWord,
-                        icon: Icon(
-                          _isPlaying ? Icons.volume_up : Icons.headphones,
-                          size: iconSize,
-                          color: Colors.white,
-                        ),
-                      ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: Responsive.scale(context, 24, 32, 36)),
-                  if (_answered) ...[
-                    Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
-                      decoration: BoxDecoration(
-                        color: _isCorrect! ? Colors.green[100] : Colors.red[100],
-                        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isCorrect! ? Icons.check_circle : Icons.cancel,
-                            color: _isCorrect! ? Colors.green : Colors.red,
-                          ),
-                          SizedBox(width: Responsive.scale(context, 6, 8, 10)),
-                          Text(
-                            _isCorrect! ? '¡Correcto!' : 'Incorrecto',
-                            style: TextStyle(
-                              fontSize: Responsive.scale(context, 16, 18, 20),
-                              fontWeight: FontWeight.bold,
-                              color: _isCorrect! ? Colors.green[900] : Colors.red[900],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: Responsive.scale(context, 16, 24, 28)),
-                  ],
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 4);
-                      final spacing = Responsive.gridSpacing(context);
-                      final aspectRatio = Responsive.cardAspectRatio(context);
-
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: spacing,
-                          mainAxisSpacing: spacing,
-                          childAspectRatio: aspectRatio,
-                        ),
-                        itemCount: _currentOptions.length,
-                        itemBuilder: (context, index) {
-                          final option = _currentOptions[index];
-                          final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
-                          final isSelected = _selectedIndex == index;
-                          final isCorrectOption = option == correctAnswer;
-
-                          final optionItem = _items.firstWhere(
-                            (item) => item.options[item.correctAnswerIndex] == option,
-                            orElse: () => currentItem,
-                          );
-
-                          Color borderColor;
-                          if (_answered) {
-                            if (isCorrectOption) {
-                              borderColor = Colors.green;
-                            } else if (isSelected) {
-                              borderColor = Colors.red;
-                            } else {
-                              borderColor = Colors.grey[300]!;
-                            }
-                          } else {
-                            borderColor = isSelected ? Colors.blue : Colors.grey[300]!;
-                          }
-
-                          return GestureDetector(
-                            onTap: _answered ? null : () => _selectOption(index),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: borderColor,
-                                  width: isSelected || (_answered && isCorrectOption) ? 4 : 2,
-                                ),
-                                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                                color: Colors.white,
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(Responsive.scale(context, 6, 8, 10)),
-                                      child: LessonImage(
-                                        imagePath: optionItem.stimulusImageAsset,
-                                        fallbackColor: optionItem.stimulusColor,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.all(Responsive.scale(context, 3, 4, 5)),
-                                    child: Text(
-                                      option,
-                                      style: TextStyle(
-                                        fontSize: Responsive.scale(context, 11, 12, 13),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                ),
+                SizedBox(width: Responsive.scale(context, 32, 40, 48)),
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildOptionsGrid(context, currentItem),
+                      SizedBox(height: Responsive.scale(context, 20, 24, 28)),
+                      _buildActionButton(context),
+                    ],
                   ),
-                  SizedBox(height: Responsive.scale(context, 16, 24, 28)),
-                  if (!_answered && _selectedIndex != null)
-                    SizedBox(
-                      width: double.infinity,
-                      height: Responsive.buttonHeight(context),
-                      child: ElevatedButton(
-                        onPressed: _checkAnswer,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                          ),
-                        ),
-                        child: Text(
-                          'Verificar',
-                          style: context.buttonText,
-                        ),
-                      ),
-                    )
-                  else if (_answered)
-                    SizedBox(
-                      width: double.infinity,
-                      height: Responsive.buttonHeight(context),
-                      child: ElevatedButton(
-                        onPressed: _nextQuestion,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                          ),
-                        ),
-                        child: Text(
-                          _currentIndex < _items.length - 1 ? 'Siguiente' : 'Ver Resultados',
-                          style: context.buttonText,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildAudioButton(BuildContext context, double buttonSize, double iconSize) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Container(
+        width: buttonSize,
+        height: buttonSize,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withAlpha(77),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: IconButton(
+          onPressed: _answered ? null : _playCurrentWord,
+          icon: Icon(
+            _isPlaying ? Icons.volume_up : Icons.headphones,
+            size: iconSize,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeedback(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.scale(context, 16, 20, 24),
+        vertical: Responsive.scale(context, 8, 10, 12),
+      ),
+      decoration: BoxDecoration(
+        color: _isCorrect! ? Colors.green[100] : Colors.red[100],
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _isCorrect! ? Icons.check_circle : Icons.cancel,
+            color: _isCorrect! ? Colors.green : Colors.red,
+            size: Responsive.scale(context, 18, 20, 22),
+          ),
+          SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+          Text(
+            _isCorrect! ? '¡Correcto!' : 'Incorrecto',
+            style: TextStyle(
+              fontSize: Responsive.scale(context, 14, 15, 16),
+              fontWeight: FontWeight.bold,
+              color: _isCorrect! ? Colors.green[900] : Colors.red[900],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionsGrid(BuildContext context, LessonItem currentItem) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = Responsive.gridColumns(context, mobile: 2, tablet: 3, desktop: 3);
+        final spacing = Responsive.gridSpacing(context);
+        final aspectRatio = Responsive.cardAspectRatio(context);
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: aspectRatio,
+          ),
+          itemCount: _currentOptions.length,
+          itemBuilder: (context, index) {
+            final option = _currentOptions[index];
+            final correctAnswer = currentItem.options[currentItem.correctAnswerIndex];
+            final isSelected = _selectedIndex == index;
+            final isCorrectOption = option == correctAnswer;
+
+            final optionItem = _items.firstWhere(
+              (item) => item.options[item.correctAnswerIndex] == option,
+              orElse: () => currentItem,
+            );
+
+            Color borderColor;
+            if (_answered) {
+              if (isCorrectOption) {
+                borderColor = Colors.green;
+              } else if (isSelected) {
+                borderColor = Colors.red;
+              } else {
+                borderColor = Colors.grey[300]!;
+              }
+            } else {
+              borderColor = isSelected ? Colors.blue : Colors.grey[300]!;
+            }
+
+            return GestureDetector(
+              onTap: _answered ? null : () => _selectOption(index),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: borderColor,
+                    width: isSelected || (_answered && isCorrectOption) ? 4 : 2,
+                  ),
+                  borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+                  color: Colors.white,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(Responsive.scale(context, 6, 8, 10)),
+                        child: LessonImage(
+                          imagePath: optionItem.stimulusImageAsset,
+                          fallbackColor: optionItem.stimulusColor,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 3, 4, 5)),
+                      child: Text(
+                        option,
+                        style: TextStyle(
+                          fontSize: Responsive.scale(context, 11, 12, 13),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context) {
+    if (!_answered && _selectedIndex != null) {
+      return Center(
+        child: SizedBox(
+          width: Responsive.scale(context, 200, 240, 280),
+          height: Responsive.buttonHeight(context) * 0.8,
+          child: ElevatedButton(
+            onPressed: _checkAnswer,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+              ),
+            ),
+            child: Text(
+              'Verificar',
+              style: context.buttonText,
+            ),
+          ),
+        ),
+      );
+    } else if (_answered) {
+      return Center(
+        child: SizedBox(
+          width: Responsive.scale(context, 200, 240, 280),
+          height: Responsive.buttonHeight(context) * 0.8,
+          child: ElevatedButton(
+            onPressed: _nextQuestion,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+              ),
+            ),
+            child: Text(
+              _currentIndex < _items.length - 1 ? 'Siguiente' : 'Ver Resultados',
+              style: context.buttonText,
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }

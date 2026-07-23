@@ -205,11 +205,11 @@ class AppTextStyles {
   // ============================================
 
   /// Título de AppBar
-  static TextStyle appBarTitle(BuildContext context) {
+  static TextStyle appBarTitle(BuildContext context, {Color? color}) {
     return GoogleFonts.fredoka(
       fontSize: Responsive.scale(context, 20, 22, 24),
       fontWeight: FontWeight.bold,
-      color: Colors.white,
+      color: color ?? Colors.white,
       letterSpacing: 0.3,
     );
   }

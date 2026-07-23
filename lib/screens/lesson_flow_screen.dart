@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../data/lessons_data.dart';
-import '../dialogs/lesson_completion_dialog.dart';
 import '../logic/activity_result_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_completion_service.dart';
@@ -12,6 +11,8 @@ import '../models/lesson.dart';
 import '../models/lesson_exercise.dart';
 import '../models/matching_item.dart';
 import '../services/firestore_progress_service.dart';
+import '../theme/text_styles.dart';
+import 'lesson_completion_screen.dart';
 import 'lesson_screen.dart';
 import 'matching_exercise_screen.dart';
 // Spelling movido a práctica - ya no se usa en el flujo de lecciones
@@ -163,25 +164,26 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
       }
     }
 
-    // Show completion dialog
+    // Navigate to completion screen
     if (mounted) {
-      await LessonCompletionDialog.show(
+      Navigator.pushReplacement(
         context,
-        lessonTitle: widget.lesson.title,
-        starsEarned: starsForCompletion,
-        correctAnswers:
-            widget.lesson.items.length, // All items completed in flow
-        totalQuestions: widget.lesson.items.length,
-        badgeIcon: badgeToShow?.icon,
-        badgeTitle: badgeToShow?.title,
-        isPerfectScore:
-            true, // Flow lessons are considered perfect when completed
+        MaterialPageRoute(
+          builder: (context) => LessonCompletionScreen(
+            lessonTitle: widget.lesson.title,
+            starsEarned: starsForCompletion,
+            correctAnswers: widget.lesson.items.length,
+            totalQuestions: widget.lesson.items.length,
+            badgeIcon: badgeToShow?.icon,
+            badgeTitle: badgeToShow?.title,
+            isPerfectScore: true,
+            onContinue: () {
+              // Return to lessons screen
+              Navigator.pop(context, true);
+            },
+          ),
+        ),
       );
-
-      // Return to lessons screen
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
     }
   }
 
@@ -190,7 +192,11 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
     // Mostrar loading mientras se determina el ejercicio correcto
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.lesson.title)),
+        appBar: AppBar(
+          title: Text(widget.lesson.title, style: context.appBarTitle),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -198,7 +204,11 @@ class _LessonFlowScreenState extends State<LessonFlowScreen> {
     // Si el índice excede los ejercicios, significa que todo está completo
     if (_currentExerciseIndex >= widget.exercises.length) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.lesson.title)),
+        appBar: AppBar(
+          title: Text(widget.lesson.title, style: context.appBarTitle),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

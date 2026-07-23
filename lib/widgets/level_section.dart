@@ -6,7 +6,7 @@ import '../../models/lesson_level.dart';
 import '../../utils/responsive.dart';
 import 'lesson_grid_card.dart';
 
-class LevelSection extends StatefulWidget {
+class LevelSection extends StatelessWidget {
   final LessonLevel level;
   final int levelIndex;
   final bool isUnlocked;
@@ -14,6 +14,8 @@ class LevelSection extends StatefulWidget {
   final Function(Lesson) onLessonTap;
   final int startIndex;
   final int gridColumns;
+  final bool isExpanded;
+  final VoidCallback onToggle;
 
   const LevelSection({
     super.key,
@@ -24,17 +26,12 @@ class LevelSection extends StatefulWidget {
     required this.onLessonTap,
     required this.startIndex,
     this.gridColumns = 3,
+    required this.isExpanded,
+    required this.onToggle,
   });
 
-  @override
-  State<LevelSection> createState() => _LevelSectionState();
-}
-
-class _LevelSectionState extends State<LevelSection> {
-  bool _isExpanded = false;
-
   _LevelTheme get _levelTheme {
-    switch (widget.levelIndex) {
+    switch (levelIndex) {
       case 0:
         return _LevelTheme(
           emoji: '🌱',
@@ -74,7 +71,7 @@ class _LevelSectionState extends State<LevelSection> {
       default:
         return _LevelTheme(
           emoji: '📚',
-          title: widget.level.title,
+          title: level.title,
           subtitle: '',
           gradient: const LinearGradient(
             colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -115,7 +112,7 @@ class _LevelSectionState extends State<LevelSection> {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: _isExpanded ? _buildLessonsGrid(context, theme) : const SizedBox.shrink(),
+            child: isExpanded ? _buildLessonsGrid(context, theme) : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -123,19 +120,19 @@ class _LevelSectionState extends State<LevelSection> {
   }
 
   Widget _buildHeader(BuildContext context, _LevelTheme theme) {
-    final totalLessons = widget.level.lessons.length;
-    final completedLessons = widget.level.lessons.where((l) {
-      final status = widget.evaluator.evaluateLessonSync(l.id);
+    final totalLessons = level.lessons.length;
+    final completedLessons = level.lessons.where((l) {
+      final status = evaluator.evaluateLessonSync(l.id);
       return status == LessonMasteryStatus.mastered;
     }).length;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        onTap: onToggle,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Responsive.scale(context, 16, 18, 20)),
-          bottom: Radius.circular(_isExpanded ? 0 : Responsive.scale(context, 16, 18, 20)),
+          bottom: Radius.circular(isExpanded ? 0 : Responsive.scale(context, 16, 18, 20)),
         ),
         child: Container(
           padding: EdgeInsets.all(Responsive.scale(context, 10, 12, 14)),
@@ -143,7 +140,7 @@ class _LevelSectionState extends State<LevelSection> {
             gradient: theme.gradient,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(Responsive.scale(context, 16, 18, 20)),
-              bottom: Radius.circular(_isExpanded ? 0 : Responsive.scale(context, 16, 18, 20)),
+              bottom: Radius.circular(isExpanded ? 0 : Responsive.scale(context, 16, 18, 20)),
             ),
           ),
           child: Row(
@@ -168,7 +165,7 @@ class _LevelSectionState extends State<LevelSection> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (!widget.isUnlocked) ...[
+                        if (!isUnlocked) ...[
                           SizedBox(width: Responsive.scale(context, 4, 6, 8)),
                           Text(
                             '🔒',
@@ -179,7 +176,7 @@ class _LevelSectionState extends State<LevelSection> {
                         ],
                       ],
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       theme.subtitle,
                       style: TextStyle(
@@ -212,7 +209,7 @@ class _LevelSectionState extends State<LevelSection> {
               ),
               SizedBox(width: Responsive.scale(context, 4, 6, 8)),
               AnimatedRotation(
-                turns: _isExpanded ? 0.5 : 0,
+                turns: isExpanded ? 0.5 : 0,
                 duration: const Duration(milliseconds: 300),
                 child: Icon(
                   Icons.keyboard_arrow_down_rounded,
@@ -247,7 +244,7 @@ class _LevelSectionState extends State<LevelSection> {
   }
 
   Widget _buildLessonsGrid(BuildContext context, _LevelTheme theme) {
-    if (!widget.isUnlocked) {
+    if (!isUnlocked) {
       return Container(
         padding: EdgeInsets.all(Responsive.scale(context, 16, 18, 20)),
         child: Center(
@@ -273,7 +270,7 @@ class _LevelSectionState extends State<LevelSection> {
       );
     }
 
-    if (widget.level.lessons.isEmpty) {
+    if (level.lessons.isEmpty) {
       return Container(
         padding: EdgeInsets.all(Responsive.scale(context, 16, 18, 20)),
         child: Center(
@@ -295,24 +292,24 @@ class _LevelSectionState extends State<LevelSection> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.gridColumns,
+          crossAxisCount: gridColumns,
           crossAxisSpacing: Responsive.scale(context, 6, 8, 10),
           mainAxisSpacing: Responsive.scale(context, 6, 8, 10),
           childAspectRatio: Responsive.scale(context, 1.2, 1.3, 1.4),
         ),
-        itemCount: widget.level.lessons.length,
+        itemCount: level.lessons.length,
         itemBuilder: (context, index) {
-          final lesson = widget.level.lessons[index];
-          final isLocked = !widget.isUnlocked;
+          final lesson = level.lessons[index];
+          final isLocked = !isUnlocked;
 
           return RepaintBoundary(
             child: LessonGridCard(
               key: ValueKey('lesson_grid_${lesson.id}'),
               lesson: lesson,
-              evaluator: widget.evaluator,
+              evaluator: evaluator,
               isLocked: isLocked,
-              onTap: () => widget.onLessonTap(lesson),
-              index: widget.startIndex + index,
+              onTap: () => onLessonTap(lesson),
+              index: startIndex + index,
             ),
           );
         },

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../dialogs/lesson_completion_dialog.dart';
 import '../logic/activity_result_service.dart';
 import '../logic/badge_service.dart';
 import '../logic/lesson_completion_service.dart';
@@ -20,14 +20,13 @@ import '../services/firestore_progress_service.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive.dart';
 import '../widgets/confetti_overlay.dart';
-import '../widgets/exercise_completion_screen.dart';
 import '../widgets/feedback_widget.dart';
 import '../widgets/lesson_image.dart';
-import '../widgets/responsive_snack_bar.dart';
 import '../widgets/sparkles_overlay.dart';
 import '../widgets/speaker_button.dart';
 import '../widgets/streak_indicator.dart';
 import '../widgets/translation_popup.dart';
+import 'lesson_completion_screen.dart';
 import 'matching_exercise_screen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -312,17 +311,14 @@ class _LessonScreenState extends State<LessonScreen> {
     } else {
       await _audioService.playWrongSound();
 
-      // Show number of attempts left for this question
+      // Show number of attempts left for this question (subtle indicator)
       final attemptsLeft =
           3 -
           lessonController.getIncorrectAttemptsForCurrentQuestion(
             currentItem.id,
           );
       if (attemptsLeft > 0 && mounted) {
-        ResponsiveSnackBar.showWarning(
-          context,
-          message: '⚠️ Intentos restantes para esta pregunta: $attemptsLeft',
-        );
+        _showAttemptsIndicator(context, attemptsLeft);
       }
     }
 
@@ -423,23 +419,30 @@ class _LessonScreenState extends State<LessonScreen> {
           );
         }
 
-        // Show completion dialog with feedback (only in standalone mode)
+        // Navigate to completion screen
         if (mounted) {
-          await LessonCompletionDialog.show(
+          Navigator.pushReplacement(
             context,
-            lessonTitle: widget.lesson.title,
-            starsEarned: starsEarned,
-            correctAnswers: lessonController.correctAnswers,
-            totalQuestions: lessonController.totalQuestions,
-            badgeIcon: badgeToShow?.icon,
-            badgeTitle: badgeToShow?.title,
-            isPerfectScore: isCurrentAttemptPerfect,
+            MaterialPageRoute(
+              builder: (context) => LessonCompletionScreen(
+                lessonTitle: widget.lesson.title,
+                starsEarned: starsEarned,
+                correctAnswers: lessonController.correctAnswers,
+                totalQuestions: lessonController.totalQuestions,
+                badgeIcon: badgeToShow?.icon,
+                badgeTitle: badgeToShow?.title,
+                isPerfectScore: isCurrentAttemptPerfect,
+                onContinue: () {
+                  // Check if lesson has matching exercise and navigate to it
+                  if (widget.lesson.id == 'animals' || widget.lesson.id == 'family_1') {
+                    _navigateToMatchingExercise();
+                  } else {
+                    Navigator.pop(context, true); // Return true to signal state changed
+                  }
+                },
+              ),
+            ),
           );
-        }
-
-        // Navigate after mastery (only if perfect attempt)
-        if (isCurrentAttemptPerfect) {
-          _exitAfterMastery();
         }
       }
     }
@@ -488,17 +491,43 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
-  // Navigate back to LessonsScreen after mastery
-  void _exitAfterMastery() {
+  // Show subtle attempts indicator
+  void _showAttemptsIndicator(BuildContext context, int attemptsLeft) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 100,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withAlpha(200),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$attemptsLeft ${attemptsLeft == 1 ? 'intento' : 'intentos'} restantes',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    overlay.insert(overlayEntry);
+    
     Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        // Check if lesson has matching exercise and navigate to it
-        if (widget.lesson.id == 'animals' || widget.lesson.id == 'family_1') {
-          _navigateToMatchingExercise();
-        } else {
-          Navigator.pop(context, true); // Return true to signal state changed
-        }
-      }
+      overlayEntry.remove();
     });
   }
 
@@ -1041,16 +1070,7 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
               ),
             )
-          : FeedbackWidget(
-              key: ValueKey('feedback-${widget.lesson.id}-$currentItemIndex'),
-              isCorrect: _isCorrect ?? false,
-              attemptNumber: _isCorrect == true
-                  ? 1
-                  : context.read<LessonController>().getIncorrectAttemptsForCurrentQuestion(currentItem.id),
-              streak: _streak,
-              correctAnswer: _isCorrect == false ? _correctAnswerValue : null,
-              onContinue: _onNextOrRetry,
-            ),
+          : const SizedBox.shrink(),
     );
   }
 
@@ -1058,26 +1078,13 @@ class _LessonScreenState extends State<LessonScreen> {
   Widget build(BuildContext context) {
     final items = widget.lesson.items;
 
-    // If exercise is complete, show completion feedback and stop rendering
-    if (_exerciseCompleted) {
-      return ExerciseCompletionScreen(
-        lessonTitle: widget.lesson.title,
-        correctAnswers: context.read<LessonController>().correctAnswers,
-        totalQuestions: context.read<LessonController>().totalQuestions,
-        onContinue: () {
-          // Check if lesson has matching exercise and navigate to it
-          if (widget.lesson.id == 'animals' || widget.lesson.id == 'family_1') {
-            _navigateToMatchingExercise();
-          } else {
-            Navigator.pop(context, true); // Return true to signal state changed
-          }
-        },
-      );
-    }
-
     if (currentItemIndex >= items.length) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Lección')),
+        appBar: AppBar(
+          title: Text('Lección', style: context.appBarTitle),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
         body: const Center(child: Text('Lección completada')),
       );
     }
@@ -1086,19 +1093,20 @@ class _LessonScreenState extends State<LessonScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               widget.lesson.title,
-              style: TextStyle(
+              style: AppTextStyles.appBarTitle(context).copyWith(
                 fontSize: Responsive.scale(context, 16, 18, 20),
-                fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               'Pregunta ${currentItemIndex + 1} de ${items.length}',
-              style: TextStyle(
+              style: GoogleFonts.fredoka(
                 fontSize: Responsive.scale(context, 11, 12, 13),
                 color: Colors.white70,
               ),
@@ -1199,6 +1207,24 @@ class _LessonScreenState extends State<LessonScreen> {
                   _showConfetti = false;
                 });
               },
+            ),
+          if (_answered)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withAlpha(100),
+                child: Center(
+                  child: FeedbackWidget(
+                    key: ValueKey('feedback-${widget.lesson.id}-$currentItemIndex'),
+                    isCorrect: _isCorrect ?? false,
+                    attemptNumber: _isCorrect == true
+                        ? 1
+                        : context.read<LessonController>().getIncorrectAttemptsForCurrentQuestion(currentItem.id),
+                    streak: _streak,
+                    correctAnswer: _isCorrect == false ? _correctAnswerValue : null,
+                    onContinue: _onNextOrRetry,
+                  ),
+                ),
+              ),
             ),
         ],
       ),

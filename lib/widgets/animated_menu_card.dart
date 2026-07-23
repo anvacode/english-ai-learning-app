@@ -177,59 +177,61 @@ class _AnimatedMenuCardState extends State<AnimatedMenuCard>
               color: Colors.transparent,
               child: InkWell(
                 onTap: widget.onTap,
-                child: Padding(
-                  padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.scale(context, 6, 10, 14),
-                        ),
-                        child: AnimatedBuilder(
-                          animation: _emojiPulseController,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _emojiPulseAnimation.value,
-                              child: child,
-                            );
-                          },
-                          child: Text(
-                            widget.emoji,
-                            style: TextStyle(
-                              fontSize: Responsive.scale(context, 36, 48, 56),
+                  child: Padding(
+                    padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 20)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.scale(context, 6, 10, 14),
+                          ),
+                          child: AnimatedBuilder(
+                            animation: _emojiPulseController,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _emojiPulseAnimation.value,
+                                child: child,
+                              );
+                            },
+                            child: Text(
+                              widget.emoji,
+                              style: TextStyle(
+                                fontSize: Responsive.scale(context, 36, 48, 56),
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
-                      ),
-                      SizedBox(height: Responsive.scale(context, 4, 6, 8)),
-                      Text(
-                        widget.title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: Responsive.scale(context, 15, 18, 20),
-                          fontWeight: FontWeight.bold,
+                        SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: Responsive.scale(context, 18, 22, 24),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: Responsive.scale(context, 2, 3, 4)),
-                      Text(
-                        widget.subtitle,
-                        style: TextStyle(
-                          color: Colors.white.withAlpha(80),
-                          fontSize: Responsive.scale(context, 11, 13, 14),
-                          fontWeight: FontWeight.w500,
+                        SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+                        Text(
+                          widget.subtitle,
+                          style: TextStyle(
+                            color: Colors.white.withAlpha(80),
+                            fontSize: Responsive.scale(context, 13, 15, 16),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
               ),
             ),
           ),

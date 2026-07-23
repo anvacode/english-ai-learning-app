@@ -33,6 +33,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
   String? _userLevel;
   int _completedLessons = 0;
   int _totalLessons = 0;
+  int? _expandedLevelIndex;
 
   @override
   void initState() {
@@ -100,6 +101,12 @@ class _LessonsScreenState extends State<LessonsScreen> {
     return true;
   }
 
+  void _onLevelToggle(int index) {
+    setState(() {
+      _expandedLevelIndex = _expandedLevelIndex == index ? null : index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = LayoutBuilder(
@@ -141,100 +148,114 @@ class _LessonsScreenState extends State<LessonsScreen> {
               userLevel: _userLevel,
             ),
           ),
-          ..._buildLevelCards(horizontalPadding),
+          ..._buildLevelCardsMobile(horizontalPadding),
         ],
       ),
     );
   }
 
   Widget _buildTabletLayout(BuildContext context, BoxConstraints constraints, double horizontalPadding) {
-    final sidebarWidth = 180.0;
+    const sidebarWidth = 200.0;
+    const maxContentWidth = 900.0;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(horizontalPadding),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: sidebarWidth,
-              child: ProgressHeader(
-                completedLessons: _completedLessons,
-                totalLessons: _totalLessons,
-                userLevel: _userLevel,
-                isSidebar: true,
-              ),
-            ),
-            SizedBox(width: horizontalPadding),
-            Expanded(
-              child: Column(
-                children: List.generate(lessonLevels.length, (i) {
-                  return LevelSection(
-                    level: lessonLevels[i],
-                    levelIndex: i,
-                    isUnlocked: _isLevelUnlocked(i),
-                    evaluator: _evaluator,
-                    onLessonTap: _openLesson,
-                    startIndex: lessonLevels.take(i).fold(0, (sum, l) => sum + l.lessons.length),
-                    gridColumns: 4,
-                  );
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return _buildSidebarContent(
+      context: context,
+      constraints: constraints,
+      horizontalPadding: horizontalPadding,
+      sidebarWidth: sidebarWidth,
+      gridColumns: 3,
+      maxContentWidth: maxContentWidth,
     );
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints, double horizontalPadding) {
     final isWide = context.isWide;
-    final sidebarWidth = isWide ? 200.0 : 180.0;
-    final gridColumns = isWide ? 8 : 6;
+    final sidebarWidth = isWide ? 220.0 : 200.0;
+    const gridColumns = 4;
+    const maxContentWidth = 900.0;
+
+    return _buildSidebarContent(
+      context: context,
+      constraints: constraints,
+      horizontalPadding: horizontalPadding,
+      sidebarWidth: sidebarWidth,
+      gridColumns: gridColumns,
+      maxContentWidth: maxContentWidth,
+    );
+  }
+
+  Widget _buildSidebarContent({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required double horizontalPadding,
+    required double sidebarWidth,
+    required int gridColumns,
+    required double maxContentWidth,
+  }) {
+    final availableHeight = constraints.maxHeight - (horizontalPadding * 2);
 
     return SingleChildScrollView(
       padding: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(horizontalPadding),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: sidebarWidth,
-              child: ProgressHeader(
-                completedLessons: _completedLessons,
-                totalLessons: _totalLessons,
-                userLevel: _userLevel,
-                isSidebar: true,
-              ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: availableHeight),
+        child: Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: EdgeInsets.all(horizontalPadding),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: sidebarWidth,
+                  height: availableHeight,
+                  child: ProgressHeader(
+                    completedLessons: _completedLessons,
+                    totalLessons: _totalLessons,
+                    userLevel: _userLevel,
+                    isSidebar: true,
+                  ),
+                ),
+                SizedBox(width: horizontalPadding),
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxContentWidth),
+                    child: Column(
+                      children: _buildLevelSections(gridColumns),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: horizontalPadding),
-            Expanded(
-              child: Column(
-                children: List.generate(lessonLevels.length, (i) {
-                  return LevelSection(
-                    level: lessonLevels[i],
-                    levelIndex: i,
-                    isUnlocked: _isLevelUnlocked(i),
-                    evaluator: _evaluator,
-                    onLessonTap: _openLesson,
-                    startIndex: lessonLevels.take(i).fold(0, (sum, l) => sum + l.lessons.length),
-                    gridColumns: gridColumns,
-                  );
-                }),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildLevelCards(double horizontalPadding) {
+  List<Widget> _buildLevelSections(int gridColumns) {
+    return List.generate(lessonLevels.length, (i) {
+      return LevelSection(
+        level: lessonLevels[i],
+        levelIndex: i,
+        isUnlocked: _isLevelUnlocked(i),
+        evaluator: _evaluator,
+        onLessonTap: _openLesson,
+        startIndex: lessonLevels.take(i).fold(0, (sum, l) => sum + l.lessons.length),
+        gridColumns: gridColumns,
+        isExpanded: _expandedLevelIndex == i,
+        onToggle: () => _onLevelToggle(i),
+      );
+    });
+  }
+
+  List<Widget> _buildLevelCardsMobile(double horizontalPadding) {
     return List.generate(lessonLevels.length, (i) {
       return Padding(
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          bottom: i < lessonLevels.length - 1 ? 12.0 : 0.0,
+        ),
         child: LevelSection(
           level: lessonLevels[i],
           levelIndex: i,
@@ -243,6 +264,8 @@ class _LessonsScreenState extends State<LessonsScreen> {
           onLessonTap: _openLesson,
           startIndex: lessonLevels.take(i).fold(0, (sum, l) => sum + l.lessons.length),
           gridColumns: 2,
+          isExpanded: _expandedLevelIndex == i,
+          onToggle: () => _onLevelToggle(i),
         ),
       );
     });

@@ -123,7 +123,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildTabletLayout() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final rightColumnWidth = (constraints.maxWidth - 250 - 16).clamp(0.0, double.infinity);
+        final spacing = Responsive.scale(context, 16, 20, 20);
+        final rightColumnWidth = (constraints.maxWidth - 250 - spacing).clamp(0.0, double.infinity);
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -137,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            SizedBox(width: Responsive.scale(context, 16, 20, 20)),
+            SizedBox(width: spacing),
             SizedBox(
               width: rightColumnWidth,
               child: Column(

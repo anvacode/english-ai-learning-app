@@ -34,6 +34,8 @@ class FirestoreProgressService {
       await _firebaseService.firestore.collection('users').doc(user.uid).update({
         'profile.totalSessions': FieldValue.increment(1),
         'profile.lastActive': FieldValue.serverTimestamp(),
+        'profile.sessionsByDay.${formatDayKey(DateTime.now())}':
+            FieldValue.increment(1),
       });
 
       debugPrint('✅ Sesión registrada para ${user.email}');
@@ -326,6 +328,8 @@ class FirestoreProgressService {
       int activeToday = 0;
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
+      final createdAts = <DateTime?>[];
+      final sessionsByDayMaps = <Map<String, dynamic>?>[];
 
       for (final doc in snapshot.docs) {
         final data = doc.data();
@@ -347,6 +351,15 @@ class FirestoreProgressService {
           }
         }
 
+        final createdAtStr = profileData?['createdAt'] as String?;
+        createdAts.add(
+          createdAtStr != null ? DateTime.tryParse(createdAtStr) : null,
+        );
+
+        sessionsByDayMaps.add(
+          profileData?['sessionsByDay'] as Map<String, dynamic>?,
+        );
+
         final progressData = data['progress'] as Map<String, dynamic>?;
         if (progressData != null) {
           progressData.forEach((key, value) {
@@ -367,6 +380,8 @@ class FirestoreProgressService {
         totalSessions: totalSessions,
         totalCompletedLessons: totalCompletedLessons,
         activeToday: activeToday,
+        newUsersThisWeek: countNewUsersThisWeek(createdAts),
+        sessionsLast7Days: aggregateSessionsByDay(sessionsByDayMaps),
       );
     } catch (e) {
       debugPrint('❌ Error al obtener stats globales: $e');
@@ -458,11 +473,66 @@ class GlobalStats {
   final int totalSessions;
   final int totalCompletedLessons;
   final int activeToday;
+  final int newUsersThisWeek;
+  final List<DailyCount> sessionsLast7Days;
 
   const GlobalStats({
     this.totalUsers = 0,
     this.totalSessions = 0,
     this.totalCompletedLessons = 0,
     this.activeToday = 0,
+    this.newUsersThisWeek = 0,
+    this.sessionsLast7Days = const [],
   });
+}
+
+/// Conteo de sesiones de un día específico (para el gráfico del admin).
+class DailyCount {
+  final DateTime date;
+  final int count;
+
+  const DailyCount({required this.date, required this.count});
+}
+
+/// Clave de día en formato 'yyyy-MM-dd' usada en profile.sessionsByDay.
+String formatDayKey(DateTime date) {
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+}
+
+/// Agrega los mapas `sessionsByDay` ({'yyyy-MM-dd': count}) de varios
+/// usuarios en una lista de los últimos [days] días (terminando hoy),
+/// rellenando con 0 los días sin sesiones.
+List<DailyCount> aggregateSessionsByDay(
+  Iterable<Map<String, dynamic>?> perUserSessionsByDay, {
+  int days = 7,
+  DateTime? now,
+}) {
+  final effectiveNow = now ?? DateTime.now();
+  final todayStart = DateTime(
+    effectiveNow.year,
+    effectiveNow.month,
+    effectiveNow.day,
+  );
+
+  final totals = <String, int>{};
+  for (final map in perUserSessionsByDay) {
+    map?.forEach((key, value) {
+      if (value is num) {
+        totals[key] = (totals[key] ?? 0) + value.toInt();
+      }
+    });
+  }
+
+  return List.generate(days, (i) {
+    final date = todayStart.subtract(Duration(days: days - 1 - i));
+    return DailyCount(date: date, count: totals[formatDayKey(date)] ?? 0);
+  });
+}
+
+/// Cuenta cuántas fechas de creación caen dentro de los últimos 7 días.
+int countNewUsersThisWeek(Iterable<DateTime?> createdAts, {DateTime? now}) {
+  final effectiveNow = now ?? DateTime.now();
+  final weekAgo = effectiveNow.subtract(const Duration(days: 7));
+  return createdAts.where((d) => d != null && d.isAfter(weekAgo)).length;
 }

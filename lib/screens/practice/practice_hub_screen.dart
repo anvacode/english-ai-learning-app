@@ -107,7 +107,11 @@ class _PracticeHubScreenState extends State<PracticeHubScreen>
   int get _gridColumns {
     if (_selectedLessonFilter != null) return 2;
     if (_showSidebar) {
-      return 4;
+      // Con el sidebar visible el grid queda reducido; menos columnas
+      // para que las tarjetas no queden demasiado angostas.
+      if (Responsive.isWide(context)) return 4;
+      if (Responsive.isDesktop(context)) return 3;
+      return 2;
     }
     return 2;
   }

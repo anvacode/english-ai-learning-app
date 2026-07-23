@@ -128,7 +128,10 @@ class _ProgressHeaderState extends State<ProgressHeader>
 
   Widget _buildSidebarLayout(BuildContext context, int percentage) {
     return Container(
-      padding: EdgeInsets.all(Responsive.scale(context, 14, 16, 18)),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.scale(context, 14, 16, 18),
+        vertical: Responsive.scale(context, 20, 24, 28),
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [

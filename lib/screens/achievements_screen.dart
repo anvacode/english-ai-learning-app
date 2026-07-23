@@ -14,6 +14,14 @@ import '../widgets/responsive_container.dart';
 class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
 
+  String _getLessonName(String lessonId) {
+    final lesson = lessonsList.firstWhere(
+      (l) => l.id == lessonId,
+      orElse: () => lessonsList.first,
+    );
+    return lesson.title;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -21,131 +29,147 @@ class AchievementsScreen extends StatelessWidget {
       child: ResponsiveContainer(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(context.horizontalPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-            const SizedBox(height: 16),
-            Text(
-              'Logros',
-              style: context.headline2,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '🏆 Badges Desbloqueados',
-              style: context.headline3.copyWith(color: Colors.deepPurple),
-            ),
-            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-            FutureBuilder<List<achievement.Badge>>(
-              future: BadgeService.getBadges(lessonsList),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                final badges = snapshot.data ?? [];
-                final unlockedBadges = badges.where((b) => b.unlocked).toList();
-
-                if (unlockedBadges.isEmpty) {
-                  return Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 28)),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('🎯', style: TextStyle(fontSize: Responsive.scale(context, 48, 64, 72))),
-                        SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-                        Text(
-                          'Domina lecciones para desbloquear badges',
-                          style: context.bodyText.copyWith(color: Colors.grey),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: Responsive.gridColumns(context, mobile: 3, tablet: 4, desktop: 5, wide: 6),
-                  mainAxisSpacing: Responsive.gridSpacing(context),
-                  crossAxisSpacing: Responsive.gridSpacing(context),
-                  childAspectRatio: 0.7,
-                  children: unlockedBadges
-                      .map(
-                        (badge) => _BadgeCard(badge: badge, isUnlocked: true),
-                      )
-                      .toList(),
+          child: FutureBuilder<List<achievement.Badge>>(
+            future: BadgeService.getBadges(lessonsList),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
+                  ),
                 );
-              },
-            ),
-            SizedBox(height: Responsive.scale(context, 24, 32, 36)),
-            Text(
-              '📋 Próximos Badges',
-              style: context.headline3.copyWith(color: Colors.deepPurple),
-            ),
-            SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-            FutureBuilder<List<achievement.Badge>>(
-              future: BadgeService.getBadges(lessonsList),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const SizedBox.shrink();
-                }
+              }
 
-                final badges = snapshot.data ?? [];
-                final lockedBadges = badges.where((b) => !b.unlocked).toList();
+              final badges = snapshot.data ?? [];
+              final unlockedBadges = badges.where((b) => b.unlocked).toList();
+              final lockedBadges = badges.where((b) => !b.unlocked).toList();
 
-                if (lockedBadges.isEmpty) {
-                  return Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 16, 24, 28)),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('🎉', style: TextStyle(fontSize: Responsive.scale(context, 48, 64, 72))),
-                        SizedBox(height: Responsive.scale(context, 12, 16, 20)),
-                        Text(
-                          '¡Felicidades! Desbloqueaste todos los badges',
-                          style: TextStyle(
-                            fontSize: Responsive.scale(context, 14, 16, 18),
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: Responsive.gridColumns(context, mobile: 3, tablet: 4, desktop: 5, wide: 6),
-                  mainAxisSpacing: Responsive.gridSpacing(context),
-                  crossAxisSpacing: Responsive.gridSpacing(context),
-                  childAspectRatio: 0.7,
-                  children: lockedBadges
-                      .map(
-                        (badge) => _BadgeCard(badge: badge, isUnlocked: false),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-          ],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Text(
+                    'Logros',
+                    style: context.headline2,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Sección de badges desbloqueados
+                  Text(
+                    '🏆 Badges Obtenidos',
+                    style: context.headline3.copyWith(color: Colors.deepPurple),
+                  ),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                  if (unlockedBadges.isEmpty)
+                    _buildEmptyState(
+                      context,
+                      emoji: '🎯',
+                      message: 'Domina lecciones para desbloquear badges',
+                      color: Colors.grey[100]!,
+                    )
+                  else
+                    _buildBadgeGrid(context, unlockedBadges, true),
+                  
+                  SizedBox(height: Responsive.scale(context, 32, 40, 48)),
+                  
+                  // Sección de badges pendientes
+                  Text(
+                    '🔒 Por Obtener',
+                    style: context.headline3.copyWith(color: Colors.deepPurple),
+                  ),
+                  SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+                  if (lockedBadges.isEmpty)
+                    _buildEmptyState(
+                      context,
+                      emoji: '🎉',
+                      message: '¡Felicidades! Desbloqueaste todos los badges',
+                      color: Colors.green[50]!,
+                      textColor: Colors.green,
+                    )
+                  else
+                    _buildBadgeGrid(context, lockedBadges, false),
+                  
+                  const SizedBox(height: 32),
+                ],
+              );
+            },
+          ),
         ),
       ),
-    ),
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context, {
+    required String emoji,
+    required String message,
+    required Color color,
+    Color? textColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(Responsive.scale(context, 24, 32, 40)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(Responsive.borderRadius(context) + 4),
+      ),
+      child: Column(
+        children: [
+          Text(
+            emoji,
+            style: TextStyle(fontSize: Responsive.scale(context, 56, 64, 72)),
+          ),
+          SizedBox(height: Responsive.scale(context, 16, 20, 24)),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: Responsive.scale(context, 14, 16, 18),
+              fontWeight: FontWeight.w600,
+              color: textColor ?? Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeGrid(
+    BuildContext context,
+    List<achievement.Badge> badges,
+    bool isUnlocked,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = Responsive.gridColumns(
+          context,
+          mobile: 2,
+          tablet: 3,
+          desktop: 4,
+          wide: 5,
+        );
+        final spacing = Responsive.gridSpacing(context);
+        final itemWidth =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: badges
+              .map(
+                (badge) => SizedBox(
+                  width: itemWidth,
+                  child: _BadgeCard(
+                    badge: badge,
+                    isUnlocked: isUnlocked,
+                    lessonName: _getLessonName(badge.lessonId),
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -154,57 +178,123 @@ class AchievementsScreen extends StatelessWidget {
 class _BadgeCard extends StatelessWidget {
   final achievement.Badge badge;
   final bool isUnlocked;
+  final String lessonName;
 
-  const _BadgeCard({required this.badge, required this.isUnlocked});
+  const _BadgeCard({
+    required this.badge,
+    required this.isUnlocked,
+    required this.lessonName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = Responsive.scale(context, 28.0, 32.0, 36.0);
+    final iconSize = Responsive.scale(context, 48.0, 64.0, 72.0);
+    final borderRadius = Responsive.borderRadius(context) + 8;
 
     return Container(
-      padding: EdgeInsets.all(Responsive.scale(context, 6, 8, 10)),
+      padding: EdgeInsets.all(Responsive.scale(context, 12, 16, 24)),
       decoration: BoxDecoration(
-        color: isUnlocked ? Colors.amber[100] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(Responsive.borderRadius(context)),
+        gradient: isUnlocked
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.amber.shade200,
+                  Colors.amber.shade400,
+                ],
+              )
+            : null,
+        color: isUnlocked ? null : Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: isUnlocked ? Colors.amber[400]! : Colors.grey[400]!,
-          width: 2,
+          color: isUnlocked ? Colors.amber.shade600 : Colors.grey.shade400,
+          width: isUnlocked ? 4 : 2,
         ),
+        boxShadow: isUnlocked
+            ? [
+                BoxShadow(
+                  color: Colors.amber.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            badge.icon,
-            style: TextStyle(
-              fontSize: iconSize,
-              color: isUnlocked ? null : Colors.grey[400],
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: iconSize),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                badge.icon,
+                style: TextStyle(fontSize: iconSize),
+              ),
             ),
           ),
-          SizedBox(height: Responsive.scale(context, 4, 6, 8)),
+          SizedBox(height: Responsive.scale(context, 8, 12, 20)),
+          
+          // Título del badge
           Text(
             badge.title,
             style: TextStyle(
-              fontSize: Responsive.scale(context, 10, 12, 13),
+              fontSize: Responsive.scale(context, 12, 16, 18),
               fontWeight: FontWeight.bold,
-              color: isUnlocked ? Colors.amber[900] : Colors.grey[600],
+              color: isUnlocked ? Colors.amber[900] : Colors.grey[800],
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (!isUnlocked) ...[
-            SizedBox(height: Responsive.scale(context, 2, 3, 4)),
-            Text(
-              'Bloqueado',
-              style: TextStyle(
-                fontSize: Responsive.scale(context, 9, 10, 11),
-                color: Colors.grey[500],
-                fontStyle: FontStyle.italic,
+          SizedBox(height: Responsive.scale(context, 4, 10, 12)),
+          
+          // Estado o instrucción
+          if (isUnlocked)
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.scale(context, 12, 14, 16),
+                vertical: Responsive.scale(context, 4, 6, 8),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.green.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '✓ Obtenido',
+                style: TextStyle(
+                  fontSize: Responsive.scale(context, 11, 12, 13),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green.shade800,
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: EdgeInsets.all(Responsive.scale(context, 8, 10, 12)),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Completa:\n$lessonName',
+                style: TextStyle(
+                  fontSize: Responsive.scale(context, 10, 11, 12),
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ],
         ],
       ),
     );

@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import '../logic/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../services/firestore_progress_service.dart';
+import '../theme/app_colors.dart';
+import '../utils/responsive.dart';
 import '../utils/web_download.dart' as web_download;
 import '../widgets/responsive_container.dart';
 import '../widgets/responsive_snack_bar.dart';
@@ -137,10 +139,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Panel de Admin'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -211,6 +213,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   children: [
                     _buildStatsGrid(),
                     const SizedBox(height: 14),
+                    _buildSessionsChart(),
+                    const SizedBox(height: 14),
                     _buildSearchBar(),
                     const SizedBox(height: 8),
                     _buildUsersList(),
@@ -222,38 +226,114 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildStatsGrid() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 4,
-      mainAxisSpacing: 6,
-      crossAxisSpacing: 6,
-      children: [
-        _StatCard(
-          icon: Icons.people,
-          label: 'Usuarios',
-          value: _stats.totalUsers.toString(),
-          color: Colors.blue,
+    final cards = [
+      _StatCard(
+        icon: Icons.people,
+        label: 'Usuarios',
+        value: _stats.totalUsers.toString(),
+        color: AppColors.primary,
+        trend: _stats.newUsersThisWeek > 0
+            ? '+${_stats.newUsersThisWeek} esta semana'
+            : null,
+      ),
+      _StatCard(
+        icon: Icons.play_circle,
+        label: 'Sesiones',
+        value: _stats.totalSessions.toString(),
+        color: AppColors.info,
+      ),
+      _StatCard(
+        icon: Icons.check_circle,
+        label: 'Completadas',
+        value: _stats.totalCompletedLessons.toString(),
+        color: AppColors.success,
+      ),
+      _StatCard(
+        icon: Icons.local_fire_department,
+        label: 'Activos hoy',
+        value: _stats.activeToday.toString(),
+        color: AppColors.warningDark,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = Responsive.isMobile(context)
+            ? 1
+            : Responsive.isTablet(context)
+                ? 2
+                : 4;
+        const spacing = 10.0;
+        final cardWidth =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: cards
+              .map(
+                (card) => SizedBox(
+                  width: cardWidth,
+                  height: 96,
+                  child: card,
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildSessionsChart() {
+    final data = _stats.sessionsLast7Days;
+    final hasData = data.any((d) => d.count > 0);
+
+    return Card(
+      color: AppColors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.show_chart, size: 18, color: AppColors.primary),
+                SizedBox(width: 6),
+                Text(
+                  'Sesiones · últimos 7 días',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 140,
+              width: double.infinity,
+              child: hasData
+                  ? CustomPaint(
+                      painter: _SessionsChartPainter(data),
+                    )
+                  : const Center(
+                      child: Text(
+                        'Aún no hay sesiones registradas por día',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+            ),
+          ],
         ),
-        _StatCard(
-          icon: Icons.play_circle,
-          label: 'Sesiones',
-          value: _stats.totalSessions.toString(),
-          color: Colors.purple,
-        ),
-        _StatCard(
-          icon: Icons.check_circle,
-          label: 'Completadas',
-          value: _stats.totalCompletedLessons.toString(),
-          color: Colors.green,
-        ),
-        _StatCard(
-          icon: Icons.local_fire_department,
-          label: 'Activos hoy',
-          value: _stats.activeToday.toString(),
-          color: Colors.orange,
-        ),
-      ],
+      ),
     );
   }
 
@@ -287,7 +367,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.deepPurple, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
@@ -412,7 +492,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.nickname ?? widget.email),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -453,7 +533,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             Row(
               children: [
                 const CircleAvatar(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: AppColors.primary,
                   child: Icon(Icons.person, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
@@ -601,45 +681,79 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final String? trend;
 
   const _StatCard({
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    this.trend,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
       ),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(icon, color: color, size: 16),
+            ],
+          ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color.withValues(alpha: 0.7),
+            style: const TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+              height: 1.1,
             ),
           ),
+          if (trend != null) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                const Icon(
+                  Icons.arrow_upward,
+                  size: 12,
+                  color: AppColors.success,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  trend!,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -693,6 +807,43 @@ class _StatBox extends StatelessWidget {
   }
 }
 
+/// Iniciales (máx. 2 letras) a partir del nickname o, en su defecto, el email.
+String avatarInitials(String? nickname, String email) {
+  final source = (nickname != null && nickname.trim().isNotEmpty)
+      ? nickname.trim()
+      : email.trim();
+  final parts =
+      source.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) {
+    final word = parts.first;
+    return word
+        .substring(0, word.length >= 2 ? 2 : 1)
+        .toUpperCase();
+  }
+  return (parts.first[0] + parts.last[0]).toUpperCase();
+}
+
+/// Color de avatar determinístico basado en el hash del uid,
+/// usando la paleta de colores de la app.
+Color avatarColorFor(String uid) {
+  const palette = [
+    AppColors.primary,
+    AppColors.secondary,
+    AppColors.success,
+    AppColors.info,
+    AppColors.purpleMagic,
+    AppColors.orangeSun,
+    AppColors.tealOcean,
+    AppColors.pinkFun,
+  ];
+  var hash = 0;
+  for (final codeUnit in uid.codeUnits) {
+    hash = (hash * 31 + codeUnit) & 0x7FFFFFFF;
+  }
+  return palette[hash % palette.length];
+}
+
 class _UserTile extends StatelessWidget {
   final UserSummary user;
   final String Function(DateTime?) formatDate;
@@ -706,22 +857,29 @@ class _UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final progress = user.totalLessons > 0
+        ? user.completedLessons / user.totalLessons
+        : 0.0;
+
     return Column(
       children: [
         InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: avatarColorFor(user.uid),
+                  child: Text(
+                    avatarInitials(user.nickname, user.email),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  child: const Icon(Icons.person, color: Colors.deepPurple, size: 16),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -738,27 +896,47 @@ class _UserTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
+                      Text(
+                        '${user.totalSessions} sesiones · ${formatDate(user.lastActive)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.play_circle_outline, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 3),
-                          Text('${user.totalSessions}', style: const TextStyle(fontSize: 13)),
-                          const SizedBox(width: 10),
-                          Icon(Icons.school_outlined, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 3),
-                          Text('${user.completedLessons}/${user.totalLessons}', style: const TextStyle(fontSize: 13)),
-                          const SizedBox(width: 10),
-                          Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
-                          const SizedBox(width: 3),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 5,
+                                backgroundColor: AppColors.surfaceVariant,
+                                valueColor:
+                                    const AlwaysStoppedAnimation<Color>(
+                                  AppColors.success,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Text(
-                            formatDate(user.lastActive),
-                            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                            '${user.completedLessons}/${user.totalLessons}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
                 Icon(Icons.chevron_right, size: 16, color: Colors.grey[400]),
               ],
             ),
@@ -768,6 +946,135 @@ class _UserTile extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Painter del gráfico de línea "sesiones por día" (últimos 7 días).
+/// Línea simple con relleno suave, sin dependencias externas.
+class _SessionsChartPainter extends CustomPainter {
+  final List<DailyCount> data;
+
+  const _SessionsChartPainter(this.data);
+
+  static const _dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+
+    const topPadding = 16.0;
+    const bottomLabelSpace = 20.0;
+    final chartHeight = size.height - topPadding - bottomLabelSpace;
+    if (chartHeight <= 0) return;
+
+    final maxCount = data.fold<int>(0, (m, d) => d.count > m ? d.count : m);
+    final maxY = (maxCount == 0 ? 1 : maxCount).toDouble();
+    final stepX = data.length > 1 ? size.width / (data.length - 1) : 0.0;
+    final baselineY = size.height - bottomLabelSpace;
+
+    final points = <Offset>[
+      for (var i = 0; i < data.length; i++)
+        Offset(
+          data.length > 1 ? i * stepX : size.width / 2,
+          topPadding + chartHeight * (1 - data[i].count / maxY),
+        ),
+    ];
+
+    // Línea base
+    canvas.drawLine(
+      Offset(0, baselineY),
+      Offset(size.width, baselineY),
+      Paint()
+        ..color = AppColors.border
+        ..strokeWidth = 1,
+    );
+
+    // Relleno suave bajo la curva
+    final fillPath = Path()..moveTo(points.first.dx, baselineY);
+    for (final point in points) {
+      fillPath.lineTo(point.dx, point.dy);
+    }
+    fillPath
+      ..lineTo(points.last.dx, baselineY)
+      ..close();
+
+    canvas.drawPath(
+      fillPath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.primary.withAlpha(50),
+            AppColors.primary.withAlpha(5),
+          ],
+        ).createShader(Rect.fromLTWH(0, topPadding, size.width, chartHeight)),
+    );
+
+    // Línea
+    final linePath = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var i = 1; i < points.length; i++) {
+      linePath.lineTo(points[i].dx, points[i].dy);
+    }
+    canvas.drawPath(
+      linePath,
+      Paint()
+        ..color = AppColors.primary
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Puntos
+    final dotPaint = Paint()..color = AppColors.primary;
+    final dotInnerPaint = Paint()..color = Colors.white;
+    for (final point in points) {
+      canvas.drawCircle(point, 3, dotPaint);
+      canvas.drawCircle(point, 1.5, dotInnerPaint);
+    }
+
+    // Etiquetas de día (L M X J V S D)
+    for (var i = 0; i < data.length; i++) {
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: _dayLabels[data[i].date.weekday - 1],
+          style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      textPainter.paint(
+        canvas,
+        Offset(points[i].dx - textPainter.width / 2, baselineY + 5),
+      );
+    }
+
+    // Valores sobre los puntos con sesiones
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].count == 0) continue;
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${data[i].count}',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          points[i].dx - textPainter.width / 2,
+          points[i].dy - textPainter.height - 4,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SessionsChartPainter oldDelegate) =>
+      oldDelegate.data != data;
 }
 
 class _LessonProgressTile extends StatelessWidget {

@@ -1,14 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import 'feedback_messages.dart';
 
 /// Widget de retroalimentación animado para niños.
 ///
-/// Muestra un emoji grande con animación + mensaje motivacional:
+/// Muestra un modal centrado con emoji grande + mensaje motivacional:
 /// - Correcto: emoji bounce + mensaje verde
 /// - Incorrecto: emoji pulse + mensaje rojo/naranja
 /// - Racha 3+: emoji fuego con escala creciente
+/// - Auto-dismiss después de 2 segundos
 class FeedbackWidget extends StatefulWidget {
   final bool isCorrect;
   final int attemptNumber;
@@ -34,8 +36,10 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _shakeAnimation;
+  late Animation<double> _fadeAnimation;
   late String _cachedMessage;
   late String _cachedEmoji;
+  Timer? _autoDismissTimer;
 
   @override
   void initState() {
@@ -48,6 +52,13 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
     _cacheMessageAndEmoji();
     _setupAnimations();
     _animationController.forward();
+    
+    // Auto-dismiss después de 2 segundos
+    _autoDismissTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        widget.onContinue();
+      }
+    });
   }
 
   void _cacheMessageAndEmoji() {
@@ -112,6 +123,11 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
         curve: Curves.easeOut,
       ));
     }
+    
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
+    );
   }
 
   @override
@@ -123,6 +139,7 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
 
   @override
   void dispose() {
+    _autoDismissTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -139,227 +156,57 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
     return Colors.red[700]!;
   }
 
-  String _getButtonText() {
-    if (widget.isCorrect) return '¡Continuar!';
-    if (widget.attemptNumber >= 3) return 'Siguiente';
-    return 'Intentar de nuevo';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-    final isTablet = Responsive.isTablet(context);
-    
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(_shakeAnimation.value, 0),
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: isMobile || isTablet
-                ? _buildCompactLayout(context)
-                : _buildDesktopLayout(context),
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Transform.translate(
+            offset: Offset(_shakeAnimation.value, 0),
+            child: Transform.scale(
+              scale: _scaleAnimation.value,
+              child: _buildModalContent(context),
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildCompactLayout(BuildContext context) {
+  Widget _buildModalContent(BuildContext context) {
+    final maxWidth = Responsive.scale(context, 280.0, 320.0, 360.0);
+    
     return Container(
-      constraints: BoxConstraints(
-        maxWidth: Responsive.scale(context, 320, 360, 400),
-      ),
-      padding: EdgeInsets.all(Responsive.scale(context, 12, 14, 16)),
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      padding: EdgeInsets.all(Responsive.scale(context, 24.0, 28.0, 32.0)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             _getBackgroundColor().withAlpha(240),
+            _getBackgroundColor().withAlpha(220),
             _getBackgroundColor().withAlpha(200),
-            _getBackgroundColor().withAlpha(180),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: Colors.white.withAlpha(100),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _getTextColor().withAlpha(80),
-            blurRadius: 20,
-            spreadRadius: 2,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.white.withAlpha(60),
-            blurRadius: 10,
-            spreadRadius: 1,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Emoji con efecto glassmorphism
-          Container(
-            width: Responsive.scale(context, 56, 60, 64),
-            height: Responsive.scale(context, 56, 60, 64),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  Colors.white.withAlpha(120),
-                  Colors.white.withAlpha(40),
-                ],
-              ),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withAlpha(80),
-                width: 2,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                _cachedEmoji,
-                style: TextStyle(
-                  fontSize: Responsive.scale(context, 32, 36, 40),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.scale(context, 12, 14, 16)),
-          
-          // Contenido: mensaje + botón
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Mensaje
-                Text(
-                  _cachedMessage,
-                  style: TextStyle(
-                    fontSize: Responsive.scale(context, 14, 15, 16),
-                    fontWeight: FontWeight.bold,
-                    color: _getTextColor(),
-                    height: 1.2,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                
-                // Indicador de racha si aplica
-                if (widget.streak >= 3) ...[
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.orange[400]!,
-                          Colors.red[400]!,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('🔥', style: TextStyle(fontSize: 12)),
-                        SizedBox(width: 3),
-                        Text(
-                          '${widget.streak}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                
-                SizedBox(height: 8),
-                
-                // Botón compacto
-                SizedBox(
-                  width: double.infinity,
-                  height: Responsive.scale(context, 36, 38, 40),
-                  child: ElevatedButton(
-                    onPressed: widget.onContinue,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.isCorrect ? Colors.green : AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _getButtonText(),
-                          style: TextStyle(
-                            fontSize: Responsive.scale(context, 13, 14, 15),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Icon(
-                          widget.isCorrect ? Icons.arrow_forward : Icons.refresh,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopLayout(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxWidth: Responsive.scale(context, 340, 380, 420),
-      ),
-      padding: EdgeInsets.all(Responsive.scale(context, 16, 18, 20)),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            _getBackgroundColor().withAlpha(240),
-            _getBackgroundColor().withAlpha(200),
-            _getBackgroundColor().withAlpha(180),
           ],
         ),
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
           color: Colors.white.withAlpha(100),
-          width: 1.5,
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: _getTextColor().withAlpha(80),
-            blurRadius: 24,
-            spreadRadius: 3,
+            color: _getTextColor().withAlpha(100),
+            blurRadius: 30,
+            spreadRadius: 5,
             offset: const Offset(0, 10),
           ),
           BoxShadow(
             color: Colors.white.withAlpha(60),
-            blurRadius: 12,
-            spreadRadius: 1,
+            blurRadius: 15,
+            spreadRadius: 2,
             offset: const Offset(0, -2),
           ),
         ],
@@ -369,8 +216,8 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
         children: [
           // Emoji con efecto glassmorphism
           Container(
-            width: Responsive.scale(context, 64, 68, 72),
-            height: Responsive.scale(context, 64, 68, 72),
+            width: Responsive.scale(context, 80.0, 88.0, 96.0),
+            height: Responsive.scale(context, 80.0, 88.0, 96.0),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
@@ -388,30 +235,35 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
               child: Text(
                 _cachedEmoji,
                 style: TextStyle(
-                  fontSize: Responsive.scale(context, 36, 40, 44),
+                  fontSize: Responsive.scale(context, 48.0, 52.0, 56.0),
                 ),
               ),
             ),
           ),
-          SizedBox(height: Responsive.scale(context, 10, 12, 14)),
+          SizedBox(height: Responsive.scale(context, 16.0, 18.0, 20.0)),
           
           // Mensaje
           Text(
             _cachedMessage,
             style: TextStyle(
-              fontSize: Responsive.scale(context, 15, 16, 17),
+              fontSize: Responsive.scale(context, 16.0, 17.0, 18.0),
               fontWeight: FontWeight.bold,
               color: _getTextColor(),
               height: 1.3,
             ),
             textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
           
           // Indicador de racha si aplica
           if (widget.streak >= 3) ...[
-            SizedBox(height: 8),
+            SizedBox(height: Responsive.scale(context, 12.0, 14.0, 16.0)),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.scale(context, 14.0, 16.0, 18.0),
+                vertical: Responsive.scale(context, 6.0, 7.0, 8.0),
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -419,17 +271,17 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
                     Colors.red[400]!,
                   ],
                 ),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('🔥', style: TextStyle(fontSize: 13)),
-                  SizedBox(width: 4),
+                  Text('🔥', style: TextStyle(fontSize: Responsive.scale(context, 14.0, 15.0, 16.0))),
+                  SizedBox(width: Responsive.scale(context, 6.0, 7.0, 8.0)),
                   Text(
                     'Racha: ${widget.streak}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: Responsive.scale(context, 13.0, 14.0, 15.0),
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -438,43 +290,6 @@ class _FeedbackWidgetState extends State<FeedbackWidget>
               ),
             ),
           ],
-          
-          SizedBox(height: Responsive.scale(context, 12, 14, 16)),
-          
-          // Botón
-          SizedBox(
-            width: double.infinity,
-            height: Responsive.scale(context, 40, 42, 44),
-            child: ElevatedButton(
-              onPressed: widget.onContinue,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: widget.isCorrect ? Colors.green : AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                elevation: 2,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _getButtonText(),
-                    style: TextStyle(
-                      fontSize: Responsive.scale(context, 14, 15, 16),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(
-                    widget.isCorrect ? Icons.arrow_forward : Icons.refresh,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

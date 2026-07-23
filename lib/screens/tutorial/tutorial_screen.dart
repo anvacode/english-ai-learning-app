@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/tutorial_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../home_screen.dart';
 
@@ -128,28 +129,37 @@ class _TutorialScreenState extends State<TutorialScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.scale(context, 16, 20, 24),
+                vertical: Responsive.scale(context, 10, 12, 14),
+              ),
               child: Row(
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.textSecondary,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.scale(context, 10, 12, 14),
+                        vertical: Responsive.scale(context, 6, 8, 10),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Cerrar',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: Responsive.scale(context, 15, 16, 17),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const Spacer(),
                   Text(
                     '${_currentPage + 1} / ${_cards.length}',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: Responsive.scale(context, 15, 16, 17),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textTertiary,
                     ),
@@ -160,110 +170,127 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
             // Tarjetas deslizables
             Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _cards.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return _buildCard(_cards[index]);
-                },
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 600),
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _cards.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildCard(_cards[index]);
+                    },
+                  ),
+                ),
               ),
             ),
 
             // Indicadores y botón
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Indicadores de página
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_cards.length, (index) {
-                      final isActive = index == _currentPage;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isActive ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: isActive ? AppColors.primary : AppColors.border,
-                          borderRadius: BorderRadius.circular(4),
+            Flexible(
+              child: Padding(
+                padding: EdgeInsets.all(Responsive.scale(context, 20, 24, 28)),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 600),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Indicadores de página
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_cards.length, (index) {
+                            final isActive = index == _currentPage;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: isActive ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: isActive ? AppColors.primary : AppColors.border,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
                         ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 24),
+                        SizedBox(height: Responsive.scale(context, 16, 20, 24)),
 
-                  // Botón principal
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            isLastPage ? '¡Empezar a jugar!' : 'Siguiente',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        // Botón principal
+                        SizedBox(
+                          width: double.infinity,
+                          height: Responsive.scale(context, 48, 52, 56),
+                          child: ElevatedButton(
+                            onPressed: _nextPage,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  isLastPage ? '¡Empezar a jugar!' : 'Siguiente',
+                                  style: TextStyle(
+                                    fontSize: Responsive.scale(context, 15, 16, 17),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: Responsive.scale(context, 6, 8, 10)),
+                                Icon(
+                                  isLastPage ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
+                                  size: Responsive.scale(context, 18, 20, 22),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            isLastPage ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
-                            size: 22,
+                        ),
+
+                        // Botón para ver tour guiado interactivo (solo en Configuración)
+                        if (!widget.showPlayButton && isLastPage)
+                          Padding(
+                            padding: EdgeInsets.only(top: Responsive.scale(context, 8, 10, 12)),
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                await TutorialService.requestInteractiveTutorial();
+                                if (!context.mounted) return;
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                  (route) => false,
+                                );
+                              },
+                              icon: Icon(Icons.touch_app_outlined, size: Responsive.scale(context, 16, 18, 20)),
+                              label: Text(
+                                'Ver tour guiado interactivo',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: Responsive.scale(context, 13, 14, 15),
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 3,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.scale(context, 18, 22, 26),
+                                  vertical: Responsive.scale(context, 10, 12, 14),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-
-                  // Botón para ver tour guiado interactivo (solo en Configuración)
-                  if (!widget.showPlayButton && isLastPage)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          await TutorialService.requestInteractiveTutorial();
-                          if (!context.mounted) return;
-                          // Navegar a HomeScreen y el tour aparecerá automáticamente
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (_) => const HomeScreen()),
-                            (route) => false,
-                          );
-                        },
-                        icon: const Icon(Icons.touch_app_outlined, size: 20),
-                        label: const Text(
-                          'Ver tour guiado interactivo',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          elevation: 3,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           ],
@@ -274,7 +301,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
   Widget _buildCard(_TutorialCardData data) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.scale(context, 20, 24, 28),
+        vertical: Responsive.scale(context, 10, 12, 14),
+      ),
       child: Container(
         decoration: BoxDecoration(
           gradient: data.gradient,
@@ -289,47 +319,45 @@ class _TutorialScreenState extends State<TutorialScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Emoji gigante
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(40),
-                  shape: BoxShape.circle,
+          padding: EdgeInsets.all(Responsive.scale(context, 24, 28, 32)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(Responsive.scale(context, 20, 24, 28)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(40),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    data.emoji,
+                    style: TextStyle(fontSize: Responsive.scale(context, 60, 70, 80)),
+                  ),
                 ),
-                child: Text(
-                  data.emoji,
-                  style: const TextStyle(fontSize: 80),
+                SizedBox(height: Responsive.scale(context, 24, 28, 32)),
+                Text(
+                  data.title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: Responsive.scale(context, 24, 26, 28),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-
-              // Título
-              Text(
-                data.title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                SizedBox(height: Responsive.scale(context, 12, 14, 16)),
+                Text(
+                  data.description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: Responsive.scale(context, 15, 16, 18),
+                    color: Colors.white.withAlpha(230),
+                    height: 1.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Descripción
-              Text(
-                data.description,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white.withAlpha(230),
-                  height: 1.5,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

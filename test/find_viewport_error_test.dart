@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:english_ai_app/logic/auth_provider.dart';
 import 'package:english_ai_app/logic/lesson_controller.dart';
-import 'package:english_ai_app/services/theme_service.dart';
 import 'package:english_ai_app/services/connectivity_service.dart';
 import 'package:english_ai_app/screens/lessons_screen.dart';
 import 'package:english_ai_app/screens/practice/practice_hub_screen.dart';
@@ -19,7 +18,6 @@ Widget wrapWithProviders(Widget child) {
     providers: [
       ChangeNotifierProvider(create: (_) => AuthProvider()),
       ChangeNotifierProvider(create: (_) => LessonController()),
-      ChangeNotifierProvider(create: (_) => ThemeService()..initialize()),
       ChangeNotifierProvider.value(value: ConnectivityService()),
     ],
     child: MaterialApp(

@@ -18,12 +18,10 @@ void main() {
       expect(items.isNotEmpty, isTrue);
     });
 
-    test('contains avatars, themes, effects, and powerups', () {
+    test('contains effects and powerups', () {
       final items = ShopService.getAvailableItems();
       final types = items.map((i) => i.type).toSet();
 
-      expect(types.contains(ShopItemType.avatar), isTrue);
-      expect(types.contains(ShopItemType.theme), isTrue);
       expect(types.contains(ShopItemType.effect), isTrue);
       expect(types.contains(ShopItemType.powerup), isTrue);
     });
@@ -92,8 +90,8 @@ void main() {
     });
 
     test('marks item as purchased', () async {
-      await StarService.addStars(50, 'lesson_complete');
-      final item = ShopService.getAvailableItems()[0]; // avatar_star (50 stars)
+      await StarService.addStars(55, 'lesson_complete');
+      final item = ShopService.getAvailableItems()[0]; // effect_sparkles (55 stars)
 
       await ShopService.purchaseItem(item);
 
@@ -138,18 +136,6 @@ void main() {
       final avatarId = await ShopService.getActiveAvatarId();
       expect(avatarId, isNull);
     });
-
-    test('returns avatar ID after purchasing avatar', () async {
-      await StarService.addStars(200, 'lesson_complete');
-      final avatarItem = ShopService.getAvailableItems().firstWhere(
-        (i) => i.type == ShopItemType.avatar,
-      );
-
-      await ShopService.purchaseItem(avatarItem);
-
-      final avatarId = await ShopService.getActiveAvatarId();
-      expect(avatarId, isNotNull);
-    });
   });
 
   group('ShopItem', () {
@@ -159,10 +145,10 @@ void main() {
         name: 'Test Item',
         description: 'A test item',
         price: 25,
-        type: ShopItemType.theme,
-        icon: '🎨',
+        type: ShopItemType.effect,
+        icon: '✨',
         imageAsset: 'assets/test.png',
-        metadata: {'themeId': 'test'},
+        metadata: {'effectId': 'test'},
       );
 
       final json = item.toJson();

@@ -222,27 +222,31 @@ class _AdaptivePracticeCardState extends State<AdaptivePracticeCard>
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: widget.isUnlocked
-                              ? activityColor.withAlpha(20)
-                              : Colors.grey[200]!,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          widget.isUnlocked
-                              ? widget.activity.typeName
-                              : 'Bloqueado',
-                          style: TextStyle(
-                            fontSize: Responsive.scale(context, 9, 10, 11),
-                            fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
                             color: widget.isUnlocked
-                                ? activityColor
-                                : Colors.grey[600],
+                                ? activityColor.withAlpha(20)
+                                : Colors.grey[200]!,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.isUnlocked
+                                ? widget.activity.typeName
+                                : 'Bloqueado',
+                            style: TextStyle(
+                              fontSize: Responsive.scale(context, 9, 10, 11),
+                              fontWeight: FontWeight.w600,
+                              color: widget.isUnlocked
+                                  ? activityColor
+                                  : Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),

@@ -12,7 +12,8 @@ import 'services/connectivity_service.dart';
 import 'services/firebase_service.dart';
 import 'services/sync_queue_service.dart';
 import 'services/sync_service.dart';
-import 'services/theme_service.dart';
+import 'theme/app_colors.dart';
+import 'theme/app_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,19 +88,22 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => LessonController()),
-        ChangeNotifierProvider(create: (context) => ThemeService()..initialize()),
         ChangeNotifierProvider.value(
           value: ConnectivityService(),
         ),
       ],
-      child: Consumer<ThemeService>(
-        builder: (context, themeService, child) {
-          return MaterialApp(
-            title: 'ELA',
-            theme: ThemeService.getThemeData(themeService.activeThemeId),
-            home: const SplashScreen(),
-          );
-        },
+      child: MaterialApp(
+        title: 'ELA',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
+          fontFamily: AppFonts.family,
+        ),
+        home: const SplashScreen(),
       ),
     );
   }

@@ -40,7 +40,8 @@ class _AuthStatusWidgetState extends State<AuthStatusWidget>
       ),
     );
 
-    _animationController.repeat(reverse: true);
+    // Pulsa unas veces al aparecer y se detiene (evita animación infinita).
+    _animationController.repeat(reverse: true, count: 3);
   }
 
   @override
